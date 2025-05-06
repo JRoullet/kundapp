@@ -1,0 +1,57 @@
+services:
+  network-deploy-service:
+    networks:
+      - healthcare
+
+  microservice-base-config:
+    extends:
+      service: network-deploy-service
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+
+  microservice-configserver-config:
+    extends:
+      service: microservice-base-config
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CONFIG_IMPORT: configserver:http://msconfigserver:8888/
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+  microservice-discovery-config:
+    extends:
+      service:
+        microservice-configserver-config
+    depends_on:
+      msconfigserver:
+        condition: service_healthy
+      msdiscovery:
+        condition: service_healthy
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://msdiscovery:8761/eureka/
+
+  microservice-db-config:
+    extends:
+      service: network-deploy-service
+    image: mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+      interval: 10s
+      start_period: 10s
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+  microservice-mongo-config:
+    extends:
+      service: network-deploy-service
+    image: mongo
+    healthcheck:
+      test: ["CMD", "mongosh", "admin", "--username=root", "--password=123", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s

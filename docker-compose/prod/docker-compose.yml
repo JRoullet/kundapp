@@ -1,0 +1,131 @@
+services:
+
+  msconfigserver:
+    image: jroullet/kundapp-ms-configserver:latest
+    container_name: configserver-ms
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: "curl --fail --silent localhost:8888/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    extends:
+      file: common-config.yml
+      service: microservice-base-config
+    secrets:
+      - git_password
+    environment:
+      GIT_PASSWORD_FILE: /run/secrets/git_password
+
+  msdiscovery:
+    image: jroullet/kundapp-ms-discovery:latest
+    container_name: discovery-ms
+    ports:
+      - "8761:8761"
+    depends_on:
+      msconfigserver:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8761/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    extends:
+      file: common-config.yml
+      service: microservice-configserver-config
+
+  msidentitydb:
+    container_name: identitydb
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_DATABASE: identitydb
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
+  mscoursemgmtdb:
+    container_name: coursemgmtdb
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_DATABASE: coursemgmtdb
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
+#  msmongodb:
+#    container_name: mongodb
+#    ports:
+#      - "27018:27017"
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: 123
+#    extends:
+#      file: common-config.yml
+#      service: microservice-mongo-config
+
+  mswebapp:
+    image: jroullet/kundapp-ms-webapp:latest
+    container_name: webapp-ms
+    ports:
+      - "8080:8080"
+    depends_on:
+      msidentitydb:
+        condition: service_healthy
+    extends:
+      file: common-config.yml
+      service: microservice-discovery-config
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://msidentitydb:3306/identitydb
+
+  msidentity:
+    image: jroullet/kundapp-ms-identity:latest
+    container_name: identity-ms
+    ports:
+      - "8090:8090"
+    depends_on:
+      msidentitydb:
+        condition: service_healthy
+    extends:
+      file: common-config.yml
+      service: microservice-discovery-config
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://msidentitydb:3306/identitydb
+
+  mscoursemgmt:
+    image: jroullet/kundapp-ms-course-mgmt:latest
+    container_name: course-mgmt-ms
+    ports:
+      - "9000:9000"
+    depends_on:
+      mscoursemgmtdb:
+        condition: service_healthy
+    extends:
+      file: common-config.yml
+      service: microservice-discovery-config
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mscoursemgmtdb:3306/coursemgmtdb
+
+#  msnotes:
+#    image: jroullet/kundapp-ms-notes:latest
+#    container_name: notes-ms
+#    ports:
+#      - "9000:9000"
+#    depends_on:
+#      msmongodb:
+#        condition: service_healthy
+#    extends:
+#      file: common-config.yml
+#      service: microservice-discovery-config
+
+secrets:
+  git_password:
+    file: ./git_password.txt
+
+networks:
+  healthcare:
+    driver: "bridge"
