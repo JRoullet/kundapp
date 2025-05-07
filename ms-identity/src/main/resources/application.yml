@@ -1,0 +1,17 @@
+#------ Imported config must be quite empty to avoid loosing time from a/r -----#
+server:
+  port: 8090
+spring:
+  application:
+    name: ms-identity
+  config:
+    import: optional:configserver:http://localhost:8888/
+  datasource:
+    url: jdbc:mysql://localhost:3306/identitydb
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

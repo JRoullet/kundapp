@@ -16,7 +16,7 @@ spring:
           uri: https://github.com/JRoullet/kundapp_config.git
           username: JRoullet
           password: ${GIT_PASSWORD}
-          default-label: main
+          default-label: master
           timeout: 5
           clone-on-start: true
           force-pull: true
