@@ -4,6 +4,7 @@ import feign.FeignException;
 import jroullet.mswebapp.clients.IdentityFeignClient;
 import jroullet.mswebapp.dto.EmailDto;
 import jroullet.mswebapp.model.User;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,14 +13,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+@RequiredArgsConstructor
 @Service // Authentication procedure BY SPRING SECURITY OWN MANAGEMENT
 public class AuthenticationService implements UserDetailsService {
 
-    public AuthenticationService(IdentityFeignClient identityFeignClient) {
-        this.identityFeignClient = identityFeignClient;
-    }
-
-    @Autowired
 //    private UserService userService;
     private final static Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
     private final IdentityFeignClient identityFeignClient;

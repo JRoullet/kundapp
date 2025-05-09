@@ -16,13 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-
 @Controller
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-
     private final static Logger logger = LoggerFactory.getLogger(UserController.class);
 
     // SPRING SECURITY OWN MANAGEMENT
@@ -43,27 +41,23 @@ public class UserController {
 
     @PostMapping("/signup")
     public ModelAndView processSignUp(@Valid @ModelAttribute("signUpForm") SignUpForm form,
-                                BindingResult result, RedirectAttributes redirectAttributes){
-
-        if(result.hasErrors()){
+                                BindingResult result, RedirectAttributes redirectAttributes) {
+        if(result.hasErrors()) {
             return new ModelAndView("signup", "signUpForm", form);
         }
-        try{
+        try {
             userService.registration(form);
-            return new ModelAndView("signin", "signInForm", form);
-        }
-        catch(RuntimeException e){
-            // Redirects an attribute => error to display it => from sign up page to the signin page
-            redirectAttributes.addFlashAttribute("authError","Username already exists");
-            return new ModelAndView( "redirect:/signin");
+            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please sign in.");
+            return new ModelAndView("redirect:/signin");
+        } catch(RuntimeException e) {
+            logger.error("Registration failed: ", e);
+            redirectAttributes.addFlashAttribute("authError", "Registration failed: " + e.getMessage());
+            return new ModelAndView("redirect:/signin");
         }
     }
-
 
     @GetMapping("/logout")
     public ModelAndView showLogout() {
-        return new ModelAndView ("logout");
+        return new ModelAndView("logout");
     }
-
-
 }

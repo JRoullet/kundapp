@@ -1,6 +1,5 @@
 package jroullet.mswebapp.service;
 
-
 import feign.FeignException;
 import jroullet.mswebapp.clients.IdentityFeignClient;
 import jroullet.mswebapp.dto.SignUpForm;
@@ -23,44 +22,44 @@ public class UserService {
     private final IdentityFeignClient identityFeignClient;
     private final static Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public Optional<User> findByEmail(EmailDto email){
-        logger.info("findByEmail: " + email);
-        try{
+    public Optional<User> findByEmail(EmailDto email) {
+        logger.info("Finding user by email: {}", email.getEmail());
+        try {
             User user = identityFeignClient.findUserByEmail(email);
-            logger.info("User found: " + (user != null ? user.getEmail() : "null"));
+            logger.info("User found: {}", user != null ? user.getEmail() : "null");
             return Optional.ofNullable(user);
-        }
-        catch (FeignException.NotFound e){
-            logger.info("User not found: " + email);
+        } catch (FeignException.NotFound e) {
+            logger.info("User not found: {}", email.getEmail());
             return Optional.empty();
+        } catch (Exception e) {
+            logger.error("Error while finding user: {}", email.getEmail(), e);
+            throw new RuntimeException("Error while finding user", e);
         }
-        catch (Exception e){
-            logger.error("Error while finding user: " + email, e);
-            throw e;
-        }
-
     }
 
-    public User registration(SignUpForm form){
-
-        try{
+    public User registration(SignUpForm form) {
+        logger.info("Processing registration for email: {}", form.getEmail());
+        try {
+            // Check if user already exists
             Optional<User> existingUser = findByEmail(new EmailDto(form.getEmail()));
-            if(existingUser.isPresent()){
-                logger.info("User already exists: " + existingUser);
+            if (existingUser.isPresent()) {
+                logger.info("User already exists: {}", form.getEmail());
                 throw new RuntimeException("Email already exists");
             }
+
+            // Create new user
             User newUser = new User();
             newUser.setEmail(form.getEmail());
             newUser.setPassword(passwordEncoder.encode(form.getPassword()));
-            newUser.setRole(Role.valueOf("CLIENT"));
+            newUser.setRole(Role.CLIENT);
 
-
-            return identityFeignClient.createUser(newUser);
-        }
-        catch(Exception e){
-            logger.info("Error creating user: " + e);
-                throw e;
-
+            // Save user through ms-identity
+            User savedUser = identityFeignClient.createUser(newUser);
+            logger.info("User successfully registered: {}", savedUser.getEmail());
+            return savedUser;
+        } catch (Exception e) {
+            logger.error("Error during registration: {}", form.getEmail(), e);
+            throw new RuntimeException("Registration failed: " + e.getMessage());
         }
     }
 }
