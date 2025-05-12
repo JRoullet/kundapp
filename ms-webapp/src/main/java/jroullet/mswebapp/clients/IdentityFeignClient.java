@@ -1,17 +1,28 @@
 package jroullet.mswebapp.clients;
 
-import jroullet.mswebapp.dto.ClientCreateDTO;
-import jroullet.mswebapp.dto.ClientPatchDTO;
-import jroullet.mswebapp.dto.ClientResponseDTO;
-import jroullet.mswebapp.dto.EmailDto;
+import jroullet.mswebapp.auth.AuthRequestDTO;
+import jroullet.mswebapp.auth.AuthResponseDTO;
+import jroullet.mswebapp.auth.RegisterRequestDTO;
+import jroullet.mswebapp.auth.RegisterResponseDTO;
+import jroullet.mswebapp.dto.*;
 import jroullet.mswebapp.model.User;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @FeignClient(name = "ms-identity", path = "/api")
 public interface IdentityFeignClient {
+
+    // Authentication request
+    @PostMapping("/authenticate")
+    ResponseEntity<AuthResponseDTO> authenticate(@RequestBody AuthRequestDTO authRequest);
+
+    // Registration request
+    @PostMapping("/register")
+    ResponseEntity<RegisterResponseDTO> registerUser(@RequestBody RegisterRequestDTO registerRequestDTO);
+
 
     // Client endpoints
     @PostMapping("/clients")
@@ -36,6 +47,8 @@ public interface IdentityFeignClient {
     // User endpoints
     @PostMapping("/user")
     User findUserByEmail(@RequestBody EmailDto emailDto);
+
+
 
     @PostMapping("/user/create")
     User createUser(@RequestBody User user);

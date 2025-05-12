@@ -1,4 +1,4 @@
-package jroullet.mswebapp.config;
+package jroullet.mswebapp.auth;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

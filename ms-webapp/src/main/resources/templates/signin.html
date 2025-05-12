@@ -32,7 +32,7 @@
 <!--              <p> Invalid email or password</p>-->
 <!--            </div>-->
 
-            <form th:action="@{/authentication}" method="post" th:object="${signInForm}">
+            <form th:action="@{/authenticate}" method="post" th:object="${signInForm}">
 
               <div th:if="${authError}" class="alert alert-danger">
                 <span th:text="${authError}"></span>
@@ -86,7 +86,7 @@
 <!--                <label class="form-check-label" for="form1Example3"> Remember password </label>-->
 <!--              </div>-->
               <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block " type="submit">Login</button>
-                <a class="d-block text-center mt-2 small" href="/signup">New to flash cash? Sign up</a>
+                <a class="d-block text-center mt-2 small" href="/signup">New to kundapp? Sign up</a>
 
             </form>
 

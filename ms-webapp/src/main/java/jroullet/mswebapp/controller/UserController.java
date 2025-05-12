@@ -1,58 +1,85 @@
 package jroullet.mswebapp.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import jroullet.mswebapp.dto.SignInForm;
-import jroullet.mswebapp.dto.SignUpForm;
+import jroullet.mswebapp.auth.AuthRequestDTO;
+import jroullet.mswebapp.auth.RegisterRequestDTO;
 import jroullet.mswebapp.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@Controller
-@RequiredArgsConstructor
+import java.util.Map;
+
+@RestController
 public class UserController {
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     private final UserService userService;
     private final static Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    // SPRING SECURITY OWN MANAGEMENT
-
+    // Display sign in form
     @GetMapping("/signin")
     public ModelAndView showSignInView(@RequestParam(value = "authError", required = false) String authError) {
-        ModelAndView modelAndView = new ModelAndView("signin", "signInForm", new SignInForm());
+        ModelAndView modelAndView = new ModelAndView("signin", "signInForm", new AuthRequestDTO());
         if (authError != null) {
             modelAndView.addObject("authError", authError);
         }
         return modelAndView;
+        //PostMapping /authenticate is done through FeignClient and calling authenticate method from AuthenticationProvider
     }
 
+    // Display sign up form
     @GetMapping("/signup")
     public ModelAndView showSignUpView() {
-        return new ModelAndView("signup", "signUpForm", new SignUpForm());
+        return new ModelAndView("signup", "signupform", new RegisterRequestDTO());
     }
 
+    // Submit sign up form
     @PostMapping("/signup")
-    public ModelAndView processSignUp(@Valid @ModelAttribute("signUpForm") SignUpForm form,
-                                BindingResult result, RedirectAttributes redirectAttributes) {
-        if(result.hasErrors()) {
-            return new ModelAndView("signup", "signUpForm", form);
+    public ModelAndView processSignUp(@Valid @ModelAttribute("signupform") RegisterRequestDTO form,
+                                      BindingResult result,
+                                      RedirectAttributes redirectAttributes) {
+        logger.info("processSignUp() called");
+
+        if (result.hasErrors()) {
+            return new ModelAndView("signup", "signupform", form);
         }
+
         try {
             userService.registration(form);
             redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please sign in.");
             return new ModelAndView("redirect:/signin");
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             logger.error("Registration failed: ", e);
-            redirectAttributes.addFlashAttribute("authError", "Registration failed: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("authError", e.getMessage());
             return new ModelAndView("redirect:/signin");
+        }
+    }
+
+    // TEST POSTMAN WITH JSON
+    @PostMapping(value = "/signup", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> processSignUpJson(@RequestBody RegisterRequestDTO form, HttpServletRequest request) {
+        logger.info("Content-Type: {}", request.getContentType());
+        logger.info("Raw form object: {}", form);
+        logger.info("Form email: {}", form.getEmail());
+        logger.info("Form password: {}", form.getPassword());
+        logger.info("Processing JSON signup for email: {}", form.getEmail());
+        try {
+            userService.registration(form);
+            return ResponseEntity.ok().body(Map.of("message", "Registration successful"));
+        } catch (RuntimeException e) {
+            logger.error("Registration failed: ", e);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 

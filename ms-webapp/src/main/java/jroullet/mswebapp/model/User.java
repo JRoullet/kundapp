@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @Data
 public class User{
 
-    // Implements UserDetails to call loadByUsername Method (Spring Security Authentication)
     // Authentication Part
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

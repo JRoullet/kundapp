@@ -1,6 +1,5 @@
-package jroullet.mswebapp.config;
+package jroullet.mswebapp.auth;
 
-import jroullet.mswebapp.service.AuthenticationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -8,8 +7,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -18,19 +15,13 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SpringSecurityConfig {
 
     private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
-    public SpringSecurityConfig(CustomAuthenticationFailureHandler customAuthenticationFailureHandler) {
+    public SpringSecurityConfig(CustomAuthenticationFailureHandler customAuthenticationFailureHandler,
+                                CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
         this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
+        this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
     }
-
-    /**
-     * Password encoder bean using BCrypt algorithm.
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
 
     /**
      * SPRING SECURITY OWN MANAGEMENT
@@ -39,9 +30,13 @@ public class SpringSecurityConfig {
     @Bean
     AuthenticationManager authenticationManager(HttpSecurity http, AuthenticationService authenticationService) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(authenticationService).passwordEncoder(passwordEncoder());
+
+        // Providing our custom service as AuthenticationProvider instead of UserDetailsService (verification is done in ms-identity)
+        authenticationManagerBuilder.authenticationProvider(authenticationService);
+
         return authenticationManagerBuilder.build();
     }
+
     /**
      * Main security filter chain definition.
      * Handles route access rules, login success handlers, CSRF, and session management.
@@ -49,12 +44,15 @@ public class SpringSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/signup", "/signin") // Désactive CSRF pour ces endpoints
+                )
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/signin", "/authentication", "/signup", "/static/**", "/css/**", "/images/**")
+                        .requestMatchers("/signin", "/signup", "/static/**", "/error", "/css/**", "/images/**")
                         .permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/client/**").hasAnyRole("CLIENT","ADMIN")
-                        .requestMatchers("/teacher/**").hasAnyRole("TEACHER" + "ADMIN")
+                        .requestMatchers("/client/**").hasAnyRole("CLIENT")
+                        .requestMatchers("/teacher/**").hasAnyRole("TEACHER")
                         .anyRequest()
                         .authenticated()
 
@@ -62,10 +60,11 @@ public class SpringSecurityConfig {
                 .formLogin((form) -> form
                         // customized login form
                         .loginPage("/signin")
-                        .loginProcessingUrl("/authentication") // To go through your postmapping /authentication with spring security own means
+                        .loginProcessingUrl("/authenticate") // To go through postmapping /authentication, using our own AuthenticationProvider (to retrieve information from ms-identity)
                         .usernameParameter("email")
+                        .passwordParameter("password")
                         .permitAll()
-                        .defaultSuccessUrl("/home", true) // when successful, goes to "/" URL, => always
+                        .successHandler(customAuthenticationSuccessHandler) // custom routes by authenticated role
                         .failureHandler(customAuthenticationFailureHandler) // custom errors management
                         // Add an error code to the URL when login fails
                         .failureUrl("/signin?authError=Invalid+email+or+password")
