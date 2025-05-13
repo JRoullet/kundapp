@@ -16,9 +16,9 @@
           <div class="card-body p-5 text-center">
 
               <div class="logo-card">
-                  <img class="w-100 pb-3" th:src="@{/images/healthcarelogo.png}" alt="HealthCare Logo" />
+                  <img class="w-100 pb-3" th:src="@{/images/kundapplogo.jpg}" alt="KundApp Logo" />
               </div>
-              <h2 class="card-title h4 mb-5 fw-bold">Sign in</h2>
+              <h2 class="card-title h4 mb-5 fw-bold">Connexion</h2>
               <div th:if="${session.authError}" class="alert alert-danger" th:text="${session.authError}"></div>
             <!--            Redirection the error message "email already exists" since signup page (check UserController Redirect Attributes) -->
 <!--            <div th:if="${emailError}" class="text-danger text-start" role="alert">-->
@@ -52,13 +52,13 @@
                         id="email"
                         th:field="*{email}"
                         class="form-outline form-control-color"
-                        placeholder="email"
+                        placeholder="Email"
                         required
                 >
 <!--                required-->
 
                 <div class="invalid-feedback text-start">
-                  Please enter your email
+                  Veuillez saisir votre email
                 </div>
               </div>
 
@@ -75,7 +75,7 @@
 
               </div>
               <div class="invalid-feedback text-start">
-                Please enter a password
+                Veuillez saisir un mot de passe
               </div>
 
 
@@ -85,8 +85,8 @@
 <!--                <input class="form-check-input" type="checkbox" value="" id="form1Example3" />-->
 <!--                <label class="form-check-label" for="form1Example3"> Remember password </label>-->
 <!--              </div>-->
-              <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block " type="submit">Login</button>
-                <a class="d-block text-center mt-2 small" href="/signup">New to kundapp? Sign up</a>
+              <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block " type="submit">Se connecter</button>
+                <a class="d-block text-center mt-2 small" href="/signup">Nouveau sur kundapp? Inscris-toi</a>
 
             </form>
 

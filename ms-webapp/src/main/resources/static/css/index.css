@@ -1,31 +1,19 @@
 :root {
-    --primary: #4EABDE;
-    --primary-dark: #2E75B6;
-    --primary-light: #B8E0F7;
-    --neutral: #F5F7F9;
     --text: #333333;
-}
+    --primary: #D4A5A5;           /* Rose poudré doux */
+    --primary-light: #F5E6E6;     /* Rose très pâle */
+    --primary-dark: #C08B8B;      /* Rose poudré plus foncé */
+    --secondary: #E2C6C6;         /* Rose beige */
+    --background: #FDF8F5;        /* Beige très clair rosé */
+    --card-bg: #FFFFFF;           /* Blanc pur */
+    --text-primary: #8B6B6B;      /* Brun rosé */
+    --text-secondary: #A68A8A;    /* Gris rosé */
+    --gradient-start: #FAF0F0;    /* Blanc rosé */
+    --gradient-end: #FDF8F5;      /* Beige très clair */
+    --neutral: #F9F5F2;           /* Beige neutre */
+    --border-light: #F0E5E5;      /* Bordure très claire */
 
-.risk-none {
-    background-color: var(--primary);
-    color: white;
 }
-
-.risk-borderline {
-    background-color: orange;
-    color: white;
-}
-
-.risk-danger {
-    background-color: red;
-    color: white;
-}
-
-.risk-early-onset {
-    background-color: purple;
-    color: white;
-}
-
 
 body {
     display: flex;
@@ -176,4 +164,132 @@ footer{
 
 .action-buttons .btn {
     margin-right: 5px;
+}
+
+body.signup-form {
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    min-height: 100vh;
+}
+
+.signup-form .card {
+    background: var(--card-bg);
+    border: none;
+    box-shadow: 0 4px 20px rgba(212, 165, 165, 0.08);
+    border-radius: 2rem;
+}
+
+.signup-form .form-control {
+    border: 1px solid var(--border-light);
+    background-color: var(--neutral);
+    transition: all 0.3s ease;
+}
+
+.signup-form .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(212, 165, 165, 0.15);
+    background-color: #FFFFFF;
+}
+
+.signup-form .btn-primary {
+    background: linear-gradient(45deg, var(--primary) 0%, var(--secondary) 100%);
+    border: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.signup-form .btn-primary:hover {
+    background: linear-gradient(45deg, var(--primary-dark) 0%, var(--primary) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 165, 165, 0.25);
+}
+
+.signup-form .logo-container {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(212, 165, 165, 0.05);
+}
+
+.signup-form h1 {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.signup-form .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+.signup-form .invalid-feedback {
+    color: var(--primary-dark);
+    font-size: 0.875rem;
+}
+
+.signup-form a {
+    color: var(--primary);
+    transition: color 0.2s ease;
+}
+
+.signup-form a:hover {
+    color: var(--primary-dark);
+}
+
+/* Éléments d'énergie flottants */
+.floating-energy {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+    opacity: 0.2;
+    z-index: -1;
+}
+
+@keyframes float {
+    0% { transform: translatey(0px); }
+    50% { transform: translatey(-20px); }
+    100% { transform: translatey(0px); }
+}
+
+.energy-1 { top: 10%; left: 10%; animation-delay: 0s; }
+.energy-2 { top: 60%; right: 15%; animation-delay: 2s; }
+.energy-3 { bottom: 10%; left: 20%; animation-delay: 4s; }
+
+/* Amélioration du style des labels flottants */
+.form-floating > label {
+    color: var(--text-secondary);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: var(--primary);
+}
+
+/* Animation subtile pour le formulaire */
+.signup-form .card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .signup-form .card-body {
+        padding: 2rem !important;
+    }
+
+    .signup-form h1 {
+        font-size: 1.5rem;
+    }
 }

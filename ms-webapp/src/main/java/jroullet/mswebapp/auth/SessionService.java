@@ -1,6 +1,7 @@
 package jroullet.mswebapp.auth;
 
 
+import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import jroullet.mswebapp.clients.IdentityFeignClient;
 import jroullet.mswebapp.dto.EmailDto;
@@ -28,7 +29,12 @@ public class SessionService {
         Object sessionUser = request.getSession().getAttribute("currentUser");
         if (sessionUser instanceof AuthResponseDTO dto){
             logger.info("User found in session {}", dto.getEmail());
-            return identityFeignClient.findUserByEmail(new EmailDto(dto.getEmail()));
+            try{
+                return identityFeignClient.findUserByEmail(new EmailDto(dto.getEmail())).getBody();
+            }catch (FeignException.NotFound e){
+                logger.warn("User unknown: {}", dto.getEmail());
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found: " + dto.getEmail());
+            }
         }
 
         // Fallback method SecurityContext
@@ -43,7 +49,7 @@ public class SessionService {
         if (principal instanceof org.springframework.security.core.userdetails.User springUser) {
             String email = springUser.getUsername();
             logger.info("Fallback to identityFeignClient with email: {}", email);
-            return identityFeignClient.findUserByEmail(new EmailDto(email));
+            return identityFeignClient.findUserByEmail(new EmailDto(email)).getBody();
         }
 
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid session principal");

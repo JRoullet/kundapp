@@ -23,6 +23,10 @@ public interface IdentityFeignClient {
     @PostMapping("/register")
     ResponseEntity<RegisterResponseDTO> registerUser(@RequestBody RegisterRequestDTO registerRequestDTO);
 
+    // User endpoints
+    @PostMapping("/user")
+    ResponseEntity<User> findUserByEmail(@RequestBody EmailDto emailDto);
+
 
     // Client endpoints
     @PostMapping("/clients")
@@ -44,15 +48,13 @@ public interface IdentityFeignClient {
     @DeleteMapping("/admin/clients/{id}")
     void deleteClient(@PathVariable Long id);
 
+
+
     // User endpoints
-    @PostMapping("/user")
-    User findUserByEmail(@RequestBody EmailDto emailDto);
-
-
-
     @PostMapping("/user/create")
     User createUser(@RequestBody User user);
 
     @PostMapping("/user/create-admin")
     User createAdmin(@RequestBody User user);
+
 }

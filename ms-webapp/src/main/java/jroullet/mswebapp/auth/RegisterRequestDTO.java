@@ -13,6 +13,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterRequestDTO {
+
+    @NotBlank(message = "Saisir votre prénom")
+    private String firstName;
+
+    @NotBlank(message = "Saisir votre nom")
+    private String lastName;
+
     @NotBlank(message = "Email is mandatory")
     @Email(message = "Invalid Email")
     private String email;
@@ -23,33 +30,6 @@ public class RegisterRequestDTO {
             message = "The password must contain 8 characters, including an uppercase letter, a number, and a symbol"
     )
     private String password;
-//
-//    public RegisterRequestDTO() {
-//    }
-//
-//    public RegisterRequestDTO(String email, String password) {
-//        this.email = email;
-//        this.password = password;
-//    }
-//
-//
-//    public String getEmail() {
-//        return email;
-//    }
-//
-//    public void setEmail(String email) {
-//        this.email = email;
-//    }
-//
-//    public String getPassword() {
-//        return password;
-//    }
-//
-//    public void setPassword(String password) {
-//        this.password = password;
-//    }
-//
-
 
 }
 

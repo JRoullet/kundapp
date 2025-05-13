@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Sign up for Kundapp - Your Digital Reservation Solution">
-  <title>Sign up | Kundapp</title>
+  <title>S'inscrire | Kundapp</title>
 
   <!-- CSS Dependencies -->
   <link th:href="@{/css/mdb.min.css?v=1}" rel="stylesheet">
@@ -20,10 +20,10 @@
           <div class="card-body p-5 text-center">
             <!-- Logo -->
             <div class="logo-card">
-              <img class="w-100 pb-3" th:src="@{/images/healthcarelogo.png}" alt="Kundapp Logo">
+              <img class="w-100 pb-3" th:src="@{/images/kundapplogo.jpg}" alt="Kundapp Logo">
             </div>
 
-            <h1 class="card-title h4 mb-5 fw-bold">Sign up</h1>
+            <h1 class="card-title h4 mb-5 fw-bold">S'inscrire</h1>
 
             <!-- Sign-up Form -->
               <form th:action="@{/signup}"
@@ -56,7 +56,7 @@
       <!--                required-->
                   </div>
                   <div class="invalid-feedback text-start">
-                      Please enter your email
+                      Veuillez saisir votre email
                   </div>
 
                   <div data-mdb-input-init class="form-outline mb-4">
@@ -71,17 +71,17 @@
                       <!--                        minlength="8"-->
 
                       <div class="invalid-feedback text-start">
-                          The password must contain 8 characters, including an uppercase letter, a number, and a symbol
+                          Le mot de passe doit contenir 8 caractères, dont une lettre majuscule, un chiffre et un symbole
                       </div>
                   </div>
                   <button
                           data-mdb-ripple-init
                           class="btn btn-primary btn-lg w-100"
                           type="submit">
-                      Create account
+                      Créer un compte
                   </button>
 
-                  <a class="d-block text-center mt-2 small" href="/signin"> Already have an account? Sign in</a>
+                  <a class="d-block text-center mt-2 small" href="/signin"> Déjà un compte? Connecte-toi</a>
               </form>
 
 <!--            <hr class="my-4">-->

@@ -19,12 +19,12 @@ public class HomeController {
 //    private final IdentityFeignClient identityFeignClient;
     private final static Logger logger = LoggerFactory.getLogger(HomeController.class);
 
+    @GetMapping("/client/home")
     public String showClientHome(Model model, HttpServletRequest request) {
-        AuthResponseDTO dto = (AuthResponseDTO) request.getSession().getAttribute("currentUser");
-        if (dto != null) {
-            model.addAttribute("userEmail", dto.getEmail());
-            // éventuellement : appel Feign pour récupérer les détails métier
-        }
+        User user = sessionService.getCurrentUser();
+//        List<Patient> patients = identityFeignClient.findAll();
+//        model.addAttribute("patients", patients);
+        model.addAttribute("user", user);
         return "home-client";
     }
 

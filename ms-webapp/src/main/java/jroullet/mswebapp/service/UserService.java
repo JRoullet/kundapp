@@ -24,7 +24,7 @@ public class UserService {
     public Optional<User> findByEmail(EmailDto email) {
         logger.info("Finding user by email: {}", email.getEmail());
         try {
-            User user = identityFeignClient.findUserByEmail(email);
+            User user = identityFeignClient.findUserByEmail(email).getBody();
             return Optional.ofNullable(user);
         } catch (FeignException.NotFound e) {
             return Optional.empty();
