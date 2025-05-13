@@ -1,6 +1,7 @@
 package jroullet.mswebapp.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jroullet.mswebapp.auth.AuthRequestDTO;
 import jroullet.mswebapp.auth.RegisterRequestDTO;
@@ -28,9 +29,16 @@ public class UserController {
 
     // Display sign in form
     @GetMapping("/signin")
-    public ModelAndView showSignInView(@RequestParam(value = "authError", required = false) String authError) {
+    public ModelAndView showSignInView(@RequestParam(value = "authError", required = false) String authError,
+                                       HttpSession session) {
         ModelAndView modelAndView = new ModelAndView("signin", "signInForm", new AuthRequestDTO());
-        if (authError != null) {
+
+        // Retrieve error from session if exists
+        String sessionError = (String) session.getAttribute("authError");
+        if (sessionError != null) {
+            modelAndView.addObject("authError", sessionError);
+            session.removeAttribute("authError");
+        } else if (authError != null) {
             modelAndView.addObject("authError", authError);
         }
         return modelAndView;
@@ -83,8 +91,4 @@ public class UserController {
         }
     }
 
-    @GetMapping("/logout")
-    public ModelAndView showLogout() {
-        return new ModelAndView("logout");
-    }
 }

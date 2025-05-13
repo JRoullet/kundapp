@@ -26,7 +26,9 @@
             </ul>
             <div class="d-flex align-items-center">
                 <span class="me-3" th:if="${user != null}" th:text="${user.email}">admin@kundapp.com</span>
-                <button type="button" class="btn btn-outline-primary" onclick="window.location.href='/logout'">Déconnexion</button>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-primary">Déconnexion</button>
+                </form>
             </div>
         </div>
     </div>

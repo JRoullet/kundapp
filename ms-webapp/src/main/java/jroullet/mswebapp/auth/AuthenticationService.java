@@ -14,19 +14,21 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
-@Service // Authentication procedure BY SPRING SECURITY OWN MANAGEMENT
+@Service // Authentication procedure done through AuthenticationProvider
 public class AuthenticationService implements AuthenticationProvider {
 
     private final static Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
     private final IdentityFeignClient identityFeignClient;
     private final HttpServletRequest request;
 
+    //Consider it as a Post login form method
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String email = authentication.getName();
@@ -59,14 +61,16 @@ public class AuthenticationService implements AuthenticationProvider {
                         null, // password is erased after authentication
                         authorities);
             }
-            throw new BadCredentialsException("Bad credentials");
+            logger.error("Authentication failed");
+            throw new BadCredentialsException("Email ou mot de passe incorrect");
         }
         catch (FeignException.Unauthorized e){
-            throw new BadCredentialsException("Bad credentials");
+            logger.error("Email ou mot de passe incorrect");
+            throw new BadCredentialsException("Email ou mot de passe incorrect");
         }
         catch (Exception e){
             logger.error("Error authenticating user: " + email, e);
-            throw new AuthenticationServiceException("Error during authentication", e);
+            throw new AuthenticationServiceException("Erreur lors de l'authentification", e);
         }
     }
 

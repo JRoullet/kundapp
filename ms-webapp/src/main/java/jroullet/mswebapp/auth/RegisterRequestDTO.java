@@ -16,15 +16,12 @@ public class RegisterRequestDTO {
 
     @NotBlank(message = "Saisir votre prénom")
     private String firstName;
-
     @NotBlank(message = "Saisir votre nom")
     private String lastName;
-
-    @NotBlank(message = "Email is mandatory")
-    @Email(message = "Invalid Email")
+    @NotBlank(message = "Email obligatoire")
+    @Email(message = "Email invalide")
     private String email;
-
-    @NotBlank(message = "Password is mandatory")
+    @NotBlank(message = "Mot de passe obligatoire")
     @Pattern(
             regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
             message = "The password must contain 8 characters, including an uppercase letter, a number, and a symbol"

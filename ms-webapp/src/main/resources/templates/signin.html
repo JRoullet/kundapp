@@ -1,108 +1,152 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Sign in </title>
-  <link th:href = "@{css/mdb.min.css}" rel="stylesheet"/>
-  <link th:href="@{css/index.css}" rel="stylesheet" />
+  <title>Connexion | Kundapp</title>
+  <link th:href="@{/css/mdb.min.css}" rel="stylesheet"/>
+  <link th:href="@{/css/index.css}" rel="stylesheet"/>
 </head>
-<body class = "signin-form" >
+<body class="signin-form">
 
-<section class="vh-100" style="background-color: #B8E0F7;">
-  <div class="container py-5 h-100">
-    <div class="row d-flex justify-content-center align-items-center h-100">
+<section class="vh-100 d-flex align-items-center">
+  <div class="container">
+    <div class="row justify-content-center">
       <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-        <div class="card shadow-2-strong" style="border-radius: 1rem;">
-          <div class="card-body p-5 text-center">
+        <div class="card shadow-lg">
+          <div class="card-body p-5">
+            <!-- Logo -->
+            <div class="logo-container text-center">
+              <img class="w-75" th:src="@{/images/kundapplogo.jpg}" alt="KundApp Logo">
+            </div>
 
-              <div class="logo-card">
-                  <img class="w-100 pb-3" th:src="@{/images/kundapplogo.jpg}" alt="KundApp Logo" />
-              </div>
-              <h2 class="card-title h4 mb-5 fw-bold">Connexion</h2>
-              <div th:if="${session.authError}" class="alert alert-danger" th:text="${session.authError}"></div>
-            <!--            Redirection the error message "email already exists" since signup page (check UserController Redirect Attributes) -->
-<!--            <div th:if="${emailError}" class="text-danger text-start" role="alert">-->
-<!--              <p th:text="${emailError}"></p>-->
-<!--            </div>-->
-<!--            Authentication error message-->
+            <h1 class="text-center h3 mb-4 fw-bold">Connexion</h1>
 
+            <!-- Messages d'erreur d'authentification -->
+            <div th:if="${authError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+              <span th:text="${authError}"></span>
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
+              <span>Vous avez été déconnecté avec succès</span>
+            </div>
 
-<!--            &lt;!&ndash;            Redirection the error message "authentication failed" &ndash;&gt;-->
-<!--            <div th:if="${param.authError}" class="text-danger text-start" role="alert">-->
-<!--              <p> Invalid email or password</p>-->
-<!--            </div>-->
+            <form th:action="@{/authenticate}"
+                  th:object="${signInForm}"
+                  method="post"
+                  class="needs-validation"
+                  novalidate>
 
-            <form th:action="@{/authenticate}" method="post" th:object="${signInForm}">
-
-              <div th:if="${authError}" class="alert alert-danger">
-                <span th:text="${authError}"></span>
-              </div>
-
-
-<!--              <div th:if="${#fields.hasErrors('email')}" class="alert alert-danger">-->
-<!--                <span th:each="err : ${#fields.errors('email')}" th:text="${err}"></span>-->
-<!--              </div>-->
-<!--              <div th:if="${#fields.hasErrors('password')}" class="alert alert-danger">-->
-<!--                <span th:each="err : ${#fields.errors('password')}" th:text="${err}"></span>-->
-<!--              </div>-->
-
-              <div data-mdb-input-init class="form-outline mb-4">
-                <input
-                        type="text"
-                        id="email"
-                        th:field="*{email}"
-                        class="form-outline form-control-color"
-                        placeholder="Email"
-                        required
-                >
-<!--                required-->
-
-                <div class="invalid-feedback text-start">
+              <div class="form-floating mb-3">
+                <input type="email"
+                       th:field="*{email}"
+                       class="form-control"
+                       id="email"
+                       placeholder="Email"
+                       required
+                       autofocus>
+                <label for="email">Email</label>
+                <div class="invalid-feedback">
                   Veuillez saisir votre email
                 </div>
               </div>
 
-
-              <div data-mdb-input-init class="form-outline mb-4">
+              <div class="form-floating mb-4">
                 <input type="password"
-                       id="password"
                        th:field="*{password}"
-                       name="password"
-                       class="form-outline form-control-color"
-                       placeholder="Password"
-                       required
-                />
-
+                       class="form-control"
+                       id="password"
+                       placeholder="Mot de passe"
+                       required>
+                <label for="password">Mot de passe</label>
+                <div class="invalid-feedback">
+                  Veuillez saisir votre mot de passe
+                </div>
               </div>
-              <div class="invalid-feedback text-start">
-                Veuillez saisir un mot de passe
-              </div>
 
+              <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                <span style="margin-right: 8px;">✨</span>
+                Se connecter
+              </button>
 
-
-
-<!--              <div class="form-check d-flex justify-content-start mb-4">-->
-<!--                <input class="form-check-input" type="checkbox" value="" id="form1Example3" />-->
-<!--                <label class="form-check-label" for="form1Example3"> Remember password </label>-->
-<!--              </div>-->
-              <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block " type="submit">Se connecter</button>
-                <a class="d-block text-center mt-2 small" href="/signup">Nouveau sur kundapp? Inscris-toi</a>
-
+              <p class="text-center text-muted mb-0">
+                Nouveau sur Kundapp?
+                <a href="/signup" class="text-decoration-none">Inscrivez-vous</a>
+              </p>
             </form>
-
-<!--            <hr class="my-4">-->
-
-<!--            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-lg btn-block btn-primary" style="background-color: #dd4b39;"-->
-<!--                    type="submit"><i class="fab fa-google me-2"></i> Sign in with google</button>-->
-<!--            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-lg btn-block btn-primary mb-2" style="background-color: #3b5998;"-->
-<!--                    type="submit"><i class="fab fa-facebook-f me-2"></i>Sign in with facebook</button>-->
-
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<script>
+  (() => {
+    'use strict';
+
+    // Récupérer l'email sauvegardé
+    const emailInput = document.getElementById('email');
+    const savedEmail = localStorage.getItem('lastEmail');
+
+    if (savedEmail) {
+      emailInput.value = savedEmail;
+    }
+
+    const form = document.querySelector('.needs-validation');
+    let formSubmitted = false;
+
+    // Validation lors de la soumission
+    form.addEventListener('submit', event => {
+      // Sauvegarder l'email
+      localStorage.setItem('lastEmail', emailInput.value);
+
+      // Validation uniquement à la soumission
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+        form.classList.add('was-validated');
+      }
+
+      formSubmitted = true;
+    });
+
+    // Validation visuelle des champs (vert/rouge)
+    const inputs = form.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+      input.addEventListener('blur', function() {
+        if (formSubmitted || this.value) {
+          if (this.checkValidity()) {
+            this.classList.add('is-valid');
+            this.classList.remove('is-invalid');
+          } else {
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+          }
+        }
+      });
+
+      input.addEventListener('input', function() {
+        if (formSubmitted || this.classList.contains('is-valid') || this.classList.contains('is-invalid')) {
+          if (this.checkValidity()) {
+            this.classList.add('is-valid');
+            this.classList.remove('is-invalid');
+          } else {
+            this.classList.add('is-invalid');
+            this.classList.remove('is-valid');
+          }
+        }
+      });
+    });
+
+    // Masquer les alertes après 5 secondes
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+      setTimeout(() => {
+        alert.classList.remove('show');
+        setTimeout(() => alert.remove(), 500);
+      }, 5000);
+    });
+  })();
+</script>
 
 </body>
 </html>

@@ -63,16 +63,14 @@ public class SpringSecurityConfig {
                         .loginProcessingUrl("/authenticate") // To go through postmapping /authentication, using our own AuthenticationProvider (to retrieve information from ms-identity)
                         .usernameParameter("email")
                         .passwordParameter("password")
-                        .permitAll()
                         .successHandler(customAuthenticationSuccessHandler) // custom routes by authenticated role
                         .failureHandler(customAuthenticationFailureHandler) // custom errors management
-                        // Add an error code to the URL when login fails
-                        .failureUrl("/signin?authError=Invalid+email+or+password")
+                        .permitAll()
                 )
-                // logout access
+                // logout management
                 .logout((logout) -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/signin")
+                        .logoutSuccessUrl("/signin?logout=true")
                         .permitAll());
 
         return http.build();
