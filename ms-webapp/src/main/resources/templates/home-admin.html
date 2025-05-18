@@ -14,14 +14,23 @@
         <div class="logo me-3">
             <img th:src="@{/images/kundapplogo.png}" alt="KundApp Logo" />
         </div>
-        <a class="navbar-brand" href="/admin/home">KundApp</a>
+        <a class="navbar-brand" href="/admin/home-admin">KundApp</a>
         <button class="navbar-toggler" type="button" data-mdb-toggle="collapse" data-mdb-target="#navbarMain">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarMain">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" href="/">Patients</a>
+                    <a class="nav-link active" href="/">User Management</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/">Session Management</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/">Booking Management</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/">Notifications Management</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center">
@@ -38,8 +47,8 @@
     <div class="welcome-banner">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="h4 mb-0">Bienvenue sur votre espace KundApp</h1>
-                <p class="mb-0">Inscrivez vous aux prochaines sessions disponibles</p>
+                <h1 class="h4 mb-0">Bienvenue sur l'espace administrateur de KundApp</h1>
+                <p class="mb-0">Gestion des entités de l'application</p>
             </div>
             <div class="col-md-4 text-end">
 <!--                <button class="btn btn-primary" onclick="window.location.href='/patient/new'">-->

@@ -23,9 +23,9 @@ public interface IdentityFeignClient {
     @PostMapping("/register")
     ResponseEntity<RegisterResponseDTO> registerUser(@RequestBody RegisterRequestDTO registerRequestDTO);
 
-    // User endpoints
-    @PostMapping("/user")
-    ResponseEntity<User> findUserByEmail(@RequestBody EmailDto emailDto);
+//    // User endpoints
+//    @PostMapping("/user")
+//    ResponseEntity<User> findUserByEmail(@RequestBody EmailDto emailDto);
 
 
     // Client endpoints
@@ -57,4 +57,7 @@ public interface IdentityFeignClient {
     @PostMapping("/user/create-admin")
     User createAdmin(@RequestBody User user);
 
+    // Return UserDto (sessionUser)
+    @PostMapping("/user")
+    UserDTO findUserDtoByEmail(EmailDto emailDto);
 }

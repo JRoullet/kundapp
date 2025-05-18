@@ -14,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -49,7 +48,7 @@ public class AuthenticationService implements AuthenticationProvider {
             logger.info("Answer from ms-identity : {}", responseDTO);
 
             if(responseDTO.isAuthenticated()) {
-                request.getSession().setAttribute("currentUser",responseDTO);
+//                request.getSession().setAttribute("currentUserDTO", responseDTO);
                 // Building authorities based on returned role
                 List<GrantedAuthority> authorities = Collections.singletonList(
                         new SimpleGrantedAuthority("ROLE_" + responseDTO.getRole())

@@ -5,6 +5,7 @@ import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import jroullet.mswebapp.clients.IdentityFeignClient;
 import jroullet.mswebapp.dto.EmailDto;
+import jroullet.mswebapp.dto.UserDTO;
 import jroullet.mswebapp.model.User;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -23,35 +24,48 @@ public class SessionService {
     private final HttpServletRequest request;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public User getCurrentUser() {
+    public UserDTO getCurrentUser() {
 
         // Try catching active session user
-        Object sessionUser = request.getSession().getAttribute("currentUser");
-        if (sessionUser instanceof AuthResponseDTO dto){
-            logger.info("User found in session {}", dto.getEmail());
-            try{
-                return identityFeignClient.findUserByEmail(new EmailDto(dto.getEmail())).getBody();
-            }catch (FeignException.NotFound e){
-                logger.warn("User unknown: {}", dto.getEmail());
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found: " + dto.getEmail());
-            }
+        Object sessionUser = request.getSession().getAttribute("currentUserDTO");
+        if (sessionUser instanceof UserDTO dto) {
+            logger.info("UserDTO found in session: {}", dto.getEmail());
+            return dto;
         }
 
-        // Fallback method SecurityContext
+        // Get User from authentication
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // Check authentication validity
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No active session found");
         }
 
-        Object principal = authentication.getPrincipal();
-        // Check if principal is a Spring Security user and retrieve username (email)
-        if (principal instanceof org.springframework.security.core.userdetails.User springUser) {
-            String email = springUser.getUsername();
-            logger.info("Fallback to identityFeignClient with email: {}", email);
-            return identityFeignClient.findUserByEmail(new EmailDto(email)).getBody();
+        String email = authentication.getName();
+        logger.info("Fetching user DTO from ms-identity for: {}", email);
+
+        try{
+            UserDTO userDto = identityFeignClient.findUserDtoByEmail(new EmailDto(email));
+            request.getSession().setAttribute("currentUserDTO", userDto);
+            return userDto;
+
+        }
+        catch(FeignException.NotFound e){
+            logger.error("User not found in ms-identity: {}", email);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + email);
+        }
+        catch(FeignException e){
+            logger.error("Error calling ms-identity : {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,"Unable to retrieve user information");
         }
 
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid session principal");
+    }
+
+    public void clearCurrentUser() {
+        request.getSession().removeAttribute("currentUserDTO");
+    }
+
+    public UserDTO refreshCurrentUser() {
+        clearCurrentUser();
+        return getCurrentUser();
     }
 }

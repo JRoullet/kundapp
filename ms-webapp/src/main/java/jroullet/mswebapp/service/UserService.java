@@ -20,16 +20,16 @@ public class UserService {
     private final IdentityFeignClient identityFeignClient;
     private final static Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    // Not used yet
-    public Optional<User> findByEmail(EmailDto email) {
-        logger.info("Finding user by email: {}", email.getEmail());
-        try {
-            User user = identityFeignClient.findUserByEmail(email).getBody();
-            return Optional.ofNullable(user);
-        } catch (FeignException.NotFound e) {
-            return Optional.empty();
-        }
-    }
+//    // Not used yet
+//    public Optional<User> findByEmail(EmailDto email) {
+//        logger.info("Finding user by email: {}", email.getEmail());
+//        try {
+//            User user = identityFeignClient.findUserByEmail(email).getBody();
+//            return Optional.ofNullable(user);
+//        } catch (FeignException.NotFound e) {
+//            return Optional.empty();
+//        }
+//    }
 
     public void registration(RegisterRequestDTO form) {
         logger.info("Processing registration for email: {}", form.getEmail());

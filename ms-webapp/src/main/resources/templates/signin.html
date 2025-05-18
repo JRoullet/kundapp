@@ -83,7 +83,7 @@
   (() => {
     'use strict';
 
-    // Récupérer l'email sauvegardé
+    // Retrieving saved email (for tests)
     const emailInput = document.getElementById('email');
     const savedEmail = localStorage.getItem('lastEmail');
 
@@ -94,12 +94,12 @@
     const form = document.querySelector('.needs-validation');
     let formSubmitted = false;
 
-    // Validation lors de la soumission
+    // Validation at submit
     form.addEventListener('submit', event => {
-      // Sauvegarder l'email
+      // Save email
       localStorage.setItem('lastEmail', emailInput.value);
 
-      // Validation uniquement à la soumission
+      // Validation only at submit
       if (!form.checkValidity()) {
         event.preventDefault();
         event.stopPropagation();
@@ -109,7 +109,7 @@
       formSubmitted = true;
     });
 
-    // Validation visuelle des champs (vert/rouge)
+    // Visual validation (green/red)
     const inputs = form.querySelectorAll('.form-control');
     inputs.forEach(input => {
       input.addEventListener('blur', function() {
@@ -137,7 +137,7 @@
       });
     });
 
-    // Masquer les alertes après 5 secondes
+    // Mask alerts after 5 seconds
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {
       setTimeout(() => {

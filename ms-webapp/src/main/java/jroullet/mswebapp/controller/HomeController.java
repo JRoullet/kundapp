@@ -1,9 +1,8 @@
 package jroullet.mswebapp.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jroullet.mswebapp.auth.AuthResponseDTO;
-import jroullet.mswebapp.model.User;
 import jroullet.mswebapp.auth.SessionService;
+import jroullet.mswebapp.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,29 +20,29 @@ public class HomeController {
 
     @GetMapping("/client/home")
     public String showClientHome(Model model, HttpServletRequest request) {
-        User user = sessionService.getCurrentUser();
+        UserDTO userDTO = sessionService.getCurrentUser();
 //        List<Patient> patients = identityFeignClient.findAll();
 //        model.addAttribute("patients", patients);
-        model.addAttribute("user", user);
+        model.addAttribute("user", userDTO);
         return "home-client";
     }
 
     @GetMapping("/admin/home")
     public String showAdminPage(Model model) {
-        User user = sessionService.getCurrentUser();
+        UserDTO userDTO = sessionService.getCurrentUser();
 //        List<Patient> patients = identityFeignClient.findAll();
 //        model.addAttribute("patients", patients);
-        model.addAttribute("user", user);
+        model.addAttribute("user", userDTO);
 
         return "home-admin";
     }
 
     @GetMapping("/teacher/home")
     public String showTeacherHome(Model model) {
-        User user = sessionService.getCurrentUser();
+        UserDTO userDTO = sessionService.getCurrentUser();
 //        List<Patient> patients = identityFeignClient.findAll();
 //        model.addAttribute("patients", patients);
-        model.addAttribute("user", user);
+        model.addAttribute("user", userDTO);
 
         return "home-teacher";
     }

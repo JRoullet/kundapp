@@ -34,7 +34,8 @@ public class AuthController {
         }
         catch (Exception e) {
             logger.error("error authenticating", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponseDTO(false,null,null,null));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponseDTO(
+                    false,null,null,null));
         }
     }
 
