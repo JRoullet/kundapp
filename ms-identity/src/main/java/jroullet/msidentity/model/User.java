@@ -11,9 +11,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
-@DiscriminatorValue("USER")
 @Data
 public class User {
 
@@ -32,6 +29,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+
+    // Complete information
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -42,7 +41,6 @@ public class User {
         createdAt = LocalDateTime.now();
     }
 
-    // Complete information
     @Column(name = "first_name")
     private String firstName;
 
@@ -64,15 +62,11 @@ public class User {
     private String zipCode;
     private String country;
 
-//    // Oauth linking account attribute
-//    @Column(name = "oauth_provider")
-//    private String oauthProvider;
-//
-//    @Column(name = "oauth_id")
-//    private String oauthId;
-//
-//    // email verification
-//    @Column(name = "email_verified")
-//    private Boolean emailVerified = false;
+    @Column(name = "biography", length = 1000)
+    private String biography;
+
+    @Column(name = "subscription_status")
+    @Enumerated(EnumType.STRING)
+    private SubscriptionStatus subscriptionStatus = SubscriptionStatus.NONE;
 
 }

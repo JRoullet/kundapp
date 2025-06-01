@@ -1,0 +1,27 @@
+#------ Imported config must be quite empty to avoid loosing time from a/r -----#
+server:
+  port: 8090
+spring:
+  application:
+    name: ms-identity
+  config:
+    import: configserver:http://msconfigserver:8888/
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+#  sql:
+#    init:
+#      mode: always
+#      schema-locations: classpath:/sql/schema.sql
+#      data-locations: classpath:/sql/init.sql
+#      continue-on-error: false

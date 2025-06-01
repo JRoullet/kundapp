@@ -1,9 +1,11 @@
 package jroullet.msidentity.service;
 
-import jroullet.msidentity.model.User;
+import jroullet.msidentity.dto.UserDTO;
+import jroullet.msidentity.model.Role;
+
+import java.util.List;
 
 public interface UserService {
-    User findUserByEmail(String email);
-
-//    User findByEmail(String email);
+    UserDTO findUserDTOByEmail(String email);
+    List<UserDTO> findAllByRole(Role role);
 }

@@ -23,20 +23,25 @@ public class AuthService {
         Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
 
         if (userOpt.isPresent()) {
-            logger.info("Authenticated user : {}", userOpt.map(User::getEmail).orElse(null));
             User user = userOpt.get();
-            // verify password matches with encrypted database password
+            logger.info("User found: {}", user.getEmail());
+
             if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                logger.info("Authentication successful for: {}", user.getEmail());
                 return new AuthResponseDTO(
                         true,
                         user.getId(),
                         user.getEmail(),
                         user.getRole()
                 );
+            } else {
+                logger.warn("Invalid password for user: {}", user.getEmail());
             }
+        } else {
+            logger.warn("User not found: {}", request.getEmail());
         }
-        // Authentication failed
-        logger.info("User with email {} not found", request.getEmail());
+
+        logger.info("Authentication failed for: {}", request.getEmail());
         return new AuthResponseDTO(false, null, null, null);
     }
 
