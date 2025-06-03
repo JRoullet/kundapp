@@ -1,17 +1,12 @@
 package jroullet.mswebapp.service;
 
-import feign.FeignException;
 import jroullet.mswebapp.auth.RegisterRequestDTO;
 import jroullet.mswebapp.auth.RegisterResponseDTO;
 import jroullet.mswebapp.clients.IdentityFeignClient;
-import jroullet.mswebapp.dto.EmailDto;
-import jroullet.mswebapp.model.User;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

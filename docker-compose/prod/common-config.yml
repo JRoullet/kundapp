@@ -1,7 +1,7 @@
 services:
   network-deploy-service:
     networks:
-      - healthcare
+      - kundapp
 
   microservice-base-config:
     extends:
@@ -17,8 +17,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_CONFIG_IMPORT: configserver:http://msconfigserver:8888/
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
 
   microservice-discovery-config:
     extends:
@@ -43,7 +43,7 @@ services:
       interval: 10s
       start_period: 10s
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
 
   microservice-mongo-config:
     extends:

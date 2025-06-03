@@ -58,6 +58,6 @@ public interface IdentityFeignClient {
     User createAdmin(@RequestBody User user);
 
     // Return UserDto (sessionUser)
-    @PostMapping("/user")
-    UserDTO findUserDtoByEmail(EmailDto emailDto);
+    @GetMapping("/user")
+    UserDTO findUserDtoByEmail(@RequestParam String email);
 }

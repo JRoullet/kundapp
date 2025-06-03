@@ -4,9 +4,7 @@ package jroullet.mswebapp.auth;
 import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import jroullet.mswebapp.clients.IdentityFeignClient;
-import jroullet.mswebapp.dto.EmailDto;
 import jroullet.mswebapp.dto.UserDTO;
-import jroullet.mswebapp.model.User;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +42,7 @@ public class SessionService {
         logger.info("Fetching user DTO from ms-identity for: {}", email);
 
         try{
-            UserDTO userDto = identityFeignClient.findUserDtoByEmail(new EmailDto(email));
+            UserDTO userDto = identityFeignClient.findUserDtoByEmail(email);
             request.getSession().setAttribute("currentUserDTO", userDto);
             return userDto;
 
