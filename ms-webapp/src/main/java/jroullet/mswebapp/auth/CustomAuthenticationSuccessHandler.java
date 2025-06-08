@@ -19,9 +19,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final Map<String, String> ROLE_REDIRECT_MAP = Map.of(
-            Role.ADMIN.getAuthority(), "/admin/home",
-            Role.CLIENT.getAuthority(), "/client/home",
-            Role.TEACHER.getAuthority(), "/teacher/home"
+            Role.ADMIN.getAuthority(), "/admin",
+            Role.CLIENT.getAuthority(), "/client",
+            Role.TEACHER.getAuthority(), "/teacher"
     );
 
     // Manages each possible route when connecting as a user

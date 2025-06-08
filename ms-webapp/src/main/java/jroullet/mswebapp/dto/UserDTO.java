@@ -28,4 +28,5 @@ public class UserDTO {
     private Role role;
     private boolean status;
     private LocalDateTime createdAt;
+    private Integer credits;
 }

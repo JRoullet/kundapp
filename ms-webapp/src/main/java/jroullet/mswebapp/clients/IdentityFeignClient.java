@@ -23,41 +23,62 @@ public interface IdentityFeignClient {
     @PostMapping("/register")
     ResponseEntity<RegisterResponseDTO> registerUser(@RequestBody RegisterRequestDTO registerRequestDTO);
 
-//    // User endpoints
-//    @PostMapping("/user")
-//    ResponseEntity<User> findUserByEmail(@RequestBody EmailDto emailDto);
-
-
-    // Client endpoints
-    @PostMapping("/clients")
-    ClientResponseDTO createClient(@RequestBody ClientCreateDTO clientDTO);
-
-    @GetMapping("/clients/{id}")
-    ClientResponseDTO getClient(@PathVariable Long id);
-
-    @GetMapping("/clients")
-    List<ClientResponseDTO> getAllClients();
-
-    @PatchMapping("/clients/{id}")
-    ClientPatchDTO patchClient(@PathVariable Long id, @RequestBody ClientPatchDTO clientDTO);
-
-    @PostMapping("/clients/{id}/disable")
-    void disableClient(@PathVariable Long id);
-
-    // Admin endpoints
-    @DeleteMapping("/admin/clients/{id}")
-    void deleteClient(@PathVariable Long id);
-
-
-
-    // User endpoints
-    @PostMapping("/user/create")
-    User createUser(@RequestBody User user);
-
-    @PostMapping("/user/create-admin")
-    User createAdmin(@RequestBody User user);
-
     // Return UserDto (sessionUser)
     @GetMapping("/user")
     UserDTO findUserDtoByEmail(@RequestParam String email);
+
+    // Returns All Users
+    @GetMapping("/users")
+    List<UserDTO> getAllUsers();
+
+
+    /**
+     * Get user by ID
+     */
+    @GetMapping("/users/{id}")
+    UserDTO getUserById(@PathVariable Long id);
+
+    /**
+     * Create new user
+     */
+    @PostMapping("/users")
+    UserDTO createUser(@RequestBody UserDTO userDTO);
+
+    /**
+     * Partial update of existing user (PATCH - safer for partial entities)
+     */
+    @PatchMapping("/users/{id}")
+    UserDTO patchUser(@PathVariable Long id, @RequestBody UserDTO userDTO);
+
+    /**
+     * Disable user (set status = false) - PATCH
+     */
+    @PatchMapping("/users/{id}/disable")
+    void disableUser(@PathVariable Long id);
+
+    /**
+     * Delete user permanently
+     */
+    @DeleteMapping("/users/{id}")
+    void deleteUser(@PathVariable Long id);
+
+    /**
+     * Update user credits (CLIENT only) - PATCH
+     */
+    @PatchMapping("/users/{id}/credits")
+    void updateUserCredits(@PathVariable Long id, @RequestParam Integer credits);
+
+    /**
+     * Change user password - PATCH
+     */
+    @PatchMapping("/users/{id}/password")
+    void changeUserPassword(@PathVariable Long id,
+                            @RequestParam String currentPassword,
+                            @RequestParam String newPassword);
+
+
+
+
+
+
 }

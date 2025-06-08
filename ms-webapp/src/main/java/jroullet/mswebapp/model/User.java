@@ -65,4 +65,6 @@ public class User{
     private String zipCode;
     private String country;
 
+    Integer credits;
+
 }

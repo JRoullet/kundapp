@@ -459,4 +459,135 @@ body.signin-form {
     .signin-form h1 {
         font-size: 1.5rem;
     }
+
+    /* ========================================
+   AJOUTS POUR L'INTERFACE ADMIN
+   A ajouter à la fin du fichier styles.css existant
+   ======================================== */
+
+    /* Admin color override - s'active uniquement avec body.admin */
+    body.admin {
+        --primary: #DC3545;            /* Rouge principal admin */
+        --primary-light: #F8D7DA;      /* Rouge clair admin */
+        --primary-dark: #B02A37;       /* Rouge foncé admin */
+        --secondary: #F1AEBF;          /* Rouge secondaire admin */
+        --text-primary: #8B2635;       /* Texte principal rouge */
+        --text-secondary: #A6505A;     /* Texte secondaire rouge */
+    }
+
+    /* ========================================
+       ADMIN DASHBOARD - Navigation par onglets
+       ======================================== */
+    /* Tab content management - utilise le système existant */
+    .admin .tab-content {
+        display: none;
+    }
+
+    .admin .tab-content.active {
+        display: block;
+    }
+
+    /* ========================================
+       ADMIN TABLES - Améliorations des tableaux
+       ======================================== */
+    /* Status indicators - petits cercles colorés */
+    .admin .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .admin .status-active {
+        background-color: #28a745;     /* Vert pour actif */
+    }
+
+    .admin .status-inactive {
+        background-color: var(--primary); /* Rouge admin pour inactif */
+    }
+
+    /* Actions column width */
+    .admin .table-actions {
+        min-width: 150px;
+        white-space: nowrap;
+    }
+
+    /* ========================================
+       ADMIN BADGES - Couleurs spécifiques
+       ======================================== */
+    .admin .badge.bg-success {
+        background-color: #28a745 !important;
+    }
+
+    .admin .badge.bg-danger {
+        background-color: var(--primary) !important;
+    }
+
+    .admin .badge.bg-info {
+        background-color: #17a2b8 !important;
+    }
+
+    .admin .badge.bg-warning {
+        background-color: #ffc107 !important;
+        color: #000;
+    }
+
+    /* Badge pour les rôles */
+    .admin .role-client {
+        background-color: #17a2b8 !important;
+    }
+
+    .admin .role-teacher {
+        background-color: #ffc107 !important;
+        color: #000;
+    }
+
+    .admin .role-admin {
+        background-color: var(--primary) !important;
+    }
+
+    /* ========================================
+       ADMIN FORMS - Sections dans les modales
+       ======================================== */
+    .admin .modal-section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 3px solid var(--primary);
+    }
+
+    .admin .section-title {
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: var(--text-primary);
+    }
+
+    /* ========================================
+       ADMIN SEARCH - Zone de recherche
+       ======================================== */
+    .admin .search-section {
+        background-color: var(--primary-light);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    /* ========================================
+       ADMIN RESPONSIVE - Adaptations mobiles
+       ======================================== */
+    @media (max-width: 768px) {
+        .admin .table-actions .btn {
+            padding: 0.25rem 0.5rem;
+            margin-bottom: 2px;
+        }
+
+        .admin .modal-section {
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+    }
+
 }

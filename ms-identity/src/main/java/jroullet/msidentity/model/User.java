@@ -69,4 +69,5 @@ public class User {
     @Enumerated(EnumType.STRING)
     private SubscriptionStatus subscriptionStatus = SubscriptionStatus.NONE;
 
+    Integer credits;
 }

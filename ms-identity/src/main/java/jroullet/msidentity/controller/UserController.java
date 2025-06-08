@@ -38,6 +38,18 @@ public class UserController {
         }
     }
 
+    // Return all users
+    @GetMapping("/users")
+    ResponseEntity<List<UserDTO>> getAllUsers(){
+        logger.info("Looking for users");
+        try {
+            List<UserDTO> users = userService.findAllUsers();
+            return ResponseEntity.ok(users);
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
     @PostMapping("/teachers")
     public ResponseEntity<UserDTO> registerTeacher(@Valid @RequestBody TeacherRegistrationDTO dto) {
         try {
