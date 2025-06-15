@@ -56,11 +56,10 @@ public class User {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    // Billing address
-    private String street;
-    private String city;
-    private String zipCode;
-    private String country;
+    // Billing address - Relation OneToOne
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "address_id")
+    private Address address;
 
     @Column(name = "biography", length = 1000)
     private String biography;

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Teachers | KundApp Admin</title>
+    <link th:href="@{/css/mdb.min.css}" rel="stylesheet"/>
+    <link th:href="@{/css/styles.css}" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin admin-teachers">
+<!-- Admin Navigation -->
+<nav class="navbar navbar-expand-lg admin-navbar">
+    <div class="container">
+        <div class="logo me-3">
+            <img th:src="@{/images/kundapplogo.png}" alt="KundApp Logo" />
+        </div>
+        <a class="navbar-brand" href="/admin/teachers">KundApp Admin</a>
+        <button class="navbar-toggler" type="button" data-mdb-toggle="collapse" data-mdb-target="#navbarMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/users">
+                        <i class="fas fa-users me-2"></i>Clients
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/admin/teachers">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Teachers
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <span class="me-3 admin-user-info" th:if="${user != null}" th:text="${user.email}">admin@kundapp.com</span>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light">
+                        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <!-- Page Header -->
+    <div class="admin-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="admin-title">
+                    <i class="fas fa-chalkboard-teacher me-3"></i>Gestion des Teachers
+                </h1>
+                <p class="admin-subtitle">Administration et supervision des enseignants KundApp</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-admin-primary btn-lg" onclick="openCreateTeacherModal()">
+                    <i class="fas fa-plus me-2"></i>Nouveau Teacher
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show admin-alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-mdb-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show admin-alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-mdb-dismiss="alert"></button>
+    </div>
+
+    <!-- Teachers Management Card -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h5 class="admin-card-title">
+                <i class="fas fa-list me-2"></i>Liste des Teachers
+            </h5>
+        </div>
+
+        <!-- Search Section -->
+        <div class="admin-search-section">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label admin-label">Prénom</label>
+                    <input type="text" class="form-control admin-input" id="teacherFirstNameSearch"
+                           placeholder="Rechercher par prénom..." oninput="filterTeachers()">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label admin-label">Nom</label>
+                    <input type="text" class="form-control admin-input" id="teacherLastNameSearch"
+                           placeholder="Rechercher par nom..." oninput="filterTeachers()">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-admin-secondary" onclick="clearTeacherSearch()">
+                        <i class="fas fa-eraser me-1"></i>Effacer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teachers Table -->
+        <div class="admin-table-container">
+            <table class="table admin-table">
+                <thead>
+                <tr>
+                    <th><i class="fas fa-user me-1"></i>Prénom</th>
+                    <th><i class="fas fa-user me-1"></i>Nom</th>
+                    <th><i class="fas fa-envelope me-1"></i>Email</th>
+                    <th><i class="fas fa-phone me-1"></i>Téléphone</th>
+                    <th><i class="fas fa-toggle-on me-1"></i>Statut</th>
+                    <th><i class="fas fa-calendar me-1"></i>Créé le</th>
+                    <th class="text-center admin-actions-header">
+                        <i class="fas fa-cogs me-1"></i>Actions
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Teachers List -->
+                <tr th:each="teacher : ${users}" th:if="${teacher.role.name() == 'TEACHER'}" class="admin-table-row">
+                    <td th:text="${teacher.firstName}">Marie</td>
+                    <td th:text="${teacher.lastName}">Martin</td>
+                    <td>
+                        <span class="admin-email" th:text="${teacher.email}">marie@example.com</span>
+                    </td>
+                    <td th:text="${teacher.phoneNumber ?: '-'}">06 12 34 56 78</td>
+                    <td>
+                            <span th:class="${teacher.status} ? 'admin-status admin-status-active' : 'admin-status admin-status-inactive'">
+                                <i th:class="${teacher.status} ? 'fas fa-check-circle' : 'fas fa-times-circle'" class="me-1"></i>
+                                <span th:text="${teacher.status} ? 'Actif' : 'Inactif'">Actif</span>
+                            </span>
+                    </td>
+                    <td th:text="${#temporals.format(teacher.createdAt, 'dd/MM/yyyy')}">01/01/2025</td>
+                    <td class="text-center admin-actions">
+                        <div class="admin-action-buttons">
+                            <button class="btn btn-admin-edit"
+                                    th:onclick="|openEditTeacherModal(${teacher.id})|"
+                                    title="Modifier le teacher">
+                                <i class="fas fa-edit"></i>
+                                <span>Modifier</span>
+                            </button>
+                            <button class="btn btn-admin-disable"
+                                    th:onclick="|confirmDisableTeacher(${teacher.id})|"
+                                    title="Désactiver le teacher">
+                                <i class="fas fa-user-slash"></i>
+                                <span>Désactiver</span>
+                            </button>
+                            <button class="btn btn-admin-delete"
+                                    th:onclick="|confirmDeleteTeacher(${teacher.id})|"
+                                    title="Supprimer le teacher">
+                                <i class="fas fa-trash-alt"></i>
+                                <span>Supprimer</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Empty State -->
+                <tr th:if="${users == null || users.isEmpty()}" class="admin-empty-state">
+                    <td colspan="7" class="text-center py-5">
+                        <div class="admin-empty-content">
+                            <i class="fas fa-chalkboard-teacher admin-empty-icon"></i>
+                            <h5 class="admin-empty-title">Aucun teacher trouvé</h5>
+                            <p class="admin-empty-text">Commencez par créer votre premier teacher</p>
+                            <button class="btn btn-admin-primary" onclick="openCreateTeacherModal()">
+                                <i class="fas fa-plus me-2"></i>Créer un teacher
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Create Teacher Modal -->
+<div class="modal fade" id="teacherModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content admin-modal">
+            <div class="modal-header admin-modal-header">
+                <h5 class="modal-title admin-modal-title" id="teacherModalTitle">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Créer un Teacher
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-mdb-dismiss="modal"></button>
+            </div>
+            <form id="teacherForm" th:action="@{/admin/teachers}" method="post">
+                <div class="modal-body admin-modal-body">
+                    <input type="hidden" id="teacherId" name="id">
+
+                    <!-- Basic Information -->
+                    <div class="admin-form-section">
+                        <h6 class="admin-section-title">
+                            <i class="fas fa-id-card me-2"></i>Informations personnelles
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="teacherFirstName" class="form-label admin-label">Prénom *</label>
+                                <input type="text" class="form-control admin-input" id="teacherFirstName"
+                                       name="firstName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="teacherLastName" class="form-label admin-label">Nom *</label>
+                                <input type="text" class="form-control admin-input" id="teacherLastName"
+                                       name="lastName" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="teacherEmail" class="form-label admin-label">Email *</label>
+                                <input type="email" class="form-control admin-input" id="teacherEmail"
+                                       name="email" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="teacherPhone" class="form-label admin-label">Téléphone</label>
+                                <input type="tel" class="form-control admin-input" id="teacherPhone"
+                                       name="phoneNumber">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security -->
+                    <div class="admin-form-section">
+                        <h6 class="admin-section-title">
+                            <i class="fas fa-lock me-2"></i>Sécurité
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="teacherPassword" class="form-label admin-label">Mot de passe *</label>
+                                <input type="password" class="form-control admin-input" id="teacherPassword"
+                                       name="password" required minlength="8">
+                                <div class="form-text">Minimum 8 caractères</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="teacherBirthDate" class="form-label admin-label">Date de naissance</label>
+                                <input type="date" class="form-control admin-input" id="teacherBirthDate"
+                                       name="dateOfBirth">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Information -->
+                    <div class="admin-form-section">
+                        <h6 class="admin-section-title">
+                            <i class="fas fa-graduation-cap me-2"></i>Informations professionnelles
+                        </h6>
+                        <div class="mb-3">
+                            <label for="teacherBiography" class="form-label admin-label">Biographie</label>
+                            <textarea class="form-control admin-input" id="teacherBiography"
+                                      name="biography" rows="4" maxlength="1000"
+                                      placeholder="Décrivez l'expérience, les qualifications et la spécialité du teacher..."></textarea>
+                            <div class="form-text">Maximum 1000 caractères</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer admin-modal-footer">
+                    <button type="button" class="btn btn-admin-secondary" data-mdb-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Annuler
+                    </button>
+                    <button type="submit" class="btn btn-admin-primary">
+                        <i class="fas fa-save me-1"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content admin-modal">
+            <div class="modal-header admin-modal-header">
+                <h5 class="modal-title admin-modal-title" id="confirmationTitle">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-mdb-dismiss="modal"></button>
+            </div>
+            <div class="modal-body admin-modal-body text-center">
+                <div class="admin-confirmation-icon mb-3">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <p id="confirmationMessage" class="admin-confirmation-text"></p>
+            </div>
+            <div class="modal-footer admin-modal-footer">
+                <button type="button" class="btn btn-admin-secondary" data-mdb-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Annuler
+                </button>
+                <button type="button" class="btn btn-admin-danger" id="confirmButton">
+                    <i class="fas fa-check me-1"></i>Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="admin-footer">
+    <div class="container">
+        <p class="text-center mb-0">© 2025 KundApp Admin. Tous droits réservés.</p>
+    </div>
+</footer>
+
+<script th:src="@{/js/admin-teachers.js}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
+</body>
+</html>

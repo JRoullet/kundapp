@@ -33,13 +33,16 @@ public class TeacherServiceImpl implements TeacherService {
         User teacher = new User();
         teacher.setEmail(dto.getEmail());
         teacher.setPassword(passwordEncoder.encode(dto.getPassword()));
+        teacher.setRole(Role.TEACHER);
         teacher.setFirstName(dto.getFirstName());
         teacher.setLastName(dto.getLastName());
         teacher.setPhoneNumber(dto.getPhoneNumber());
-        teacher.setBiography(dto.getBiography());
-        teacher.setRole(Role.TEACHER);
+        teacher.setDateOfBirth(dto.getDateOfBirth());
+        teacher.setAddress(dto.getAddress());
         teacher.setStatus(true);
         teacher.setSubscriptionStatus(SubscriptionStatus.NONE);
+        teacher.setBiography(dto.getBiography());
+
 
         User savedTeacher = userRepository.save(teacher);
         return userMapper.toUserDto(savedTeacher);

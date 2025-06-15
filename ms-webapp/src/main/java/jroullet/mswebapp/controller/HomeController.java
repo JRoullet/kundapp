@@ -41,7 +41,10 @@ public class HomeController {
         model.addAttribute("user", userDTO);
         model.addAttribute("users", allUsers);
 
-        return new ModelAndView("home-admin");
+        return new ModelAndView("admin-teachers");
+        // A modifier pour aller sur admin-users et créer la page admin-users pour compléter la vue admin.
+        // Créer les endpoints update, disable et delete pour un teacher et pour un user.
+        // Ensuite créer la vue Teacher et permettre de créer une séance.
     }
 
     @GetMapping("/teacher")

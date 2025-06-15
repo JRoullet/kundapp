@@ -1,5 +1,6 @@
 package jroullet.mswebapp.dto;
 
+import jroullet.mswebapp.model.Address;
 import jroullet.mswebapp.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -15,6 +15,14 @@ import java.util.List;
 @FeignClient(name = "ms-identity", path = "/api")
 public interface IdentityFeignClient {
 
+
+    /**
+     * Create new user
+     */
+    @PostMapping("/admin/teachers")
+    UserDTO registerTeacher(@RequestBody TeacherRegistrationDTO dto);
+
+
     // Authentication request
     @PostMapping("/authenticate")
     ResponseEntity<AuthResponseDTO> authenticate(@RequestBody AuthRequestDTO authRequest);
@@ -38,11 +46,7 @@ public interface IdentityFeignClient {
     @GetMapping("/users/{id}")
     UserDTO getUserById(@PathVariable Long id);
 
-    /**
-     * Create new user
-     */
-    @PostMapping("/users")
-    UserDTO createUser(@RequestBody UserDTO userDTO);
+
 
     /**
      * Partial update of existing user (PATCH - safer for partial entities)

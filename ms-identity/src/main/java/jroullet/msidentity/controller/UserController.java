@@ -23,8 +23,8 @@ import java.util.logging.Logger;
 public class UserController {
 
     private final UserService userService;
-    private final TeacherService teacherService;
     private final Logger logger = Logger.getLogger(UserController.class.getName());
+
 
     // Return UserDto (sessionUser)
     @GetMapping("/user")
@@ -50,15 +50,6 @@ public class UserController {
         }
     }
 
-    @PostMapping("/teachers")
-    public ResponseEntity<UserDTO> registerTeacher(@Valid @RequestBody TeacherRegistrationDTO dto) {
-        try {
-            UserDTO response = teacherService.registerTeacher(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (EmailAlreadyExistsException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
-        }
-    }
 
     @GetMapping("/teachers")
     public ResponseEntity<List<UserDTO>> getAllTeachers() {

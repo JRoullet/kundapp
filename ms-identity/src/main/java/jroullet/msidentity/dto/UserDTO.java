@@ -1,5 +1,6 @@
 package jroullet.msidentity.dto;
 
+import jroullet.msidentity.model.Address;
 import jroullet.msidentity.model.Role;
 import jroullet.msidentity.model.SubscriptionStatus;
 import lombok.AllArgsConstructor;

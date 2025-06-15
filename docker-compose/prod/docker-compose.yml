@@ -100,6 +100,32 @@ services:
     environment:
       SPRING_DATASOURCE_URL: ${DATABASE_URL}
 
+  data-initializer:
+    image: mysql:9.3
+    container_name: data-initializer
+    depends_on:
+      msidentity:
+        condition: service_started  # Attend que msidentity soit démarré
+      msidentitydb:
+        condition: service_healthy
+    volumes:
+      - ./docker/mysql-init/02-data.sql:/tmp/insert-data.sql
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+    command: >
+      sh -c "
+        echo 'Waiting for msidentity...' &&
+        sleep 45 &&
+        echo 'inserting data' &&
+        mysql -h identitydb -u root -p${MYSQL_ROOT_PASSWORD} identitydb < /tmp/insert-data.sql &&
+        echo 'success!' &&
+        mysql -h identitydb -u root -p${MYSQL_ROOT_PASSWORD} identitydb -e 'SELECT email, role FROM users;'
+      "
+    restart: "no"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
 
 
 #  mscoursemgmt:

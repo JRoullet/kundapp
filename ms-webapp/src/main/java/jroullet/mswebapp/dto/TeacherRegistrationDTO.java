@@ -1,9 +1,9 @@
-package jroullet.msidentity.dto;
+package jroullet.mswebapp.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import jroullet.msidentity.model.Address;
+import jroullet.mswebapp.model.Address;
 import lombok.Data;
 
 import java.time.LocalDate;
