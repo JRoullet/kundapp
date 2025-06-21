@@ -38,7 +38,7 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error",
                     "Erreur lors de la création du teacher : " + e.getMessage());
         }
-        return new ModelAndView("redirect:/admin/teachers");
+        return new ModelAndView("redirect:/admin");
     }
 
 //    /**

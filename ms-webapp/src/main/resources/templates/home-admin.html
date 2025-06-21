@@ -1,43 +1,30 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin | KundApp</title>
-    <link th:href="@{css/mdb.min.css}" rel="stylesheet"/>
-    <link th:href="@{css/styles.css}" rel="stylesheet"/>
+    <title>Administration | KundApp Admin</title>
+    <link th:href="@{/css/mdb.min.css}" rel="stylesheet"/>
+    <link th:href="@{/css/index.css}" rel="stylesheet"/>
 </head>
 <body class="admin">
-<nav class="navbar navbar-expand-lg">
+<!-- Admin Navigation -->
+<nav class="navbar navbar-expand-lg admin-navbar">
     <div class="container">
         <div class="logo me-3">
-            <img th:src="@{/images/kundapplogo.png}" alt="KundApp Logo" />
+            <img th:src="@{/images/kundapplogo.jpg}" alt="KundApp Logo" />
         </div>
-        <a class="navbar-brand" href="/home-admin">KundApp Admin</a>
+        <a class="navbar-brand" href="/admin">KundApp Admin</a>
         <button class="navbar-toggler" type="button" data-mdb-toggle="collapse" data-mdb-target="#navbarMain">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarMain">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" id="users-tab" href="/admin/users" onclick="return false; showTab('users')">Users</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="teachers-tab" href="/admin/teachers" onclick="return false; showTab('teachers')">Teachers</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="admin-tab" href="#" onclick="showTab('admin')">Admin</a>
-                </li>
-                <!-- Sessions tab commented as requested -->
-                <!-- <li class="nav-item">
-                    <a class="nav-link" id="sessions-tab" href="#" onclick="showTab('sessions')">Sessions</a>
-                </li> -->
-            </ul>
-            <div class="d-flex align-items-center">
-                <span class="me-3" th:if="${user != null}" th:text="${user.email}">admin@kundapp.com</span>
+            <div class="d-flex align-items-center ms-auto">
+                <span class="me-3 admin-user-info" th:if="${user != null}" th:text="${user.email}">admin@kundapp.com</span>
                 <form th:action="@{/logout}" method="post" class="d-inline">
-                    <button type="submit" class="btn btn-outline-primary">Déconnexion</button>
+                    <button type="submit" class="btn btn-outline-light admin-logout-btn">
+                        Déconnexion
+                    </button>
                 </form>
             </div>
         </div>
@@ -45,341 +32,324 @@
 </nav>
 
 <div class="container py-4">
-    <!-- Welcome Banner -->
-    <div class="welcome-banner">
+    <!-- Page Header -->
+    <div class="admin-header">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="h4 mb-0">Dashboard Administrateur KundApp</h1>
-                <p class="mb-0">Gestion des utilisateurs, teachers et configuration admin</p>
+                <h1 class="admin-title">Administration KundApp</h1>
+                <p class="admin-subtitle">Gestion des utilisateurs et du système</p>
             </div>
         </div>
     </div>
 
-    <!-- Users Tab Content -->
-    <div id="users-content" class="tab-content active">
-        <div class="row mb-4">
-            <div class="col">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0">Gestion des Clients</h5>
-                            <button class="btn btn-primary" onclick="openCreateUserModal()">
-                                <i class="fas fa-plus"></i> Créer un client
+    <!-- Global Search Section -->
+    <div class="admin-search-global mb-4" id="searchSection">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <button class="btn btn-sm btn-outline-secondary me-2" id="toggleSearchBtn" onclick="toggleSearchSection()">
+                        <span id="searchIcon">▼</span>
+                    </button>
+                    <h6 class="card-title mb-0">Recherche</h6>
+                </div>
+                <div class="row" id="searchFields">
+                    <div class="col-md-4">
+                        <label class="form-label">Prénom</label>
+                        <input type="text" class="form-control" id="globalFirstNameSearch"
+                               placeholder="Rechercher par prénom..." oninput="filterCurrentTab()">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Nom</label>
+                        <input type="text" class="form-control" id="globalLastNameSearch"
+                               placeholder="Rechercher par nom..." oninput="filterCurrentTab()">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-block">
+                            <button class="btn btn-admin-secondary" style="padding: 12px 24px; font-weight: 600; border-radius: 8px; min-width: 120px;" onclick="clearGlobalSearch()">
+                                Effacer
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        <!-- Search section -->
-                        <div class="search-section">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <label class="form-label">Prénom</label>
-                                    <input type="text" class="form-control" id="userFirstNameSearch"
-                                           placeholder="Rechercher par prénom..." oninput="filterUsers()">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Nom</label>
-                                    <input type="text" class="form-control" id="userLastNameSearch"
-                                           placeholder="Rechercher par nom..." oninput="filterUsers()">
-                                </div>
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <button class="btn btn-outline-secondary" onclick="clearUserSearch()">
-                                        <i class="fas fa-times"></i> Effacer
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show admin-alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-mdb-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show admin-alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-mdb-dismiss="alert"></button>
+    </div>
+
+    <!-- Admin Tabs -->
+    <div class="admin-card">
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs admin-tabs" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="teachers-tab" data-mdb-toggle="tab"
+                        data-mdb-target="#teachers-content" type="button" role="tab">
+                    Teachers
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="users-tab" data-mdb-toggle="tab"
+                        data-mdb-target="#users-content" type="button" role="tab">
+                    Clients
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="adminTabsContent">
+
+            <!-- TEACHERS TAB -->
+            <div class="tab-pane fade show active" id="teachers-content" role="tabpanel">
+                <div class="admin-card-header" style="background: white; color: var(--admin-primary); padding: 20px; border-bottom: 3px solid white;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="admin-card-title mb-0">Liste des Teachers</h5>
+                        <button class="btn btn-admin-primary" style="border: 2px solid white !important;" onclick="openCreateTeacherModal()">
+                            Nouveau Teacher
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Teachers Table -->
+                <div class="admin-table-container" style="margin-top: 15px; border-radius: 0;">
+                    <table class="table admin-table">
+                        <thead>
+                        <tr>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Téléphone</th>
+                            <th>Statut</th>
+                            <th>Créé le</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="teacher : ${users}" th:if="${teacher.role.name() == 'TEACHER'}" class="admin-table-row teacher-row">
+                            <td th:text="${teacher.firstName}">Marie</td>
+                            <td th:text="${teacher.lastName}">Martin</td>
+                            <td><span class="admin-email" th:text="${teacher.email}">marie@example.com</span></td>
+                            <td th:text="${teacher.phoneNumber != null ? teacher.phoneNumber : '-'}">06 12 34 56 78</td>
+                            <td>
+                                <span th:class="${teacher.status} ? 'admin-status admin-status-active' : 'admin-status admin-status-inactive'">
+                                    <span th:text="${teacher.status} ? 'Actif' : 'Inactif'">Actif</span>
+                                </span>
+                            </td>
+                            <td th:text="${#temporals.format(teacher.createdAt, 'dd/MM/yyyy')}">01/01/2025</td>
+                            <td class="text-center admin-actions">
+                                <div class="admin-action-buttons">
+                                    <button class="btn btn-admin-edit" th:onclick="|openEditTeacherModal(${teacher.id})|" title="Modifier">
+                                        Modifier
+                                    </button>
+                                    <button class="btn btn-admin-disable" th:onclick="|confirmDisableTeacher(${teacher.id})|" title="Désactiver">
+                                        Désactiver
+                                    </button>
+                                    <button class="btn btn-admin-delete" th:onclick="|confirmDeleteTeacher(${teacher.id})|" title="Supprimer">
+                                        Supprimer
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Users table -->
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                <tr>
-                                    <th>Prénom</th>
-                                    <th>Nom</th>
-                                    <th>Email</th>
-                                    <th>Statut</th>
-                                    <th>Crédits</th>
-                                    <th>Créé le</th>
-                                    <th class="text-center table-actions">Actions</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <!-- Iteration over users with role CLIENT only -->
-                                <tr th:each="user : ${users}" th:if="${user.role.name() == 'CLIENT'}">
-                                    <td th:text="${user.firstName}">John</td>
-                                    <td th:text="${user.lastName}">Doe</td>
-                                    <td th:text="${user.email}">john@example.com</td>
-                                    <td>
-                                        <span class="status-indicator" th:class="${user.status} ? 'status-active' : 'status-inactive'"></span>
-                                        <span th:text="${user.status} ? 'Actif' : 'Inactif'">Actif</span>
-                                    </td>
-                                    <td th:text="${user.credits != null ? user.credits : '0'}">5</td>
-                                    <td th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy')}">01/01/2025</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary me-1"
-                                                th:onclick="|openEditUserModal(${user.id})|" title="Modifier">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-info me-1"
-                                                th:onclick="|openCreditsModal(${user.id})|" title="Gérer crédits">
-                                            <i class="fas fa-coins"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-warning me-1"
-                                                th:onclick="|confirmDisableUser(${user.id})|" title="Désactiver">
-                                            <i class="fas fa-ban"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger"
-                                                th:onclick="|confirmDeleteUser(${user.id})|" title="Supprimer">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <!-- Empty state -->
-                                <tr th:if="${users == null || users.isEmpty()}">
-                                    <td colspan="7" class="text-center py-4">
-                                        Aucun client trouvé
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Teachers Tab Content -->
-    <div id="teachers-content" class="tab-content">
-        <div class="row mb-4">
-            <div class="col">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0">Gestion des Teachers</h5>
-                            <button class="btn btn-primary" onclick="openCreateTeacherModal()">
-                                <i class="fas fa-plus"></i> Créer un teacher
-                            </button>
-                        </div>
-
-                        <!-- Search section -->
-                        <div class="search-section">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <label class="form-label">Prénom</label>
-                                    <input type="text" class="form-control" id="teacherFirstNameSearch"
-                                           placeholder="Rechercher par prénom..." oninput="filterTeachers()">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Nom</label>
-                                    <input type="text" class="form-control" id="teacherLastNameSearch"
-                                           placeholder="Rechercher par nom..." oninput="filterTeachers()">
-                                </div>
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <button class="btn btn-outline-secondary" onclick="clearTeacherSearch()">
-                                        <i class="fas fa-times"></i> Effacer
+                            </td>
+                        </tr>
+                        <!-- Empty state pour teachers -->
+                        <tr th:if="${users == null || users.isEmpty()}" class="admin-empty-state">
+                            <td colspan="7" class="text-center py-5">
+                                <div class="admin-empty-content">
+                                    <h5 class="admin-empty-title">Aucun teacher trouvé</h5>
+                                    <p class="admin-empty-text">Créer un teacher</p>
+                                    <button class="btn btn-admin-primary" style="border: 2px solid white !important;" onclick="openCreateTeacherModal()">
+                                        Créer un teacher
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Teachers table -->
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                <tr>
-                                    <th>Prénom</th>
-                                    <th>Nom</th>
-                                    <th>Email</th>
-                                    <th>Téléphone</th>
-                                    <th>Statut</th>
-                                    <th>Créé le</th>
-                                    <th class="text-center table-actions">Actions</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <!-- Iteration over users with role TEACHER only -->
-                                <tr th:each="teacher : ${users}" th:if="${teacher.role.name() == 'TEACHER'}">
-                                    <td th:text="${teacher.firstName}">Marie</td>
-                                    <td th:text="${teacher.lastName}">Martin</td>
-                                    <td th:text="${teacher.email}">marie@example.com</td>
-                                    <td th:text="${teacher.phoneNumber}">06 12 34 56 78</td>
-                                    <td>
-                                        <span class="status-indicator" th:class="${teacher.status} ? 'status-active' : 'status-inactive'"></span>
-                                        <span th:text="${teacher.status} ? 'Actif' : 'Inactif'">Actif</span>
-                                    </td>
-                                    <td th:text="${#temporals.format(teacher.createdAt, 'dd/MM/yyyy')}">01/01/2025</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary me-1"
-                                                th:onclick="|openEditTeacherModal(${teacher.id})|" title="Modifier">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-warning me-1"
-                                                th:onclick="|confirmDisableTeacher(${teacher.id})|" title="Désactiver">
-                                            <i class="fas fa-ban"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger"
-                                                th:onclick="|confirmDeleteTeacher(${teacher.id})|" title="Supprimer">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <!-- Empty state -->
-                                <tr th:if="${users == null || users.isEmpty()}">
-                                    <td colspan="7" class="text-center py-4">
-                                        Aucun teacher trouvé
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Admin Tab Content -->
-    <div id="admin-content" class="tab-content">
-        <div class="row mb-4">
-            <div class="col">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Configuration Administrateur</h5>
+            <!-- USERS TAB -->
+            <div class="tab-pane fade" id="users-content" role="tabpanel">
+                <div class="admin-card-header" style="background: white; color: var(--admin-primary); padding: 20px; border-bottom: 3px solid white;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="admin-card-title mb-0">Liste des Clients</h5>
+                        <button class="btn btn-admin-primary" style="border: 2px solid white !important;" onclick="openCreateUserModal()">
+                            Nouveau Client
+                        </button>
+                    </div>
+                </div>
 
-                        <div class="modal-section">
-                            <div class="section-title">Changer le mot de passe administrateur</div>
-                            <form th:action="@{/admin/change-password}" method="post">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="currentPassword" class="form-label">Mot de passe actuel *</label>
-                                        <input type="password" class="form-control" id="currentPassword"
-                                               name="currentPassword" required>
-                                    </div>
+                <!-- Users Table -->
+                <div class="admin-table-container" style="margin-top: 15px; border-radius: 0;">
+                    <table class="table admin-table">
+                        <thead>
+                        <tr>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Statut</th>
+                            <th>Crédits</th>
+                            <th>Créé le</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="user : ${users}" th:if="${user.role.name() == 'CLIENT'}" class="admin-table-row user-row">
+                            <td th:text="${user.firstName}">John</td>
+                            <td th:text="${user.lastName}">Doe</td>
+                            <td><span class="admin-email" th:text="${user.email}">john@example.com</span></td>
+                            <td>
+                                <span th:class="${user.status} ? 'admin-status admin-status-active' : 'admin-status admin-status-inactive'">
+                                    <span th:text="${user.status} ? 'Actif' : 'Inactif'">Actif</span>
+                                </span>
+                            </td>
+                            <td th:text="${user.credits != null ? user.credits : '0'}">5</td>
+                            <td th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy')}">01/01/2025</td>
+                            <td class="text-center admin-actions">
+                                <div class="admin-action-buttons">
+                                    <button class="btn btn-admin-edit" th:onclick="|openEditUserModal(${user.id})|" title="Modifier">
+                                        Modifier
+                                    </button>
+                                    <button class="btn btn-outline-info btn-sm" th:onclick="|openCreditsModal(${user.id})|" title="Gérer crédits">
+                                        Crédits
+                                    </button>
+                                    <button class="btn btn-admin-disable" th:onclick="|confirmDisableUser(${user.id})|" title="Désactiver">
+                                        Désactiver
+                                    </button>
+                                    <button class="btn btn-admin-delete" th:onclick="|confirmDeleteUser(${user.id})|" title="Supprimer">
+                                        Supprimer
+                                    </button>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="newPassword" class="form-label">Nouveau mot de passe *</label>
-                                        <input type="password" class="form-control" id="newPassword"
-                                               name="newPassword" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="confirmPassword" class="form-label">Confirmer le nouveau mot de passe *</label>
-                                        <input type="password" class="form-control" id="confirmPassword"
-                                               name="confirmPassword" required>
-                                    </div>
+                            </td>
+                        </tr>
+                        <!-- Empty state pour users -->
+                        <tr th:if="${users == null || users.isEmpty()}" class="admin-empty-state">
+                            <td colspan="7" class="text-center py-5">
+                                <div class="admin-empty-content">
+                                    <h5 class="admin-empty-title">Aucun client trouvé</h5>
+                                    <p class="admin-empty-text">Créer votre premier client</p>
+                                    <button class="btn btn-admin-primary" style="border: 2px solid white !important;" onclick="openCreateUserModal()">
+                                        Créer un client
+                                    </button>
                                 </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-key"></i> Changer le mot de passe
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Sessions Tab Content (commented as requested) -->
-    <!--
-    <div id="sessions-content" class="tab-content">
-        <div class="row mb-4">
-            <div class="col">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            La gestion des sessions sera disponible après l'implémentation de la création des teachers.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    -->
 </div>
 
-<!-- Create/Edit User Modal -->
+<!-- Teacher Modal -->
+<div class="modal fade" id="teacherModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="teacherModalTitle">Créer un Teacher</h5>
+                <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+            </div>
+            <form id="teacherForm" action="/admin/teachers" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="teacherId" name="id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherFirstName" class="form-label">Prénom *</label>
+                            <input type="text" class="form-control" id="teacherFirstName" name="firstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherLastName" class="form-label">Nom *</label>
+                            <input type="text" class="form-control" id="teacherLastName" name="lastName" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherEmail" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="teacherEmail" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherPhone" class="form-label">Téléphone</label>
+                            <input type="tel" class="form-control" id="teacherPhone" name="phoneNumber">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherPassword" class="form-label">Mot de passe *</label>
+                            <input type="password" class="form-control" id="teacherPassword" name="password" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherBirthDate" class="form-label">Date de naissance</label>
+                            <input type="date" class="form-control" id="teacherBirthDate" name="dateOfBirth">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="teacherBiography" class="form-label">Biographie</label>
+                        <textarea class="form-control" id="teacherBiography" name="biography" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- User Modal -->
 <div class="modal fade" id="userModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="userModalTitle">Créer un utilisateur</h5>
+                <h5 class="modal-title" id="userModalTitle">Créer un Client</h5>
                 <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
             </div>
-            <form id="userForm" th:action="@{/admin/users}" method="post">
-                <input type="hidden" name="_method" value="POST" id="httpMethod">
+            <form id="userForm" action="/admin/users" method="post">
                 <div class="modal-body">
                     <input type="hidden" id="userId" name="id">
-
-                    <!-- Basic info section -->
-                    <div class="modal-section">
-                        <div class="section-title">Informations principales</div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="userRole" class="form-label">Rôle *</label>
-                                <select class="form-select" id="userRole" name="role" required>
-                                    <option value="">Sélectionner un rôle</option>
-                                    <option value="CLIENT">Client</option>
-                                    <option value="TEACHER">Teacher</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="userFirstName" class="form-label">Prénom *</label>
-                                <input type="text" class="form-control" id="userFirstName" name="firstName" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="userLastName" class="form-label">Nom *</label>
-                                <input type="text" class="form-control" id="userLastName" name="lastName" required>
-                            </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="userFirstName" class="form-label">Prénom *</label>
+                            <input type="text" class="form-control" id="userFirstName" name="firstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="userLastName" class="form-label">Nom *</label>
+                            <input type="text" class="form-control" id="userLastName" name="lastName" required>
                         </div>
                     </div>
-
-                    <!-- Contact info section -->
-                    <div class="modal-section">
-                        <div class="section-title">Informations de contact</div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="userEmail" class="form-label">Email *</label>
-                                <input type="email" class="form-control" id="userEmail" name="email" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="userPhone" class="form-label">Téléphone</label>
-                                <input type="tel" class="form-control" id="userPhone" name="phoneNumber">
-                            </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="userEmail" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="userEmail" name="email" required>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="userPassword" class="form-label">Mot de passe *</label>
-                                <input type="password" class="form-control" id="userPassword" name="password" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="userBirthDate" class="form-label">Date de naissance</label>
-                                <input type="date" class="form-control" id="userBirthDate" name="dateOfBirth">
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="userPhone" class="form-label">Téléphone</label>
+                            <input type="tel" class="form-control" id="userPhone" name="phoneNumber">
                         </div>
                     </div>
-
-                    <!-- Credits section for CLIENT only -->
-                    <div class="modal-section" id="creditsSection" style="display: none;">
-                        <div class="section-title">Crédits (Client uniquement)</div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="userCredits" class="form-label">Nombre de crédits</label>
-                                <input type="number" class="form-control" id="userCredits" name="credits" min="0" value="0">
-                                <div class="form-text">1 crédit = 1 séance</div>
-                            </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="userPassword" class="form-label">Mot de passe *</label>
+                            <input type="password" class="form-control" id="userPassword" name="password" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="userBirthDate" class="form-label">Date de naissance</label>
+                            <input type="date" class="form-control" id="userBirthDate" name="dateOfBirth">
                         </div>
                     </div>
-
-                    <!-- Biography section for TEACHER only -->
-                    <div class="modal-section" id="biographySection" style="display: none;">
-                        <div class="section-title">Biographie (Teacher uniquement)</div>
-                        <div class="row mb-3">
-                            <div class="col-12">
-                                <label for="userBiography" class="form-label">Biographie</label>
-                                <textarea class="form-control" id="userBiography" name="biography" rows="3"></textarea>
-                            </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="userCredits" class="form-label">Crédits</label>
+                            <input type="number" class="form-control" id="userCredits" name="credits" min="0" value="0">
                         </div>
                     </div>
                 </div>
@@ -400,17 +370,12 @@
                 <h5 class="modal-title">Gestion des crédits</h5>
                 <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
             </div>
-            <form th:action="@{/admin/users/credits}" method="post">
+            <form action="/admin/users/credits" method="post">
                 <div class="modal-body">
                     <input type="hidden" id="creditsUserId" name="userId">
                     <div class="mb-3">
-                        <label class="form-label">Utilisateur</label>
-                        <input type="text" class="form-control" id="creditsUserName" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="newCredits" class="form-label">Nombre de crédits </label>
+                        <label for="newCredits" class="form-label">Nombre de crédits</label>
                         <input type="number" class="form-control" id="newCredits" name="credits" min="0" required>
-                        <div class="form-text">Définir le nouveau nombre total de crédits</div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -441,13 +406,13 @@
     </div>
 </div>
 
-<footer class="py-3 mt-5 bg-white border-top">
+<footer class="admin-footer">
     <div class="container">
-        <p class="text-center text-muted mb-0">© 2025 KundApp Admin. Tous droits réservés.</p>
+        <p class="text-center mb-0">© 2025 KundApp Admin. Tous droits réservés.</p>
     </div>
 </footer>
 
-<script th:src="@{js/admin.js}"></script>
+<script th:src="@{/js/admin.js}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
 </body>
 </html>

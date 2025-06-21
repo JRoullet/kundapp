@@ -5,7 +5,6 @@ import jroullet.mswebapp.auth.SessionService;
 import jroullet.mswebapp.clients.IdentityFeignClient;
 import jroullet.mswebapp.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
-import org.bouncycastle.math.raw.Mod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -41,7 +40,7 @@ public class HomeController {
         model.addAttribute("user", userDTO);
         model.addAttribute("users", allUsers);
 
-        return new ModelAndView("admin-teachers");
+        return new ModelAndView("home-admin");
         // A modifier pour aller sur admin-users et créer la page admin-users pour compléter la vue admin.
         // Créer les endpoints update, disable et delete pour un teacher et pour un user.
         // Ensuite créer la vue Teacher et permettre de créer une séance.

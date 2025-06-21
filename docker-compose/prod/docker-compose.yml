@@ -142,9 +142,9 @@ services:
 #    environment:
 #      SPRING_DATASOURCE_URL: jdbc:mysql://mscoursemgmtdb:3306/coursemgmtdb
 
-#  msnotes:
-#    image: jroullet/kundapp-ms-notes:latest
-#    container_name: notes-ms
+#  msnotifications:
+#    image: jroullet/kundapp-ms-notifications:latest
+#    container_name: notifications-ms
 #    ports:
 #      - "9000:9000"
 #    depends_on:
