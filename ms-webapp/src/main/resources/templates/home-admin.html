@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin | KundApp</title>
-    <link th:href="@{css/mdb.min.css}" rel="stylesheet"/>
-    <link th:href="@{css/styles.css}" rel="stylesheet"/>
+    <link th:href="@{/css/mdb.min.css}" rel="stylesheet"/>
+    <link th:href="@{/css/index.css}" rel="stylesheet"/>
 </head>
 <body class="admin">
 <nav class="navbar navbar-expand-lg">
@@ -239,46 +239,46 @@
         </div>
     </div>
 
-    <!-- Admin Tab Content -->
-    <div id="admin-content" class="tab-content">
-        <div class="row mb-4">
-            <div class="col">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Configuration Administrateur</h5>
+<!--    &lt;!&ndash; Admin Tab Content &ndash;&gt;-->
+<!--    <div id="admin-content" class="tab-content">-->
+<!--        <div class="row mb-4">-->
+<!--            <div class="col">-->
+<!--                <div class="card">-->
+<!--                    <div class="card-body">-->
+<!--                        <h5 class="card-title mb-3">Configuration Administrateur</h5>-->
 
-                        <div class="modal-section">
-                            <div class="section-title">Changer le mot de passe administrateur</div>
-                            <form th:action="@{/admin/change-password}" method="post">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="currentPassword" class="form-label">Mot de passe actuel *</label>
-                                        <input type="password" class="form-control" id="currentPassword"
-                                               name="currentPassword" required>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="newPassword" class="form-label">Nouveau mot de passe *</label>
-                                        <input type="password" class="form-control" id="newPassword"
-                                               name="newPassword" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="confirmPassword" class="form-label">Confirmer le nouveau mot de passe *</label>
-                                        <input type="password" class="form-control" id="confirmPassword"
-                                               name="confirmPassword" required>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-key"></i> Changer le mot de passe
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!--                        <div class="modal-section">-->
+<!--                            <div class="section-title">Changer le mot de passe administrateur</div>-->
+<!--                            <form th:action="@{/admin/change-password}" method="post">-->
+<!--                                <div class="row">-->
+<!--                                    <div class="col-md-6 mb-3">-->
+<!--                                        <label for="currentPassword" class="form-label">Mot de passe actuel *</label>-->
+<!--                                        <input type="password" class="form-control" id="currentPassword"-->
+<!--                                               name="currentPassword" required>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                                <div class="row">-->
+<!--                                    <div class="col-md-6 mb-3">-->
+<!--                                        <label for="newPassword" class="form-label">Nouveau mot de passe *</label>-->
+<!--                                        <input type="password" class="form-control" id="newPassword"-->
+<!--                                               name="newPassword" required>-->
+<!--                                    </div>-->
+<!--                                    <div class="col-md-6 mb-3">-->
+<!--                                        <label for="confirmPassword" class="form-label">Confirmer le nouveau mot de passe *</label>-->
+<!--                                        <input type="password" class="form-control" id="confirmPassword"-->
+<!--                                               name="confirmPassword" required>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                                <button type="submit" class="btn btn-primary">-->
+<!--                                    <i class="fas fa-key"></i> Changer le mot de passe-->
+<!--                                </button>-->
+<!--                            </form>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
 
     <!-- Sessions Tab Content (commented as requested) -->
     <!--

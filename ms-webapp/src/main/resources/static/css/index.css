@@ -45,6 +45,8 @@ body {
 }
 
 footer {
+    position: fixed;
+    bottom: 0;
     flex-shrink: 0;                /* Ne se réduit pas */
 }
 
@@ -903,10 +905,15 @@ body.signin-form {
        ADMIN FOOTER
        ======================================== */
     .admin-footer {
+        position: fixed;
+        text-align: center;
+        width: 100%;
+        display: inline-block;
         background: linear-gradient(135deg, var(--admin-dark) 0%, #212529 100%);
         color: white;
         padding: 20px 0;
         margin-top: 50px;
+        bottom: 0;
     }
 
     /* ========================================
