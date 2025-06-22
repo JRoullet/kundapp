@@ -260,6 +260,7 @@
             </div>
             <form id="teacherForm" action="/admin/teachers" method="post">
                 <div class="modal-body">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <input type="hidden" id="teacherId" name="id">
                     <div class="row">
                         <div class="col-md-6 mb-3">
