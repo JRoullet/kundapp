@@ -24,7 +24,8 @@ public class HomeController {
     private final static Logger logger = LoggerFactory.getLogger(HomeController.class);
 
     @GetMapping("/client")
-    public ModelAndView showClientHome(Model model, HttpServletRequest request) {
+    public ModelAndView showClientHome(Model model) {
+        logger.info("Fetching client home");
         UserDTO userDTO = sessionService.getCurrentUser();
         List<UserDTO> allUsers = identityFeignClient.getAllUsers();
         model.addAttribute("user", userDTO);
@@ -35,6 +36,7 @@ public class HomeController {
 
     @GetMapping("/admin")
     public ModelAndView showAdminPage(Model model) {
+        logger.info("Fetching admin home");
         UserDTO userDTO = sessionService.getCurrentUser();
         List<UserDTO> allUsers = identityFeignClient.getAllUsers();
         model.addAttribute("user", userDTO);
@@ -48,6 +50,7 @@ public class HomeController {
 
     @GetMapping("/teacher")
     public ModelAndView showTeacherHome(Model model) {
+        logger.info("Fetching teacher home");
         UserDTO userDTO = sessionService.getCurrentUser();
         List<UserDTO> allUsers = identityFeignClient.getAllUsers();
         model.addAttribute("user", userDTO);

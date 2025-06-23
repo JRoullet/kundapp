@@ -296,10 +296,109 @@
                         <label for="teacherBiography" class="form-label">Biographie</label>
                         <textarea class="form-control" id="teacherBiography" name="biography" rows="3"></textarea>
                     </div>
+
+                    <!-- Section Adresse -->
+                    <hr>
+                    <h6 class="mb-3">Adresse</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherStreet" class="form-label">Rue</label>
+                            <input type="text" class="form-control" id="teacherStreet" name="address.street">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherCity" class="form-label">Ville</label>
+                            <input type="text" class="form-control" id="teacherCity" name="address.city">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherZipCode" class="form-label">Code postal</label>
+                            <input type="text" class="form-control" id="teacherZipCode" name="address.zipCode">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherCountry" class="form-label">Pays</label>
+                            <input type="text" class="form-control" id="teacherCountry" name="address.country">
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Teacher Update Modal - Modification SANS password -->
+<div class="modal fade" id="teacherUpdateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifier le Teacher</h5>
+                <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+            </div>
+            <form id="teacherUpdateForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" id="teacherUpdateId" name="id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherUpdateFirstName" class="form-label">Prénom *</label>
+                            <input type="text" class="form-control" id="teacherUpdateFirstName" name="firstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherUpdateLastName" class="form-label">Nom *</label>
+                            <input type="text" class="form-control" id="teacherUpdateLastName" name="lastName" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherUpdateEmail" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="teacherUpdateEmail" name="email" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherUpdatePhone" class="form-label">Téléphone</label>
+                            <input type="tel" class="form-control" id="teacherUpdatePhone" name="phoneNumber">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherUpdateBirthDate" class="form-label">Date de naissance</label>
+                            <input type="date" class="form-control" id="teacherUpdateBirthDate" name="dateOfBirth">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="teacherUpdateBiography" class="form-label">Biographie</label>
+                        <textarea class="form-control" id="teacherUpdateBiography" name="biography" rows="3"></textarea>
+                    </div>
+
+                    <!-- Section Adresse -->
+                    <hr>
+                    <h6 class="mb-3">Adresse</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherUpdateStreet" class="form-label">Rue</label>
+                            <input type="text" class="form-control" id="teacherUpdateStreet" name="address.street">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherUpdateCity" class="form-label">Ville</label>
+                            <input type="text" class="form-control" id="teacherUpdateCity" name="address.city">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherUpdateZipCode" class="form-label">Code postal</label>
+                            <input type="text" class="form-control" id="teacherUpdateZipCode" name="address.zipCode">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="teacherUpdateCountry" class="form-label">Pays</label>
+                            <input type="text" class="form-control" id="teacherUpdateCountry" name="address.country">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
                 </div>
             </form>
         </div>
@@ -316,6 +415,7 @@
             </div>
             <form id="userForm" action="/admin/users" method="post">
                 <div class="modal-body">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <input type="hidden" id="userId" name="id">
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -373,6 +473,7 @@
             </div>
             <form action="/admin/users/credits" method="post">
                 <div class="modal-body">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <input type="hidden" id="creditsUserId" name="userId">
                     <div class="mb-3">
                         <label for="newCredits" class="form-label">Nombre de crédits</label>

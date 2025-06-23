@@ -24,7 +24,6 @@ CREATE TABLE users (
                        first_name VARCHAR(255),
                        last_name VARCHAR(255),
                        phone_number VARCHAR(255),
-                       profile_picture VARCHAR(255),
                        date_of_birth DATE,
                        address_id BIGINT,
                        biography VARCHAR(1000),

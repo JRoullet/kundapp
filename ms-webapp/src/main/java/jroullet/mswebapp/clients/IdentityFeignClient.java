@@ -17,10 +17,28 @@ public interface IdentityFeignClient {
 
 
     /**
-     * Create new user
+     * Create new teacher
      */
     @PostMapping("/admin/teachers")
-    UserDTO registerTeacher(@RequestBody TeacherRegistrationDTO dto);
+    TeacherDTO registerTeacher(@RequestBody TeacherRegistrationDTO dto);
+
+    /**
+     *
+     * @param id
+     * @return TeacherDTO
+     */
+    @GetMapping("/teachers/{id}")
+    TeacherDTO getTeacherById(@PathVariable Long id);
+
+    /**
+     *
+     * @param id
+     * @return TeacherDTO
+     */
+    @PostMapping("/admin/teachers/{id}/update")
+    TeacherDTO updateTeacher(@PathVariable Long id, @RequestBody TeacherUpdateDTO teacherUpdateDTO);
+
+
 
 
     // Authentication request
@@ -79,9 +97,6 @@ public interface IdentityFeignClient {
     void changeUserPassword(@PathVariable Long id,
                             @RequestParam String currentPassword,
                             @RequestParam String newPassword);
-
-
-
 
 
 

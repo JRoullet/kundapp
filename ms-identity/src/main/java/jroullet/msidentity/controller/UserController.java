@@ -1,9 +1,7 @@
 package jroullet.msidentity.controller;
 
-import jakarta.validation.Valid;
-import jroullet.msidentity.dto.TeacherRegistrationDTO;
+import jroullet.msidentity.dto.TeacherDTO;
 import jroullet.msidentity.dto.UserDTO;
-import jroullet.msidentity.exception.EmailAlreadyExistsException;
 import jroullet.msidentity.exception.UserNotFoundException;
 import jroullet.msidentity.model.Role;
 import jroullet.msidentity.service.TeacherService;
@@ -24,6 +22,7 @@ public class UserController {
 
     private final UserService userService;
     private final Logger logger = Logger.getLogger(UserController.class.getName());
+    private final TeacherService teacherService;
 
 
     // Return UserDto (sessionUser)
@@ -50,12 +49,26 @@ public class UserController {
         }
     }
 
-
+    // Return all teachers
     @GetMapping("/teachers")
-    public ResponseEntity<List<UserDTO>> getAllTeachers() {
+    public ResponseEntity<List<TeacherDTO>> getAllTeachers() {
         logger.info("Fetching all teachers");
-        List<UserDTO> teachers = userService.findAllByRole(Role.TEACHER);
+        List<TeacherDTO> teachers = userService.findAllTeachers();
         return ResponseEntity.ok(teachers);
+    }
+
+    // Return teacher by id
+    @GetMapping("/teachers/{id}")
+    public ResponseEntity<TeacherDTO> getTeacherById(@PathVariable Long id) {
+        logger.info("Fetching teacher by ID: " + id);
+        try {
+            TeacherDTO teacher = teacherService.findTeacherById(id);
+            return ResponseEntity.ok(teacher);
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
 

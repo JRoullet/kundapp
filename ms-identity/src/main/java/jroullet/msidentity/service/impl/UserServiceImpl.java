@@ -1,5 +1,6 @@
 package jroullet.msidentity.service.impl;
 
+import jroullet.msidentity.dto.TeacherDTO;
 import jroullet.msidentity.dto.UserDTO;
 import jroullet.msidentity.exception.UserNotFoundException;
 import jroullet.msidentity.mapper.UserMapper;
@@ -21,9 +22,10 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public List<UserDTO> findAllByRole(Role role) {
-        return userRepository.findByRole(role).stream()
-                .map(userMapper::toUserDto)
+    public List<TeacherDTO> findAllTeachers() {
+        return userRepository.findAll().stream()
+                .filter(user -> user.getRole() == Role.TEACHER)
+                .map(userMapper::toTeacherDto)
                 .collect(Collectors.toList());
     }
 
@@ -40,5 +42,7 @@ public class UserServiceImpl implements UserService {
                 .stream().map(userMapper::toUserDto)
                 .toList();
     }
+
+
 
 }

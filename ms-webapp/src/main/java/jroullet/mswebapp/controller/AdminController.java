@@ -1,14 +1,17 @@
 package jroullet.mswebapp.controller;
 
-import jroullet.mswebapp.auth.SessionService;
+import feign.FeignException;
 import jroullet.mswebapp.clients.IdentityFeignClient;
+import jroullet.mswebapp.dto.TeacherDTO;
 import jroullet.mswebapp.dto.TeacherRegistrationDTO;
-import jroullet.mswebapp.dto.UserDTO;
+import jroullet.mswebapp.dto.TeacherUpdateDTO;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -18,20 +21,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminController {
 
     private final IdentityFeignClient identityFeignClient;
-    private final SessionService sessionService;
-
-    // ========================================
-    // USER/CLIENT CRUD OPERATIONS - REST COMPLIANT
-    // ========================================
+    private final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     /**
-     * Create a new user (CLIENT or TEACHER)
-     * POST /admin/users
+     * Create a new teacher
      */
     @PostMapping("/teachers")
     public ModelAndView createTeacher (@ModelAttribute TeacherRegistrationDTO teacherRegistrationDTO, RedirectAttributes redirectAttributes) {
         try {
-            UserDTO createdUser = identityFeignClient.registerTeacher(teacherRegistrationDTO);
+            TeacherDTO createdUser = identityFeignClient.registerTeacher(teacherRegistrationDTO);
             redirectAttributes.addFlashAttribute("success",
                     "Teacher créé avec succès : " + createdUser.getFirstName() + " " + createdUser.getLastName());
         } catch (Exception e) {
@@ -40,6 +38,49 @@ public class AdminController {
         }
         return new ModelAndView("redirect:/admin");
     }
+
+
+    /**
+     * GET - Récupérer un teacher pour pré-remplir le modal
+     */
+    @GetMapping("/teachers/{id}")
+    @ResponseBody
+    public ResponseEntity<TeacherDTO> getTeacher(@PathVariable Long id) {
+        try {
+            TeacherDTO teacher = identityFeignClient.getTeacherById(id);
+            return ResponseEntity.ok(teacher);
+        } catch (FeignException.NotFound e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            logger.error("Error fetching teacher {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * POST - Mettre à jour un teacher (simplifié)
+     */
+    @PostMapping("/teachers/{id}/update")
+    public ModelAndView updateTeacher(@PathVariable Long id,
+                                      @ModelAttribute TeacherUpdateDTO teacherUpdateDTO,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            TeacherDTO updatedTeacher = identityFeignClient.updateTeacher(id, teacherUpdateDTO);
+            redirectAttributes.addFlashAttribute("success",
+                    "Teacher modifié avec succès : " + updatedTeacher.getFirstName() + " " + updatedTeacher.getLastName());
+        } catch (FeignException.NotFound e) {
+            redirectAttributes.addFlashAttribute("error", "Teacher non trouvé");
+        } catch (Exception e) {
+            logger.error("Error updating teacher {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la modification du teacher");
+        }
+        return new ModelAndView("redirect:/admin");
+    }
+
+
+
+
+
 
 //    /**
 //     * Update existing user (partial update)

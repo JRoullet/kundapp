@@ -4,7 +4,18 @@
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin page loaded');
-    // Pas besoin d'updateCreateButton car les boutons sont maintenant dans les headers d'onglets
+
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.transition = 'opacity 0.3s ease';
+            alert.style.opacity = '0';
+
+            setTimeout(() => {
+                alert.remove();
+            }, 500);
+        }, 3000);
+    });
 });
 
 // ========================================
@@ -17,10 +28,10 @@ function toggleSearchSection() {
 
     if (searchFields.style.display === 'none') {
         searchFields.style.display = 'flex';
-        searchIcon.className = 'fas fa-chevron-down';
+        searchIcon.textContent = '▼';
     } else {
         searchFields.style.display = 'none';
-        searchIcon.className = 'fas fa-chevron-right';
+        searchIcon.textContent = '▶';
     }
 }
 
@@ -39,12 +50,41 @@ function openCreateTeacherModal() {
 }
 
 function openEditTeacherModal(teacherId) {
-    document.getElementById('teacherModalTitle').textContent = 'Modifier le Teacher';
-    document.getElementById('teacherId').value = teacherId;
-    document.getElementById('teacherForm').action = '/admin/teachers/' + teacherId + '/update';
+    // Configurer le formulaire
+    document.getElementById('teacherUpdateForm').action = '/admin/teachers/' + teacherId + '/update';
+    document.getElementById('teacherUpdateId').value = teacherId;
 
-    const modal = new mdb.Modal(document.getElementById('teacherModal'));
-    modal.show();
+    fetch('/admin/teachers/' + teacherId)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Teacher not found');
+            }
+            return response.json();
+        })
+        .then(teacher => {
+            // Champs de base
+            document.getElementById('teacherUpdateFirstName').value = teacher.firstName || '';
+            document.getElementById('teacherUpdateLastName').value = teacher.lastName || '';
+            document.getElementById('teacherUpdateEmail').value = teacher.email || '';
+            document.getElementById('teacherUpdatePhone').value = teacher.phoneNumber || '';
+            document.getElementById('teacherUpdateBirthDate').value = teacher.dateOfBirth || '';
+            document.getElementById('teacherUpdateBiography').value = teacher.biography || '';
+
+            // Champs d'adresse depuis l'objet address
+            const address = teacher.address || {};
+            document.getElementById('teacherUpdateStreet').value = address.street || '';
+            document.getElementById('teacherUpdateCity').value = address.city || '';
+            document.getElementById('teacherUpdateZipCode').value = address.zipCode || '';
+            document.getElementById('teacherUpdateCountry').value = address.country || '';
+
+            // Afficher le modal
+            const modal = new mdb.Modal(document.getElementById('teacherUpdateModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des données du teacher:', error);
+            alert('Erreur lors du chargement des données du teacher');
+        });
 }
 
 // ========================================
@@ -148,6 +188,15 @@ function clearGlobalSearch() {
     filterCurrentTab();
 }
 
+// Fonctions maintenues pour compatibilité (peuvent être supprimées si non utilisées ailleurs)
+function clearTeacherSearch() {
+    clearGlobalSearch();
+}
+
+function clearUserSearch() {
+    clearGlobalSearch();
+}
+
 // ========================================
 // CONFIRMATION ACTIONS
 // ========================================
@@ -213,4 +262,5 @@ function submitAction(actionUrl) {
     form.action = actionUrl;
     document.body.appendChild(form);
     form.submit();
+
 }

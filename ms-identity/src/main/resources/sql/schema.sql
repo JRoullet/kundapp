@@ -10,7 +10,6 @@
 --     first_name VARCHAR(100),
 --     last_name VARCHAR(100),
 --     phone_number VARCHAR(20),
---     profile_picture VARCHAR(255),
 --     date_of_birth DATE,
 --     street VARCHAR(255),
 --     city VARCHAR(100),

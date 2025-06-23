@@ -50,14 +50,14 @@ public class User {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(name = "profile_picture")
-    private String profilePicture; // URL or path to image
+//    @Column(name = "profile_picture")
+//    private String profilePicture; // URL or path to image
 
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
     // Billing address - Relation OneToOne
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "address_id")
     private Address address;
 

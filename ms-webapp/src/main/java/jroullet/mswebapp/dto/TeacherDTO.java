@@ -14,16 +14,17 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDTO {
+public class TeacherDTO {
     private Long id;
     private String email;
     private String firstName;
     private String lastName;
     private String phoneNumber;
     private LocalDate dateOfBirth;
-    private Address address;
+    private String biography;
     private Role role;
     private boolean status;
     private LocalDateTime createdAt;
-    private Integer credits;
+    private Address address;
+
 }

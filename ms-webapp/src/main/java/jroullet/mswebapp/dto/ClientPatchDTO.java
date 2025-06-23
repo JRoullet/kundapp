@@ -7,7 +7,6 @@ public class ClientPatchDTO {
     private String firstName;
     private String lastName;
     private String phoneNumber;
-    private String profilePicture;
     private String dateOfBirth;
     private String street;
     private String city;
