@@ -19,7 +19,6 @@ public class UserService {
         logger.info("Processing registration for email: {}", form.getEmail());
         try {
             // ms-identity management
-            // ATTENTION : password still visible !
             RegisterResponseDTO savedUser = identityFeignClient.registerUser(form).getBody();
             assert savedUser != null;
             logger.info("User successfully registered: {}", savedUser.getEmail());

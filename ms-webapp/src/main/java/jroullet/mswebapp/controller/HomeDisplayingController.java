@@ -1,6 +1,5 @@
 package jroullet.mswebapp.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jroullet.mswebapp.auth.SessionService;
 import jroullet.mswebapp.clients.IdentityFeignClient;
 import jroullet.mswebapp.dto.UserDTO;
@@ -17,11 +16,11 @@ import java.util.List;
 // Home Pages
 @Controller
 @RequiredArgsConstructor
-public class HomeController {
+public class HomeDisplayingController {
 
     private final SessionService sessionService;
     private final IdentityFeignClient identityFeignClient;
-    private final static Logger logger = LoggerFactory.getLogger(HomeController.class);
+    private final static Logger logger = LoggerFactory.getLogger(HomeDisplayingController.class);
 
     @GetMapping("/client")
     public ModelAndView showClientHome(Model model) {

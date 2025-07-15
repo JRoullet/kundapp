@@ -19,14 +19,14 @@ import java.util.Map;
 
 //Sign In & Sign Up
 @RestController
-public class UserController {
+public class AuthenticationRegistrationController {
 
-    public UserController(UserService userService) {
+    public AuthenticationRegistrationController(UserService userService) {
         this.userService = userService;
     }
 
     private final UserService userService;
-    private final static Logger logger = LoggerFactory.getLogger(UserController.class);
+    private final static Logger logger = LoggerFactory.getLogger(AuthenticationRegistrationController.class);
 
     // Display sign in form
     @GetMapping("/signin")

@@ -596,6 +596,12 @@ body.signin-form {
     box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
 }
 
+.btn-admin-enable {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
 .btn-admin-delete {
     background-color: var(--admin-danger);
     color: white;

@@ -3,25 +3,25 @@ package jroullet.msidentity.controller;
 import jroullet.msidentity.dto.TeacherDTO;
 import jroullet.msidentity.dto.UserDTO;
 import jroullet.msidentity.exception.UserNotFoundException;
-import jroullet.msidentity.model.Role;
 import jroullet.msidentity.service.TeacherService;
-import jroullet.msidentity.service.UserService;
+import jroullet.msidentity.service.impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
-public class UserController {
+public class UtilityUserFinderController {
 
-    private final UserService userService;
-    private final Logger logger = Logger.getLogger(UserController.class.getName());
+    private final UserServiceImpl userService;
+    private final Logger logger = LoggerFactory.getLogger(UtilityUserFinderController.class);
     private final TeacherService teacherService;
 
 
@@ -70,6 +70,8 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+
+
 
 
 }

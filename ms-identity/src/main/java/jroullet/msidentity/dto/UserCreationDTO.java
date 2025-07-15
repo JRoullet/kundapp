@@ -1,7 +1,7 @@
-package jroullet.mswebapp.dto;
+package jroullet.msidentity.dto;
 
-import jroullet.mswebapp.model.Address;
-import jroullet.mswebapp.model.Role;
+import jroullet.msidentity.model.Address;
+import jroullet.msidentity.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,16 +14,16 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TeacherDTO {
-    private Long id;
+public class UserCreationDTO {
     private String email;
+    private String password;
     private String firstName;
     private String lastName;
     private String phoneNumber;
     private LocalDate dateOfBirth;
-    private String biography;
+    private Address address;
     private Role role;
     private boolean status;
     private LocalDateTime createdAt;
-    private Address address;
+    private Integer credits;
 }

@@ -10,12 +10,13 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TeacherUpdateDTO {
+public class UserUpdateDTO {
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
     private LocalDate dateOfBirth;
-    private String biography;
+    private Integer credits;
     private Address address;
+
 }

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jroullet.msidentity.dto.TeacherDTO;
 import jroullet.msidentity.dto.TeacherRegistrationDTO;
 import jroullet.msidentity.dto.TeacherUpdateDTO;
+import jroullet.msidentity.dto.UserStatusResponseDTO;
 import jroullet.msidentity.exception.EmailAlreadyExistsException;
 import jroullet.msidentity.exception.UserNotFoundException;
 import jroullet.msidentity.service.TeacherService;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/admin/teachers")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminTeacherController {
@@ -26,7 +27,7 @@ public class AdminTeacherController {
     private final TeacherService teacherService;
 
     //Register Teacher
-    @PostMapping("/teachers")
+    @PostMapping
     public ResponseEntity<TeacherDTO> registerTeacher(@Valid @RequestBody TeacherRegistrationDTO dto) {
         logger.info("Create Teacher : " + dto.getEmail());
         try {
@@ -40,7 +41,7 @@ public class AdminTeacherController {
     }
 
     //Update Teacher
-    @PostMapping("/teachers/{id}/update")
+    @PostMapping("/{id}/update")
     public ResponseEntity<TeacherDTO> updateTeacher(@PathVariable Long id,
                                                     @Valid @RequestBody TeacherUpdateDTO dto) {
         logger.info("Updating Teacher ID: " + id + " with email: " + dto.getEmail());
@@ -59,6 +60,46 @@ public class AdminTeacherController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+
+    // Disable teacher
+    @PostMapping("/{id}/disable")
+    public ResponseEntity<UserStatusResponseDTO> disableTeacher(@PathVariable Long id) {
+        logger.info("Disabling user ID: {}", id);
+        try {
+            UserStatusResponseDTO response = teacherService.disableTeacher(id);
+            logger.info("User {} successfully disabled", id);
+            return ResponseEntity.ok(response);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
+            logger.error("Cannot disable user {}: {}",id, e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/{id}/enable")
+    public ResponseEntity<UserStatusResponseDTO> enableTeacher(@PathVariable Long id) {
+        logger.info("Enabling teacher ID: {}", id);
+        try {
+            UserStatusResponseDTO response = teacherService.enableTeacher(id);
+            return ResponseEntity.ok(response);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{id}/delete")
+    public ResponseEntity<Void> deleteTeacher(@PathVariable Long id) {
+        logger.info("Deleting teacher ID: {}", id);
+        try {
+            teacherService.deleteTeacher(id);
+            return ResponseEntity.noContent().build();
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
 
 
 }

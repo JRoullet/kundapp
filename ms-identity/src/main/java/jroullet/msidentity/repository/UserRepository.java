@@ -13,13 +13,9 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    User findUserByEmail(@Email String email);
 
     @Query(value = "SELECT * FROM users WHERE email= ?", nativeQuery = true)
     Optional<User> findByEmail(@Email String email);
 
-    List<User> findByRole(Role role);
-
-    boolean existsByEmail(@NotBlank(message = "Email is required") @Email(message = "Invalid email format") String email);
 
 }

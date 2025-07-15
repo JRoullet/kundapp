@@ -1,9 +1,20 @@
-// Admin JavaScript - Gestion des onglets Teachers/Users
-// Simple vanilla JS - Form submissions only
+// Admin JavaScript - Teachers/Users tabs management
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin page loaded');
+
+    // Manage tabs on URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+
+    if (activeTab === 'users') {
+        // Enable users tab
+        document.getElementById('teachers-tab').classList.remove('active');
+        document.getElementById('users-tab').classList.add('active');
+        document.getElementById('teachers-content').classList.remove('show', 'active');
+        document.getElementById('users-content').classList.add('show', 'active');
+    }
 
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {
@@ -102,12 +113,40 @@ function openCreateUserModal() {
 }
 
 function openEditUserModal(userId) {
-    document.getElementById('userModalTitle').textContent = 'Modifier le Client';
-    document.getElementById('userId').value = userId;
-    document.getElementById('userForm').action = '/admin/users/' + userId + '/update';
+    // Configurer le formulaire
+    document.getElementById('userUpdateForm').action = '/admin/users/' + userId + '/update';
+    document.getElementById('userUpdateId').value = userId;
 
-    const modal = new mdb.Modal(document.getElementById('userModal'));
-    modal.show();
+    fetch('/admin/users/' + userId)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('User not found');
+            }
+            return response.json();
+        })
+        .then(user => {
+            // Préremplir les champs
+            document.getElementById('userUpdateFirstName').value = user.firstName || '';
+            document.getElementById('userUpdateLastName').value = user.lastName || '';
+            document.getElementById('userUpdateEmail').value = user.email || '';
+            document.getElementById('userUpdatePhone').value = user.phoneNumber || '';
+            document.getElementById('userUpdateBirthDate').value = user.dateOfBirth || '';
+            document.getElementById('userUpdateCredits').value = user.credits || 0;
+            // Champs d'adresse depuis l'objet address
+            const address = user.address || {};
+            document.getElementById('userUpdateStreet').value = address.street || '';
+            document.getElementById('userUpdateCity').value = address.city || '';
+            document.getElementById('userUpdateZipCode').value = address.zipCode || '';
+            document.getElementById('userUpdateCountry').value = address.country || '';
+
+            // Afficher le modal
+            const modal = new mdb.Modal(document.getElementById('userUpdateModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des données du user:', error);
+            alert('Erreur lors du chargement des données du user');
+        });
 }
 
 function openCreditsModal(userId) {
@@ -211,6 +250,16 @@ function confirmDisableTeacher(teacherId) {
     );
 }
 
+function confirmEnableTeacher(teacherId) {
+    showConfirmation(
+        'Activer le Teacher',
+        'Êtes-vous sûr de vouloir activer ce teacher ?',
+        function() {
+            submitAction('/admin/teachers/' + teacherId + '/enable');
+        }
+    );
+}
+
 function confirmDeleteTeacher(teacherId) {
     showConfirmation(
         'Supprimer le Teacher',
@@ -227,6 +276,16 @@ function confirmDisableUser(userId) {
         'Êtes-vous sûr de vouloir désactiver ce client ?',
         function() {
             submitAction('/admin/users/' + userId + '/disable');
+        }
+    );
+}
+
+function confirmEnableUser(userId) {
+    showConfirmation(
+        'Activer le Client',
+        'Êtes-vous sûr de vouloir activer ce client ?',
+        function() {
+            submitAction('/admin/users/' + userId + '/enable');
         }
     );
 }
@@ -260,7 +319,17 @@ function submitAction(actionUrl) {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = actionUrl;
+    form.style.display = 'none';
+
+    // Add CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_csrf';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
     document.body.appendChild(form);
     form.submit();
-
+    document.body.removeChild(form);
 }

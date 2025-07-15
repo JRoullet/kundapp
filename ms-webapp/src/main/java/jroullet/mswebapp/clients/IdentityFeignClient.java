@@ -5,7 +5,6 @@ import jroullet.mswebapp.auth.AuthResponseDTO;
 import jroullet.mswebapp.auth.RegisterRequestDTO;
 import jroullet.mswebapp.auth.RegisterResponseDTO;
 import jroullet.mswebapp.dto.*;
-import jroullet.mswebapp.model.User;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,31 +14,49 @@ import java.util.List;
 @FeignClient(name = "ms-identity", path = "/api")
 public interface IdentityFeignClient {
 
-
+// TEACHER SECTION
     /**
-     * Create new teacher
+     * Create a new teacher
      */
     @PostMapping("/admin/teachers")
     TeacherDTO registerTeacher(@RequestBody TeacherRegistrationDTO dto);
 
-    /**
-     *
-     * @param id
-     * @return TeacherDTO
-     */
     @GetMapping("/teachers/{id}")
     TeacherDTO getTeacherById(@PathVariable Long id);
 
-    /**
-     *
-     * @param id
-     * @return TeacherDTO
-     */
     @PostMapping("/admin/teachers/{id}/update")
     TeacherDTO updateTeacher(@PathVariable Long id, @RequestBody TeacherUpdateDTO teacherUpdateDTO);
 
+    @PostMapping("/admin/teachers/{id}/disable")
+    UserStatusResponseDTO disableTeacher(@PathVariable("id") Long id);
+
+    @PostMapping("/admin/teachers/{id}/enable")
+    UserStatusResponseDTO enableTeacher(@PathVariable("id") Long id);
+
+    @DeleteMapping("/admin/teachers/{id}/delete")
+    void deleteTeacher(@PathVariable("id") Long id);
+
+// USER SECTION
+    @GetMapping("/admin/users/{id}")
+    UserDTO getUserById(@PathVariable("id") Long id);
+
+    @PostMapping("/admin/users")
+    UserDTO registerUser(@RequestBody UserCreationDTO userCreationDTO);
+
+    @PostMapping("/admin/users/{id}/update")
+    UserDTO updateUser(@PathVariable("id") Long id, @RequestBody UserUpdateDTO userUpdateDTO);
+
+    @PostMapping("/admin/users/{id}/disable")
+    UserStatusResponseDTO disableUser(@PathVariable("id") Long id);
+
+    @PostMapping("/admin/users/{id}/enable")
+    UserStatusResponseDTO enableUser(@PathVariable("id") Long id);
+
+    @DeleteMapping("/admin/users/{id}/delete")
+    void deleteUser(@PathVariable("id") Long id);
 
 
+    // AUTHENTICATION SECTION
 
     // Authentication request
     @PostMapping("/authenticate")
@@ -56,47 +73,6 @@ public interface IdentityFeignClient {
     // Returns All Users
     @GetMapping("/users")
     List<UserDTO> getAllUsers();
-
-
-    /**
-     * Get user by ID
-     */
-    @GetMapping("/users/{id}")
-    UserDTO getUserById(@PathVariable Long id);
-
-
-
-    /**
-     * Partial update of existing user (PATCH - safer for partial entities)
-     */
-    @PatchMapping("/users/{id}")
-    UserDTO patchUser(@PathVariable Long id, @RequestBody UserDTO userDTO);
-
-    /**
-     * Disable user (set status = false) - PATCH
-     */
-    @PatchMapping("/users/{id}/disable")
-    void disableUser(@PathVariable Long id);
-
-    /**
-     * Delete user permanently
-     */
-    @DeleteMapping("/users/{id}")
-    void deleteUser(@PathVariable Long id);
-
-    /**
-     * Update user credits (CLIENT only) - PATCH
-     */
-    @PatchMapping("/users/{id}/credits")
-    void updateUserCredits(@PathVariable Long id, @RequestParam Integer credits);
-
-    /**
-     * Change user password - PATCH
-     */
-    @PatchMapping("/users/{id}/password")
-    void changeUserPassword(@PathVariable Long id,
-                            @RequestParam String currentPassword,
-                            @RequestParam String newPassword);
 
 
 
