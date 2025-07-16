@@ -178,9 +178,13 @@ public class AdminController {
                                    RedirectAttributes redirectAttributes) {
         try {
             UserDTO updatedUser = identityFeignClient.updateUser(id, dto);
-            redirectAttributes.addFlashAttribute("success", "Client " + updatedUser.getFirstName() + " " + updatedUser.getLastName() + " mis à jour avec succès");
+            redirectAttributes.addFlashAttribute("success", "User " + updatedUser.getFirstName() + " " + updatedUser.getLastName() + " mis à jour avec succès");
         } catch (FeignException.NotFound e) {
-            redirectAttributes.addFlashAttribute("error", "Client non trouvé");
+            redirectAttributes.addFlashAttribute("error", "User non trouvé");
+        } catch (FeignException.Conflict e) {
+            redirectAttributes.addFlashAttribute("error", "Cet email est déjà utilisé par un autre utilisateur");
+        } catch (FeignException.BadRequest e) {
+            redirectAttributes.addFlashAttribute("error", "Données invalides fournies");
         } catch (Exception e) {
             logger.error("Error updating user {}: {}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("error", "Erreur lors de la mise à jour");
@@ -235,4 +239,21 @@ public class AdminController {
         }
         return new ModelAndView("redirect:/admin?tab=users");
     }
+
+    @PostMapping("/users/{id}/credits/add")
+    public ModelAndView addUserCredits(@PathVariable Long id,
+                                       @RequestParam Integer credits,
+                                       RedirectAttributes redirectAttributes) {
+        try {
+            identityFeignClient.addUserCredits(id, credits);
+            redirectAttributes.addFlashAttribute("success", "Crédits ajoutés avec succès");
+        } catch (FeignException.NotFound e) {
+            redirectAttributes.addFlashAttribute("error", "User non trouvé");
+        } catch (Exception e) {
+            logger.error("Error updating credits for user {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de l'ajout de crédits");
+        }
+        return new ModelAndView("redirect:/admin?tab=users");
+    }
+
 }

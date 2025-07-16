@@ -55,6 +55,9 @@ public interface IdentityFeignClient {
     @DeleteMapping("/admin/users/{id}/delete")
     void deleteUser(@PathVariable("id") Long id);
 
+    @PostMapping("/admin/users/{id}/credits/add")
+    void addUserCredits(@PathVariable("id") Long id, @RequestParam Integer credits);
+
 
     // AUTHENTICATION SECTION
 

@@ -79,15 +79,7 @@
     </div>
 
     <!-- Success/Error Messages -->
-    <div th:if="${success}" class="alert alert-success alert-dismissible fade show admin-alert">
-        <span th:text="${success}"></span>
-        <button type="button" class="btn-close" data-mdb-dismiss="alert"></button>
-    </div>
-
-    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show admin-alert">
-        <span th:text="${error}"></span>
-        <button type="button" class="btn-close" data-mdb-dismiss="alert"></button>
-    </div>
+    <div class="toast-container" id="toastContainer"></div>
 
     <!-- Admin Tabs -->
     <div class="admin-card">
@@ -577,7 +569,7 @@
                 <h5 class="modal-title">Gestion des crédits</h5>
                 <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
             </div>
-            <form action="/admin/users/credits" method="post">
+            <form id="creditsForm" method="post">
                 <div class="modal-body">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <input type="hidden" id="creditsUserId" name="userId">
@@ -588,7 +580,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
                 </div>
             </form>
         </div>
@@ -619,6 +611,20 @@
         <p class="text-center mb-0">© 2025 KundApp Admin. Tous droits réservés.</p>
     </div>
 </footer>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const successMessage = /*[[${success}]]*/ null;
+        const errorMessage = /*[[${error}]]*/ null;
+
+        if (successMessage) {
+            toastSystem.success('Succès', successMessage);
+        }
+        if (errorMessage) {
+            toastSystem.error('Erreur', errorMessage);
+        }
+    });
+</script>
 
 <script th:src="@{/js/admin.js}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>

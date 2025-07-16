@@ -138,4 +138,15 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
     }
 
+    @Override
+    public void addUserCredits(Long id, Integer credits) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+        if(user.getRole() != Role.CLIENT) {
+            throw new RoleNotAllowedException("User with role: " + user.getRole() + " cannot add credits to this user");
+        }
+        user.setCredits(user.getCredits() + credits);
+        userRepository.save(user);
+    }
+
 }

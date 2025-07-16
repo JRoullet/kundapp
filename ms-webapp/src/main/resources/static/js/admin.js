@@ -1,5 +1,88 @@
 // Admin JavaScript - Teachers/Users tabs management
 
+// Toast System for errors management
+class ToastSystem {
+    constructor() {
+        this.container = document.getElementById('toastContainer');
+        this.toasts = [];
+        this.maxToasts = 5;
+    }
+
+    show(type, title, message, duration = 3000) {
+        if (this.toasts.length >= this.maxToasts) {
+            this.hide(this.toasts[0]);
+        }
+
+        const toast = this.create(type, title, message);
+        this.container.appendChild(toast);
+        this.toasts.push(toast);
+
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+
+        if (duration > 0) {
+            setTimeout(() => {
+                this.hide(toast);
+            }, duration);
+        }
+
+        return toast;
+    }
+
+    create(type, title, message) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        const icons = {
+            success: '✓',
+            error: '✕'
+        };
+
+        toast.innerHTML = `
+            <button class="toast-close" onclick="toastSystem.hide(this.parentElement)">×</button>
+            <div class="toast-content">
+                <div class="toast-icon">${icons[type] || 'ℹ'}</div>
+                <div class="toast-message">
+                    <strong>${title}</strong>
+                    ${message ? `<div style="margin-top: 4px; opacity: 0.9;">${message}</div>` : ''}
+                </div>
+            </div>
+        `;
+
+        toast.addEventListener('click', () => {
+            this.hide(toast);
+        });
+
+        return toast;
+    }
+
+    hide(toast) {
+        if (!toast || !toast.parentElement) return;
+
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.parentElement.removeChild(toast);
+            }
+            this.toasts = this.toasts.filter(t => t !== toast);
+        }, 400);
+    }
+
+    success(title, message, duration) {
+        return this.show('success', title, message, duration);
+    }
+
+    error(title, message, duration) {
+        return this.show('error', title, message, duration);
+    }
+}
+
+// Initialize global toast system
+const toastSystem = new ToastSystem();
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin page loaded');
@@ -16,17 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('users-content').classList.add('show', 'active');
     }
 
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            alert.style.transition = 'opacity 0.3s ease';
-            alert.style.opacity = '0';
-
-            setTimeout(() => {
-                alert.remove();
-            }, 500);
-        }, 3000);
-    });
 });
 
 // ========================================
@@ -94,7 +166,7 @@ function openEditTeacherModal(teacherId) {
         })
         .catch(error => {
             console.error('Erreur lors du chargement des données du teacher:', error);
-            alert('Erreur lors du chargement des données du teacher');
+            toastSystem.error('Erreur lors du chargement des données du teacher');
         });
 }
 
@@ -145,11 +217,12 @@ function openEditUserModal(userId) {
         })
         .catch(error => {
             console.error('Erreur lors du chargement des données du user:', error);
-            alert('Erreur lors du chargement des données du user');
+            toastSystem.error('Erreur lors du chargement des données du user');
         });
 }
 
 function openCreditsModal(userId) {
+    document.getElementById('creditsForm').action = '/admin/users/' + userId + '/credits/add';
     document.getElementById('creditsUserId').value = userId;
 
     const modal = new mdb.Modal(document.getElementById('creditsModal'));

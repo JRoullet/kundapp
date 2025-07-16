@@ -18,4 +18,5 @@ public interface UserService {
     UserStatusResponseDTO enableUser(Long id);
     void deleteUser(Long id);
 
+    void addUserCredits(Long id, Integer credits);
 }
