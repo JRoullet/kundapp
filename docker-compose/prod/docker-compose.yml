@@ -53,10 +53,11 @@ services:
     container_name: coursemgmtdb
     ports:
       - "3309:3306"
-    env_file:
-      - .env
     environment:
       MYSQL_DATABASE: coursemgmtdb
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ./docker/mysql-course-init:/docker-entrypoint-initdb.d
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -100,27 +101,53 @@ services:
     environment:
       SPRING_DATASOURCE_URL: ${DATABASE_URL}
 
+  mscoursemgmt:
+    image: jroullet/kundapp-ms-course-mgmt:latest
+    container_name: course-mgmt-ms
+    ports:
+      - "9000:9000"
+    depends_on:
+      mscoursemgmtdb:
+        condition: service_healthy
+    extends:
+      file: common-config.yml
+      service: microservice-discovery-config
+    environment:
+      SPRING_DATASOURCE_URL: ${DATABASE_COURSE_URL}
+      MYSQL_USERNAME: ${MYSQL_USERNAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
   data-initializer:
     image: mysql:9.3
     container_name: data-initializer
     depends_on:
       msidentity:
-        condition: service_started  # Attend que msidentity soit démarré
+        condition: service_started
       msidentitydb:
         condition: service_healthy
+      mscoursemgmt:
+        condition: service_started
+      mscoursemgmtdb:
+        condition: service_healthy
     volumes:
-      - ./docker/mysql-init/02-data.sql:/tmp/insert-data.sql
+      - ./docker/mysql-init/02-data.sql:/tmp/insert-identity-data.sql
+      - ./docker/mysql-course-init/02-data.sql:/tmp/insert-course-data.sql
     extends:
       file: common-config.yml
       service: network-deploy-service
     command: >
       sh -c "
-        echo 'Waiting for msidentity...' &&
+        echo 'Waiting for services...' &&
         sleep 45 &&
-        echo 'inserting data' &&
+        echo 'Inserting identity data' &&
         mysql -h identitydb -u root -p${MYSQL_ROOT_PASSWORD} identitydb < /tmp/insert-data.sql &&
-        echo 'success!' &&
+        echo 'Identity data inserted!' &&
+        echo 'Inserting course data...' &&
+        mysql -h coursemgmtdb -u root -p${MYSQL_ROOT_PASSWORD} coursemgmtdb < /tmp/insert-course-data.sql &&
+        echo 'Course data inserted!' &&
+        echo 'Verification:' &&
         mysql -h identitydb -u root -p${MYSQL_ROOT_PASSWORD} identitydb -e 'SELECT email, role FROM users;'
+        mysql -h coursemgmtdb -u root -p${MYSQL_ROOT_PASSWORD} coursemgmtdb -e 'SELECT id, subject, room_name FROM session;'
       "
     restart: "no"
     environment:

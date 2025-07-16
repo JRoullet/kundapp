@@ -1,0 +1,13 @@
+server:
+  port: 9000
+spring:
+  application:
+    name: ms-course-mgmt
+  config:
+    import: configserver:http://msconfigserver:8888/
+  datasource:
+    url: ${DATABASE_COURSE_URL}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+  profiles:
+    active: docker

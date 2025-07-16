@@ -1,3 +1,6 @@
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET CHARACTER SET utf8mb4;
+
 USE identitydb;
 
 -- Clean existing data first
@@ -24,6 +27,6 @@ VALUES ('user@gmail.com', '$2a$12$Z7E5G2ojHlZ7yfAr/5Bc7.4PAhZFSKvstTZC3eRwVHTIFd
 
 -- TEACHER (address_id = 2)
 INSERT INTO users (email, password, role, status, first_name, last_name, phone_number, address_id, biography)
-VALUES ('teacher@gmail.com', '$2a$12$nAWuJmux7OG52rjGGkIwYuhzVVOdQ2bsQo7BvdYKLho/mG6h8gFiu', 'TEACHER', true, 'Jenna', 'Watkins', '512-422-887', 2, 'Experte en Kundalini avec 10 ans d\'expérience dans la méditation et l\'éveil spirituel.');
+VALUES ('teacher@gmail.com', '$2a$12$nAWuJmux7OG52rjGGkIwYuhzVVOdQ2bsQo7BvdYKLho/mG6h8gFiu', 'TEACHER', true, 'Jenna', 'Watkins', '512-422-887', 2, 'Experte en Kundalini et en yoga depuis 10 ans d\'expérience dans la méditation et l\'éveil spirituel.');
 
 COMMIT;

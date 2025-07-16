@@ -44,6 +44,10 @@ services:
       start_period: 10s
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    volumes:
+      - ./docker/mysql-config/my.cnf:/etc/mysql/conf.d/my.cnf
 
 #  microservice-mongo-config:
 #    extends:
