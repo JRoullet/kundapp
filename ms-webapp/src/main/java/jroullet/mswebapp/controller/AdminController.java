@@ -2,7 +2,13 @@ package jroullet.mswebapp.controller;
 
 import feign.FeignException;
 import jroullet.mswebapp.clients.IdentityFeignClient;
-import jroullet.mswebapp.dto.*;
+import jroullet.mswebapp.dto.teacher.TeacherDTO;
+import jroullet.mswebapp.dto.teacher.TeacherRegistrationDTO;
+import jroullet.mswebapp.dto.teacher.TeacherUpdateDTO;
+import jroullet.mswebapp.dto.user.UserCreationDTO;
+import jroullet.mswebapp.dto.user.UserDTO;
+import jroullet.mswebapp.dto.user.UserStatusResponseDTO;
+import jroullet.mswebapp.dto.user.UserUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

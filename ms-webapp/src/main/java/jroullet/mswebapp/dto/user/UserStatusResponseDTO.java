@@ -1,14 +1,13 @@
-package jroullet.mswebapp.dto;
+package jroullet.mswebapp.dto.user;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddUserCreditsDTO {
-    private Integer credits;
+public class UserStatusResponseDTO {
+    private String firstName;
+    private String lastName;
 }

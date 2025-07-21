@@ -9,5 +9,3 @@ spring:
     url: ${DATABASE_COURSE_URL}
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
-  profiles:
-    active: docker

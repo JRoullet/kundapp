@@ -79,7 +79,4 @@ public class AuthenticationService implements AuthenticationProvider {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
 
-
-
-
 }

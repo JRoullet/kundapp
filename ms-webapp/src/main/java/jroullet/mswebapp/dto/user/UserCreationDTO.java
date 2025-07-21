@@ -1,4 +1,4 @@
-package jroullet.mswebapp.dto;
+package jroullet.mswebapp.dto.user;
 
 import jroullet.mswebapp.model.Address;
 import jroullet.mswebapp.model.Role;

@@ -4,7 +4,7 @@ package jroullet.mswebapp.auth;
 import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import jroullet.mswebapp.clients.IdentityFeignClient;
-import jroullet.mswebapp.dto.UserDTO;
+import jroullet.mswebapp.dto.user.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

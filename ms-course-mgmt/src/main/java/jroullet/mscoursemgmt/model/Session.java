@@ -21,14 +21,20 @@ public class Session {
     private Subject subject;
     private String description;
     private String roomName;
+    private String postalCode;
     private String googleMapsLink;
     private Integer availableSpots;
     private LocalDateTime startDateTime;
-    private Duration duration;
+    private Integer durationMinutes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer creditsRequired;
     @ElementCollection
+    @CollectionTable(
+            name = "session_participants",
+            joinColumns = @JoinColumn(name = "session_id")
+    )
+    @Column(name = "participant_id")
     private List<Long> participantIds;
     private Boolean bringYourMattress;
 

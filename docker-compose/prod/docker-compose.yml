@@ -114,8 +114,6 @@ services:
       service: microservice-discovery-config
     environment:
       SPRING_DATASOURCE_URL: ${DATABASE_COURSE_URL}
-      MYSQL_USERNAME: ${MYSQL_USERNAME}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
   data-initializer:
     image: mysql:9.3

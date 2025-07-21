@@ -1,0 +1,53 @@
+package jroullet.mscoursemgmt.dto;
+
+import jakarta.validation.constraints.*;
+import jroullet.mscoursemgmt.model.Subject;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SessionCreationDTO {
+    @NotNull(message = "Le sujet est obligatoire")
+    private Subject subject;
+
+    @NotBlank(message = "La description est obligatoire")
+    private String description;
+
+    @NotBlank(message = "Le nom de la salle est obligatoire")
+    private String roomName;
+
+    @NotBlank(message = "Le code postal est obligatoire")
+    @Pattern(regexp = "^(0[1-9]|[1-8][0-9]|9[0-8])\\d{3}$",
+            message = "Le code postal doit contenir 5 chiffres")
+    private String postalCode;
+
+    @Pattern(regexp = "^https://maps\\.google\\.com/.*",
+            message = "Le lien doit être un lien Google Maps valide")
+    private String googleMapsLink;
+
+    @NotNull(message = "Le nombre de places est obligatoire")
+    @Min(value = 1, message = "Il doit y avoir au moins 1 place disponible")
+    @Max(value = 50, message = "Maximum 50 places par session")
+    private Integer availableSpots;
+
+    @NotNull(message = "La date et heure de début sont obligatoires")
+    @Future(message = "La session doit être dans le futur")
+    private LocalDateTime startDateTime;
+
+    @NotNull(message = "La durée est obligatoire")
+    @Min(value = 15, message = "Durée minimum 15 minutes")
+    @Max(value = 300, message = "Durée maximum 5 heures")
+    private Integer durationMinutes;
+
+    private Integer creditsRequired = 1;
+
+    @NotNull(message = "Précisez si les participants doivent apporter leur tapis")
+    private Boolean bringYourMattress;
+}

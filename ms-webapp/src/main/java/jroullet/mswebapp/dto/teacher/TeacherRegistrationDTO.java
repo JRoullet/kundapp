@@ -1,4 +1,4 @@
-package jroullet.mswebapp.dto;
+package jroullet.mswebapp.dto.teacher;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

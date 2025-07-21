@@ -1,4 +1,4 @@
-package jroullet.mswebapp.dto;
+package jroullet.mswebapp.dto.user;
 
 import jroullet.mswebapp.model.Address;
 import jroullet.mswebapp.model.Role;
@@ -14,16 +14,16 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TeacherDTO {
+public class UserDTO {
     private Long id;
     private String email;
     private String firstName;
     private String lastName;
     private String phoneNumber;
     private LocalDate dateOfBirth;
-    private String biography;
+    private Address address;
     private Role role;
     private boolean status;
     private LocalDateTime createdAt;
-    private Address address;
+    private Integer credits;
 }
