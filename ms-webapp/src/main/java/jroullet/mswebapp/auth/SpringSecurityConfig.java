@@ -53,6 +53,7 @@ public class SpringSecurityConfig {
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/client/**").hasAnyRole("CLIENT")
                         .requestMatchers("/teacher/**").hasAnyRole("TEACHER")
+                        .requestMatchers("/api/sessions/**").hasAnyRole("TEACHER", "ADMIN", "CLIENT")
                         .anyRequest()
                         .authenticated()
 

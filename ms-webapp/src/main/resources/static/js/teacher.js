@@ -1,186 +1,43 @@
-function validateSessionForm() {
-    const form = document.getElementById('sessionForm');
-    const formData = new FormData(form);
-
-    // Validation du sujet (obligatoire)
-    const subject = formData.get('subject');
-    if (!subject) {
-        toastSystem.error('Erreur de validation', 'Le type de cours est obligatoire');
-        return false;
-    }
-
-    // Validation de la description (obligatoire)
-    const description = formData.get('description');
-    if (!description || description.trim().length === 0) {
-        toastSystem.error('Erreur de validation', 'La description est obligatoire');
-        return false;
-    }
-
-    // Validation du nom de salle (obligatoire)
-    const roomName = formData.get('roomName');
-    if (!roomName || roomName.trim().length === 0) {
-        toastSystem.error('Erreur de validation', 'Le nom de la salle/lieu est obligatoire');
-        return false;
-    }
-
-    // Validation du code postal (obligatoire avec pattern)
-    const postalCode = formData.get('postalCode');
-    const postalCodeRegex = /^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$/;
-    if (!postalCode || !postalCodeRegex.test(postalCode)) {
-        toastSystem.error('Erreur de validation', 'Le code postal doit être un code postal français valide (ex: 75001)');
-        return false;
-    }
-
-    // Validation du lien Google Maps (optionnel mais si présent doit être valide)
-    const googleMapsLink = formData.get('googleMapsLink');
-    if (googleMapsLink && googleMapsLink.trim() !== '') {
-        const googleMapsRegex = /^https:\/\/maps\.app\.goo\.gl\/.*/;
-        if (!googleMapsRegex.test(googleMapsLink)) {
-            toastSystem.error('Erreur de validation', 'Le lien doit être un lien Google Maps valide (https://maps.app.goo.gl/...)');
-            return false;
-        }
-    }
-
-    // Validation de la date et heure (combinées en startDateTime)
-    const sessionDate = formData.get('date');
-    const sessionTime = formData.get('time');
-
-    if (!sessionDate || !sessionTime) {
-        toastSystem.error('Erreur de validation', 'La date et l\'heure sont obligatoires');
-        return false;
-    }
-
-    const sessionDateTime = new Date(sessionDate + 'T' + sessionTime);
-    const now = new Date();
-
-    if (sessionDateTime <= now) {
-        toastSystem.error('Erreur de validation', 'La session doit être programmée dans le futur');
-        return false;
-    }
-
-    // Validation du nombre de places
-    const availableSpots = parseInt(formData.get('availableSpots'));
-    if (!availableSpots || availableSpots < 1 || availableSpots > 50) {
-        toastSystem.error('Erreur de validation', 'Le nombre de places doit être entre 1 et 50');
-        return false;
-    }
-
-    // Validation de la durée
-    const duration = parseInt(formData.get('durationMinutes'));
-    if (!duration || duration < 15 || duration > 300) {
-        toastSystem.error('Erreur de validation', 'La durée doit être entre 15 et 300 minutes');
-        return false;
-    }
-
-    // Validation des crédits requis
-    const creditsRequired = parseInt(formData.get('creditsRequired'));
-    if (!creditsRequired || creditsRequired < 1 || creditsRequired > 10) {
-        toastSystem.error('Erreur de validation', 'Le nombre de crédits requis doit être entre 1 et 10');
-        return false;
-    }
-
-    return true;
-}// Teacher JavaScript - Session management
-
-// Toast System for success/error messages (réutilisé depuis admin.js)
-class ToastSystem {
-    constructor() {
-        this.container = document.getElementById('toastContainer');
-        this.toasts = [];
-        this.maxToasts = 5;
-    }
-
-    show(type, title, message, duration = 3000) {
-        if (this.toasts.length >= this.maxToasts) {
-            this.hide(this.toasts[0]);
-        }
-
-        const toast = this.create(type, title, message);
-        this.container.appendChild(toast);
-        this.toasts.push(toast);
-
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 10);
-
-        if (duration > 0) {
-            setTimeout(() => {
-                this.hide(toast);
-            }, duration);
-        }
-
-        return toast;
-    }
-
-    create(type, title, message) {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-
-        const icons = {
-            success: '✓',
-            error: '✕',
-            info: 'ℹ'
-        };
-
-        toast.innerHTML = `
-            <button class="toast-close" onclick="toastSystem.hide(this.parentElement)">×</button>
-            <div class="toast-content">
-                <div class="toast-icon">${icons[type] || 'ℹ'}</div>
-                <div class="toast-message">
-                    <strong>${title}</strong>
-                    ${message ? `<div style="margin-top: 4px; opacity: 0.9;">${message}</div>` : ''}
-                </div>
-            </div>
-        `;
-
-        toast.addEventListener('click', () => {
-            this.hide(toast);
-        });
-
-        return toast;
-    }
-
-    hide(toast) {
-        if (!toast || !toast.parentElement) return;
-
-        toast.classList.remove('show');
-        toast.classList.add('hide');
-
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.parentElement.removeChild(toast);
-            }
-            this.toasts = this.toasts.filter(t => t !== toast);
-        }, 400);
-    }
-
-    success(title, message, duration) {
-        return this.show('success', title, message, duration);
-    }
-
-    error(title, message, duration) {
-        return this.show('error', title, message, duration);
-    }
-
-    info(title, message, duration) {
-        return this.show('info', title, message, duration);
-    }
-}
-
-// Initialize global toast system
-const toastSystem = new ToastSystem();
+// Teacher JavaScript - Session management
+// Depends on common.js which must be loaded first
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Teacher page loaded');
 
-    // Validation du formulaire de session
+    // Set minimum date to today for session creation
+    const today = new Date().toISOString().split('T')[0];
+    const sessionDate = document.getElementById('sessionDate');
+    if (sessionDate) {
+        sessionDate.setAttribute('min', today);
+    }
+
+    // Session form validation on submit
     const sessionForm = document.getElementById('sessionForm');
     if (sessionForm) {
         sessionForm.addEventListener('submit', function(e) {
             if (!validateSessionForm()) {
                 e.preventDefault();
                 return false;
+            }
+
+            // Combine date and time into startDateTime
+            const dateValue = document.getElementById('sessionDate').value;
+            const timeValue = document.getElementById('sessionTime').value;
+
+            if (dateValue && timeValue) {
+                const startDateTime = dateValue + 'T' + timeValue;
+
+                // Create hidden input for startDateTime
+                let startDateTimeInput = document.getElementById('startDateTime');
+                if (!startDateTimeInput) {
+                    startDateTimeInput = document.createElement('input');
+                    startDateTimeInput.type = 'hidden';
+                    startDateTimeInput.name = 'startDateTime';
+                    startDateTimeInput.id = 'startDateTime';
+                    sessionForm.appendChild(startDateTimeInput);
+                }
+                startDateTimeInput.value = startDateTime;
             }
         });
     }
@@ -207,7 +64,6 @@ function openCreateSessionModal() {
 
     // Set default values
     const today = new Date().toISOString().split('T')[0];
-
     const sessionDate = document.getElementById('sessionDate');
     if (sessionDate) {
         sessionDate.setAttribute('min', today);
@@ -259,16 +115,16 @@ function openEditSessionModal(sessionId) {
                 document.getElementById('sessionTime').value = startDate.toTimeString().split(' ')[0].substring(0,5);
             }
 
-            document.getElementById('sessionDuration').value = session.durationMinutes || '';
+            document.getElementById('sessionDurationMinutes').value = session.durationMinutes || '';
             document.getElementById('sessionAvailableSpots').value = session.availableSpots || '';
             document.getElementById('sessionCreditsRequired').value = session.creditsRequired || '';
-            document.getElementById('sessionBringMattress').checked = session.bringYourMattress || false;
+            document.getElementById('sessionBringYourMattress').checked = session.bringYourMattress || false;
 
             const modal = new mdb.Modal(document.getElementById('sessionModal'));
             modal.show();
         })
         .catch(error => {
-            console.error('Erreur lors du chargement des données de la session:', error);
+            console.error('Error loading session data:', error);
             toastSystem.error('Erreur', 'Impossible de charger les données de la session');
         });
 }
@@ -277,17 +133,12 @@ function openEditSessionModal(sessionId) {
 // SESSION ACTIONS
 // ========================================
 
-function viewSessionDetails(sessionId) {
-    // Redirection vers une page de détails ou ouverture d'un modal de détails
-    window.location.href = '/teacher/session/' + sessionId + '/details';
-}
-
-function confirmDeleteSession(sessionId) {
+function confirmCancelSession(sessionId) {
     showConfirmation(
-        'Supprimer la séance',
-        'Êtes-vous sûr de vouloir supprimer définitivement cette séance ? Cette action est irréversible.',
+        'Annuler la séance',
+        'Êtes-vous sûr de vouloir annuler cette séance ? Cette action est irréversible et les participants seront notifiés.',
         function() {
-            submitAction('/teacher/session/' + sessionId + '/delete');
+            submitActionWithParams('/teacher/session/cancel', {sessionId:sessionId});
         }
     );
 }
@@ -300,132 +151,83 @@ function validateSessionForm() {
     const form = document.getElementById('sessionForm');
     const formData = new FormData(form);
 
-    // Validation du sujet
+    // Subject validation (required)
     const subject = formData.get('subject');
     if (!subject) {
-        toastSystem.error('Erreur de validation', 'Le sujet est obligatoire');
+        toastSystem.error('Erreur de validation', 'Le type de cours est obligatoire');
         return false;
     }
 
-    // Validation de la description
+    // Description validation (required)
     const description = formData.get('description');
     if (!description || description.trim().length === 0) {
         toastSystem.error('Erreur de validation', 'La description est obligatoire');
         return false;
     }
 
-    // Validation du nom de salle
+    // Room name validation (required)
     const roomName = formData.get('roomName');
     if (!roomName || roomName.trim().length === 0) {
-        toastSystem.error('Erreur de validation', 'Le nom de la salle est obligatoire');
+        toastSystem.error('Erreur de validation', 'Le nom de la salle/lieu est obligatoire');
         return false;
     }
 
-    // Validation du code postal
+    // Postal code validation (required with pattern)
     const postalCode = formData.get('postalCode');
     const postalCodeRegex = /^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$/;
     if (!postalCode || !postalCodeRegex.test(postalCode)) {
-        toastSystem.error('Erreur de validation', 'Le code postal doit être un code postal français valide');
+        toastSystem.error('Erreur de validation', 'Le code postal doit être un code postal français valide (ex: 75001)');
         return false;
     }
 
-    // Validation du lien Google Maps (optionnel mais si présent doit être valide)
+    // Google Maps link validation (optional but if present must be valid)
     const googleMapsLink = formData.get('googleMapsLink');
     if (googleMapsLink && googleMapsLink.trim() !== '') {
-        // Regex plus flexible pour tous les formats Google Maps
-        const googleMapsRegex = /^https:\/\/(maps\.(google|app\.goo)\.(com|gl)\/|www\.google\.(com|fr)\/maps)/;
+        // Flexible regex accepting all Google Maps formats
+        const googleMapsRegex = /^https:\/\/(maps\.google\.(com|fr)|maps\.app\.goo\.gl)\/.*/;
         if (!googleMapsRegex.test(googleMapsLink)) {
             toastSystem.error('Erreur de validation', 'Le lien doit être un lien Google Maps valide');
             return false;
         }
     }
 
-    // Validation de la date et heure (combinées en startDateTime)
+    // Date and time validation (combined as startDateTime)
     const sessionDate = formData.get('date');
     const sessionTime = formData.get('time');
 
-    if (sessionDate && sessionTime) {
-        const sessionDateTime = new Date(sessionDate + 'T' + sessionTime);
-        const now = new Date();
-
-        if (sessionDateTime <= now) {
-            toastSystem.error('Erreur de validation', 'La session doit être programmée dans le futur');
-            return false;
-        }
+    if (!sessionDate || !sessionTime) {
+        toastSystem.error('Erreur de validation', 'La date et l\'heure sont obligatoires');
+        return false;
     }
 
-    // Validation du nombre de places
+    const sessionDateTime = new Date(sessionDate + 'T' + sessionTime);
+    const now = new Date();
+
+    if (sessionDateTime <= now) {
+        toastSystem.error('Erreur de validation', 'La session doit être programmée dans le futur');
+        return false;
+    }
+
+    // Available spots validation
     const availableSpots = parseInt(formData.get('availableSpots'));
     if (!availableSpots || availableSpots < 1 || availableSpots > 50) {
         toastSystem.error('Erreur de validation', 'Le nombre de places doit être entre 1 et 50');
         return false;
     }
 
-    // Validation de la durée
+    // Duration validation
     const duration = parseInt(formData.get('durationMinutes'));
     if (!duration || duration < 15 || duration > 300) {
         toastSystem.error('Erreur de validation', 'La durée doit être entre 15 et 300 minutes');
         return false;
     }
 
-    // Validation des crédits requis
+    // Credits required validation
     const creditsRequired = parseInt(formData.get('creditsRequired'));
-    if (creditsRequired && (creditsRequired < 1 || creditsRequired > 10)) {
+    if (!creditsRequired || creditsRequired < 1 || creditsRequired > 10) {
         toastSystem.error('Erreur de validation', 'Le nombre de crédits requis doit être entre 1 et 10');
         return false;
     }
 
     return true;
-}
-
-// ========================================
-// UTILITY FUNCTIONS
-// ========================================
-
-function showConfirmation(title, message, callback) {
-    document.getElementById('confirmationTitle').textContent = title;
-    document.getElementById('confirmationMessage').textContent = message;
-
-    const confirmBtn = document.getElementById('confirmButton');
-    confirmBtn.onclick = function() {
-        callback();
-        const modal = mdb.Modal.getInstance(document.getElementById('confirmationModal'));
-        modal.hide();
-    };
-
-    const modal = new mdb.Modal(document.getElementById('confirmationModal'));
-    modal.show();
-}
-
-function submitAction(actionUrl) {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = actionUrl;
-    form.style.display = 'none';
-
-    // Add CSRF token from meta tag
-    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = '_csrf';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
-
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-}
-
-// ========================================
-// ADDITIONAL FEATURES (pour future évolution)
-// ========================================
-
-function exportSessionsToCSV() {
-    // Fonctionnalité future pour exporter les sessions
-    toastSystem.info('Export', 'Fonctionnalité en cours de développement');
-}
-
-function sendReminderEmails(sessionId) {
-    // Fonctionnalité future pour envoyer des rappels
-    toastSystem.info('Rappels', 'Fonctionnalité en cours de développement');
 }

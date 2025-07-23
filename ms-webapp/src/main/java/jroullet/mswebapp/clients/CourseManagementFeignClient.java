@@ -1,5 +1,6 @@
 package jroullet.mswebapp.clients;
 
+import jroullet.mswebapp.dto.session.SessionCancelDTO;
 import jroullet.mswebapp.dto.session.SessionCreationDTO;
 import jroullet.mswebapp.dto.session.SessionDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -18,6 +19,15 @@ public interface CourseManagementFeignClient {
                              @RequestBody SessionCreationDTO dto);
 
     /**
+     * Cancel a session
+     */
+    @PostMapping("/sessions/teacher/cancel")
+    Void cancelSession(@RequestBody SessionCancelDTO dto);
+
+    @GetMapping("/sessions")
+    SessionDTO getSessionById (@RequestParam("sessionId") Long sessionId);
+
+    /**
      * Upcoming sessions
      */
     @GetMapping("/sessions/teacher/{teacherId}/upcoming")
@@ -32,6 +42,6 @@ public interface CourseManagementFeignClient {
     /**
      * All existing sessions (admin table)
      */
-    @GetMapping("/sessions/teacher/{teacherId}/all")
-    List<SessionDTO> getAllSessionsByTeacher(@PathVariable("teacherId") Long teacherId);
+    @GetMapping("/sessions/all")
+    List<SessionDTO> getAllSessions();
 }

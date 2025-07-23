@@ -1,6 +1,7 @@
 package jroullet.msidentity.service.impl;
 
 import jroullet.msidentity.dto.*;
+import jroullet.msidentity.dto.user.UserParticipantDTO;
 import jroullet.msidentity.exception.EmailAlreadyExistsException;
 import jroullet.msidentity.exception.RoleNotAllowedException;
 import jroullet.msidentity.exception.UserNotFoundException;
@@ -47,6 +48,14 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll()
                 .stream().map(userMapper::toUserDto)
                 .toList();
+    }
+
+    @Override
+    public List<UserParticipantDTO> findAllParticipants(List<Long> userIds) {
+        return userRepository.findParticipantsByIds(userIds)
+                .stream()
+                .map(userMapper::toUserParticipantDto)
+                .collect(Collectors.toList());
     }
 
     @Override

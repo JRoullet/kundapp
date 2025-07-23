@@ -7,10 +7,7 @@ import jroullet.mswebapp.auth.RegisterResponseDTO;
 import jroullet.mswebapp.dto.teacher.TeacherDTO;
 import jroullet.mswebapp.dto.teacher.TeacherRegistrationDTO;
 import jroullet.mswebapp.dto.teacher.TeacherUpdateDTO;
-import jroullet.mswebapp.dto.user.UserCreationDTO;
-import jroullet.mswebapp.dto.user.UserDTO;
-import jroullet.mswebapp.dto.user.UserStatusResponseDTO;
-import jroullet.mswebapp.dto.user.UserUpdateDTO;
+import jroullet.mswebapp.dto.user.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -63,6 +60,10 @@ public interface IdentityFeignClient {
 
     @PostMapping("/admin/users/{id}/credits/add")
     void addUserCredits(@PathVariable("id") Long id, @RequestParam Integer credits);
+
+//SESSION USERS SECTION
+    @PostMapping("/admin/users/list")
+    List<UserParticipantDTO> getUsersByIds(@RequestBody List<Long> userIds);
 
 
     // AUTHENTICATION SECTION

@@ -1,12 +1,12 @@
 package jroullet.mscoursemgmt.dto;
 
+import jroullet.mscoursemgmt.model.SessionStatus;
 import jroullet.mscoursemgmt.model.Subject;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,6 +19,8 @@ public class SessionDTO {
     private Long id;
     private Long teacherId;
     private Subject subject;
+    private SessionStatus status;
+    private String statusDisplay;
     private String description;
 
     // Room
@@ -42,8 +44,6 @@ public class SessionDTO {
 
     // Calculated states
     private LocalDateTime endDateTime;
-    private Boolean isAvailable;
-    private Boolean isPast;
 
     // Metadata
     private LocalDateTime createdAt;

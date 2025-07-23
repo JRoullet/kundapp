@@ -8,6 +8,7 @@ CREATE TABLE session (
              id BIGINT AUTO_INCREMENT PRIMARY KEY,
              teacher_id BIGINT NOT NULL,
              subject ENUM('YOGA', 'KUNDALINI', 'PILATES', 'SOIN_ENERGETIQUE', 'MEDITATION') CHARACTER SET utf8mb4,
+             status VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED',
              description TEXT CHARACTER SET utf8mb4,
              room_name VARCHAR(255) CHARACTER SET utf8mb4,
              postal_code VARCHAR(10) CHARACTER SET utf8mb4,

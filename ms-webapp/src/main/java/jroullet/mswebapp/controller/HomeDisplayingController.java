@@ -2,6 +2,7 @@ package jroullet.mswebapp.controller;
 
 import jroullet.mswebapp.auth.SessionService;
 import jroullet.mswebapp.clients.IdentityFeignClient;
+import jroullet.mswebapp.dto.session.AdminSessionDTO;
 import jroullet.mswebapp.dto.session.SessionDTO;
 import jroullet.mswebapp.dto.user.UserDTO;
 import jroullet.mswebapp.service.SessionManagementService;
@@ -42,8 +43,11 @@ public class HomeDisplayingController {
         logger.info("Fetching admin home");
         UserDTO userDTO = sessionService.getCurrentUser();
         List<UserDTO> allUsers = identityFeignClient.getAllUsers();
+        List<AdminSessionDTO> sessions = sessionManagementService.getAllSessionsForAdmin();
+
         model.addAttribute("user", userDTO);
         model.addAttribute("users", allUsers);
+        model.addAttribute("sessions", sessions);
 
         return new ModelAndView("home-admin");
     }

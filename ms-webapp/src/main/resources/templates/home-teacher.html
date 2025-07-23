@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="app-success" th:content="${success}" th:if="${success}"/>
+    <meta name="app-error" th:content="${error}" th:if="${error}"/>
     <title>Accueil | KundApp</title>
     <link th:href="@{/css/mdb.min.css}" rel="stylesheet"/>
     <link th:href="@{/css/index.css}" rel="stylesheet"/>
@@ -58,7 +59,7 @@
         <div class="col">
             <div class="card">
                 <div class="card-body p-0">
-                    <h5 class="card-title p-3 mb-0 border-bottom">Liste des sessions disponibles</h5>
+                    <h5 class="card-title p-3 mb-0 border-bottom">Mes prochaines séances</h5>
 
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
@@ -70,12 +71,11 @@
                                 <th>Lieu</th>
                                 <th>Participants inscrits</th>
                                 <th>Places disponibles</th>
-                                <th>Crédits</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <!-- Itération sur la liste des sessions -->
+                            <!-- Itération sur la liste des sessions triées par date croissante -->
                             <tr th:each="sessionItem : ${sessions}" th:if="${sessions != null}">
                                 <td th:text="${#temporals.format(sessionItem.startDateTime, 'dd/MM/yyyy')}">01/01/2025</td>
                                 <td th:text="${#temporals.format(sessionItem.startDateTime, 'HH:mm')}">14:00</td>
@@ -83,27 +83,22 @@
                                 <td th:text="${sessionItem.roomName}">Studio Yoga</td>
                                 <td th:text="${sessionItem.registeredParticipants != null ? sessionItem.registeredParticipants : 0}">0</td>
                                 <td th:text="${sessionItem.availableSpots - (sessionItem.registeredParticipants != null ? sessionItem.registeredParticipants : 0)}">10</td>
-                                <td th:text="${sessionItem.creditsRequired}">1</td>
                                 <td class="text-center">
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-sm btn-outline-primary"
-                                                th:onclick="|viewSessionDetails(${sessionItem.id})|" title="Voir détails">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+                                    <div class="d-flex justify-content-center gap-2">
                                         <button type="button" class="btn btn-sm btn-outline-warning"
-                                                th:onclick="|openEditSessionModal(${sessionItem.id})|" title="Modifier">
+                                                th:onclick="|openEditSessionModal(${sessionItem.id})|" title="Modifier la séance">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger"
-                                                th:onclick="|confirmDeleteSession(${sessionItem.id})|" title="Supprimer">
-                                            <i class="fas fa-trash"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary session-cancel-btn"
+                                                th:onclick="|confirmCancelSession(${sessionItem.id})|" title="Annuler la séance">
+                                            <i class="fas fa-times"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                             <!-- Message si pas de séance -->
                             <tr th:if="${sessions == null || sessions.isEmpty()}">
-                                <td colspan="8" class="text-center py-4">
+                                <td colspan="7" class="text-center py-4">
                                     <div class="text-muted">
                                         <p class="mb-3">Aucune séance programmée</p>
                                         <button class="btn btn-primary" onclick="openCreateSessionModal()">
@@ -275,49 +270,8 @@
     </div>
 </footer>
 
-<script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function() {
-        const successMessage = /*[[${success}]]*/ null;
-        const errorMessage = /*[[${error}]]*/ null;
-
-        if (successMessage) {
-            toastSystem.success('Succès', successMessage);
-        }
-        if (errorMessage) {
-            toastSystem.error('Erreur', errorMessage);
-        }
-
-        // Set minimum date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('sessionDate').setAttribute('min', today);
-
-        // Handle form submission to combine date and time into startDateTime
-        const sessionForm = document.getElementById('sessionForm');
-        if (sessionForm) {
-            sessionForm.addEventListener('submit', function(e) {
-                // Combine date and time into startDateTime
-                const dateValue = document.getElementById('sessionDate').value;
-                const timeValue = document.getElementById('sessionTime').value;
-
-                if (dateValue && timeValue) {
-                    const startDateTime = dateValue + 'T' + timeValue;
-
-                    // Create hidden input for startDateTime
-                    let startDateTimeInput = document.getElementById('startDateTime');
-                    if (!startDateTimeInput) {
-                        startDateTimeInput = document.createElement('input');
-                        startDateTimeInput.type = 'hidden';
-                        startDateTimeInput.name = 'startDateTime';
-                        startDateTimeInput.id = 'startDateTime';
-                        sessionForm.appendChild(startDateTimeInput);
-                    }
-                    startDateTimeInput.value = startDateTime;
-                }
-            });
-        }
-    });
-</script>
-
+<!-- Scripts dans le bon ordre -->
+<script th:src="@{/js/common.js}"></script>
 <script th:src="@{/js/teacher.js}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
 </body>

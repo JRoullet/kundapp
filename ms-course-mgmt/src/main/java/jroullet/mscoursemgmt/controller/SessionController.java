@@ -1,8 +1,10 @@
 package jroullet.mscoursemgmt.controller;
 
 import jakarta.validation.Valid;
+import jroullet.mscoursemgmt.dto.SessionCancelDTO;
 import jroullet.mscoursemgmt.dto.SessionCreationDTO;
 import jroullet.mscoursemgmt.dto.SessionDTO;
+import jroullet.mscoursemgmt.exception.BusinessException;
 import jroullet.mscoursemgmt.exception.SessionStartingTimeException;
 import jroullet.mscoursemgmt.service.SessionService;
 import lombok.RequiredArgsConstructor;
@@ -38,27 +40,55 @@ public class SessionController {
             return ResponseEntity.badRequest().build();
         }
     }
+    @PostMapping("/teacher/cancel")
+    public ResponseEntity<Void> cancelSession(@RequestBody SessionCancelDTO dto) {
+        try {
+            sessionService.cancelSession(dto);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (SecurityException | BusinessException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
 
+
+    // Next sessions for current teacher
     @GetMapping("/teacher/{teacherId}/upcoming")
     public ResponseEntity<List<SessionDTO>> getUpcomingSessionsByTeacher(@PathVariable Long teacherId) {
         log.info("Fetching upcoming sessions for teacher: {}", teacherId);
         List<SessionDTO> sessions = sessionService.getUpcomingSessionsByTeacher(teacherId);
-        return ResponseEntity.ok(sessions);
+        return ResponseEntity.status(HttpStatus.OK).body(sessions);
     }
 
+    // Past sessions for current teacher
     @GetMapping("/teacher/{teacherId}/past")
-    public ResponseEntity<List<SessionDTO>> getPastSessionsByTeacher(@PathVariable Long teacherId) {
+    public ResponseEntity<List<SessionDTO>> getHistorySessionsByTeacher(@PathVariable Long teacherId) {
         log.info("Fetching past sessions for teacher: {}", teacherId);
-        List<SessionDTO> sessions = sessionService.getPastSessionsByTeacher(teacherId);
-        return ResponseEntity.ok(sessions);
+        List<SessionDTO> sessions = sessionService.getHistorySessionsByTeacher(teacherId);
+        return ResponseEntity.status(HttpStatus.OK).body(sessions);
     }
 
-    @GetMapping("/teacher/{teacherId}/all")
-    public ResponseEntity<List<SessionDTO>> getAllSessionsByTeacher(@PathVariable Long teacherId) {
-        log.info("Fetching all sessions for teacher: {}", teacherId);
-        List<SessionDTO> sessions = sessionService.getAllSessionsByTeacher(teacherId);
-        return ResponseEntity.ok(sessions);
+    // All sessions for all teachers (admin)
+    @GetMapping("/all")
+    public ResponseEntity<List<SessionDTO>> getAllSessions() {
+        log.info("Fetching all sessions");
+        List<SessionDTO> sessions = sessionService.getAllSessions();
+        return ResponseEntity.status(HttpStatus.OK).body(sessions);
     }
+
+    // Get session by ID
+    @GetMapping
+    public ResponseEntity<SessionDTO> getSessionById(@RequestParam Long sessionId) {
+        log.info("Fetching session by ID: {}", sessionId);
+        try {
+            SessionDTO session = sessionService.getSessionById(sessionId);
+            return ResponseEntity.status(HttpStatus.OK).body(session);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid session ID: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
 
 
 }

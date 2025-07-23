@@ -18,7 +18,5 @@ public interface SessionMapper {
 
     @Mapping(target = "registeredParticipants", expression = "java(session.getParticipantIds().size())")
     @Mapping(target = "endDateTime", expression = "java(session.getStartDateTime().plusMinutes(session.getDurationMinutes()))")
-    @Mapping(target = "isAvailable", expression = "java(session.getAvailableSpots() > session.getParticipantIds().size())")
-    @Mapping(target = "isPast", expression = "java(session.getStartDateTime().isBefore(java.time.LocalDateTime.now()))")
     SessionDTO toDTO(Session session);
 }

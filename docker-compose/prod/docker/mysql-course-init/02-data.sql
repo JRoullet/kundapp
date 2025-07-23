@@ -6,6 +6,7 @@ USE coursemgmtdb;
 INSERT INTO session (
     teacher_id,
     subject,
+    status,
     description,
     room_name,
     postal_code,
@@ -18,6 +19,7 @@ INSERT INTO session (
 ) VALUES (
              3,  -- teacher_id (Jenna Watkins)
              'KUNDALINI',
+            'COMPLETED',
              'Session de Kundalini pour débutants. Découvrez l\'éveil de l\'énergie intérieure à travers des postures, la respiration et la méditation.',
              'Studio Zen Centre-ville',
              '75001',
@@ -31,6 +33,7 @@ INSERT INTO session (
          (
              3,  -- teacher_id (Jenna Watkins)
              'MEDITATION',
+             'SCHEDULED',
              'Méditation guidée en pleine conscience. Apprenez à calmer votre mental et à vous connecter à votre essence.',
              'Espace Lotus',
              '75004',

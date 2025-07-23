@@ -1,14 +1,8 @@
 server:
-  port: 8080  # Changement du port pour HTTPS
-#  ssl:
-#    enabled: true
-    # Utilise un certificat auto-signé généré par Spring Boot
-    # Pour le développement, Spring Boot peut générer le certificat automatiquement
-
+  port: 8080
 spring:
   application:
     name: "ms-webapp"
-  # Vos autres configurations existantes
   config:
     import: configserver:http://msconfigserver:8888/
 
@@ -18,15 +12,7 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://msdiscovery:8761/eureka/
-#  instance:
-#    # Configure Eureka pour utiliser HTTPS
-#    secure-port: 8443
-#    secure-port-enabled: true
-#    non-secure-port-enabled: false
 
-#management:
-#  server:
-#    port: 8443  # Actuator utilise aussi HTTPS
   endpoints:
     web:
       exposure:

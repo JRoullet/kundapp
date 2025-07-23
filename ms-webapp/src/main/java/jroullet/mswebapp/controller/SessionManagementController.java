@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jroullet.mswebapp.auth.SessionService;
 import jroullet.mswebapp.dto.session.SessionCreationDTO;
 import jroullet.mswebapp.dto.session.SessionDTO;
+import jroullet.mswebapp.exception.BusinessException;
 import jroullet.mswebapp.model.Subject;
 import jroullet.mswebapp.service.SessionManagementService;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -24,10 +22,10 @@ import java.time.format.DateTimeFormatter;
 @Controller
 @RequestMapping("/teacher")
 @RequiredArgsConstructor
-public class SessionController {
+public class SessionManagementController {
     private final SessionManagementService sessionManagementService;
     private final SessionService sessionService;
-    private final Logger logger = LoggerFactory.getLogger(SessionController.class);
+    private final Logger logger = LoggerFactory.getLogger(SessionManagementController.class);
 
 
     @GetMapping("/session/new")
@@ -67,6 +65,17 @@ public class SessionController {
                     "Erreur lors de la création de la session");
         }
 
+        return new ModelAndView("redirect:/teacher");
+    }
+
+    @PostMapping("/session/cancel")
+    public ModelAndView cancelSession(@RequestParam Long sessionId, RedirectAttributes redirectAttributes) {
+        try {
+            sessionManagementService.cancelSessionForCurrentTeacher(sessionId);
+            redirectAttributes.addFlashAttribute("success", "Séance annulée avec succès");
+        } catch (SecurityException | BusinessException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
         return new ModelAndView("redirect:/teacher");
     }
 }

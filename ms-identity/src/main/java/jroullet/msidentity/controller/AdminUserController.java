@@ -2,6 +2,7 @@ package jroullet.msidentity.controller;
 
 import jakarta.validation.Valid;
 import jroullet.msidentity.dto.*;
+import jroullet.msidentity.dto.user.UserParticipantDTO;
 import jroullet.msidentity.exception.EmailAlreadyExistsException;
 import jroullet.msidentity.exception.UserNotFoundException;
 import jroullet.msidentity.service.UserService;
@@ -12,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -26,7 +30,22 @@ import org.springframework.web.server.ResponseStatusException;
     public ResponseEntity<UserDTO> getUserById(@PathVariable("id") Long id) {
         try {
             UserDTO user = userService.findUserById(id);
-            return ResponseEntity.ok(user);
+            return ResponseEntity.status(HttpStatus.OK).body(user);
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @PostMapping("/list")
+    public ResponseEntity<List<UserParticipantDTO>> getUsersByIds(@RequestBody List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        try{
+            List<UserParticipantDTO> participants = userService.findAllParticipants(userIds);
+            return ResponseEntity.status(HttpStatus.OK).body(participants);
         } catch (UserNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (IllegalArgumentException e) {
@@ -54,7 +73,7 @@ import org.springframework.web.server.ResponseStatusException;
         try {
             UserDTO updatedUser = userService.updateUser(id, dto);
             log.info("User updated successfully");
-            return ResponseEntity.ok(updatedUser);
+            return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
         } catch (UserNotFoundException e) {
             log.error("User not found: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());

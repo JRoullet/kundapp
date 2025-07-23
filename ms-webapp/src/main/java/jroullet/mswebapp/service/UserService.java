@@ -27,5 +27,6 @@ public class UserService {
             throw new RuntimeException("Registration failed: " + e.getMessage());
         }
     }
+
 }
 

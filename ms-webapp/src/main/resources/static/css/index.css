@@ -183,6 +183,99 @@ footer {
 }
 
 /* ========================================
+   STYLES CLIENT - Cards sessions
+   ======================================== */
+.session-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.session-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.session-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.session-status.confirmed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.session-status.waiting {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.session-professor {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.session-location {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.session-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.session-time {
+    color: #495057;
+    font-weight: 500;
+}
+
+.btn-register {
+    background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-register:hover {
+    background: linear-gradient(45deg, #5a6fd8 0%, #6a4190 100%);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-register:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.credits-badge {
+    background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.credits-info {
+    background: linear-gradient(45deg, #ffecd2 0%, #fcb69f 100%);
+    color: #8b4513;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 8px 16px;
+}
+
+/* Filtres */
+.filter-section {
+    background-color: var(--primary-light);
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+}
+
+/* ========================================
    PAGES SIGNIN/SIGNUP
    ======================================== */
 .signin-container,
@@ -722,5 +815,46 @@ body.signin-form {
     #toggleSearchBtn {
         width: 24px;
         height: 24px;
+    }
+
+    /*
+    Session User
+    */
+    .session-card {
+        margin-bottom: 1rem;
+    }
+
+    .credits-info {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+    }
+
+    .filter-section {
+        padding: 12px 15px;
+    }
+
+    /*
+    Cancel Session - hover effect
+    */
+    .session-cancel-btn {
+        background-color: transparent !important;
+        border-color: #6c757d !important;
+        color: #6c757d !important;
+        transition: all 0.3s ease;
+    }
+
+    .session-cancel-btn:hover {
+        background-color: #343a40 !important;
+        border-color: #343a40 !important;
+        color: white !important;
+        transform: scale(1.05);
+    }
+
+    .session-cancel-btn i {
+        transition: transform 0.2s ease;
+    }
+
+    .session-cancel-btn:hover i {
+        transform: rotate(90deg);
     }
 }

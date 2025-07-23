@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accueil | KundApp</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="app-success" th:content="${success}" th:if="${success}"/>
+    <meta name="app-error" th:content="${error}" th:if="${error}"/>
+    <title>Sessions disponibles | KundApp</title>
     <link th:href="@{/css/mdb.min.css}" rel="stylesheet"/>
     <link th:href="@{/css/index.css}" rel="stylesheet"/>
 </head>
@@ -14,18 +17,26 @@
         <div class="logo me-3">
             <img th:src="@{/images/kundapplogo.jpg}" alt="KundApp Logo" />
         </div>
-        <a class="navbar-brand" href="/home-client">KundApp</a>
+        <a class="navbar-brand" href="/client">KundApp</a>
         <button class="navbar-toggler" type="button" data-mdb-toggle="collapse" data-mdb-target="#navbarMain">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarMain">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" href="/home">Réserver ma place pour une séance</a>
+                    <a class="nav-link active" href="/client">Sessions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/client/reservations">Mes réservations</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center">
-                <span class="me-3" th:if="${user != null}" th:text="${user.email}">admin@kundapp.com</span>
+                <div class="credits-info me-3" th:if="${user != null}"
+                     th:data-user-credits="${user.credits ?: 0}">
+                    <i class="fas fa-coins me-1"></i>
+                    <span th:text="${user.credits ?: 0}">5</span> crédits
+                </div>
+                <span class="me-3" th:if="${user != null}" th:text="${user.email}">client@kundapp.com</span>
                 <form th:action="@{/logout}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-outline-primary">Déconnexion</button>
                 </form>
@@ -34,70 +45,113 @@
     </div>
 </nav>
 
+<!-- Success/Error Messages -->
+<div class="toast-container" id="toastContainer"></div>
+
 <div class="container py-4">
-    <div class="welcome-banner">
+    <div class="welcome-banner mb-4">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="h4 mb-0">Bienvenue sur votre espace KundApp</h1>
-                <p class="mb-0">Inscrivez vous aux prochaines séances disponibles</p>
+                <h1 class="h4 mb-0">Sessions disponibles</h1>
+                <p class="mb-0">Découvrez et réservez vos prochaines séances</p>
             </div>
             <div class="col-md-4 text-end">
-<!--                <button class="btn btn-primary" onclick="window.location.href='/patient/new'">-->
-<!--                    Ajouter un patient-->
-<!--                </button>-->
+                <select class="form-select" style="max-width: 200px; margin-left: auto;" id="subjectFilter">
+                    <option value="">Tous les cours</option>
+                    <option value="YOGA">Yoga</option>
+                    <option value="KUNDALINI">Kundalini</option>
+                    <option value="PILATES">Pilates</option>
+                    <option value="SOIN_ENERGETIQUE">Soin énergétique</option>
+                    <option value="MEDITATION">Méditation</option>
+                </select>
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col">
-            <div class="card">
-                <div class="card-body p-0">
-                    <h5 class="card-title p-3 mb-0 border-bottom">Liste des séances disponibles</h5>
+    <div class="row">
+        <!-- Itération sur les sessions -->
+        <div class="col-md-6 col-lg-4 mb-4" th:each="sessionItem : ${sessions}" th:if="${sessions != null}">
+            <div class="card session-card h-100 border-0 shadow-sm" th:data-session-id="${sessionItem.id}">
+                <div class="card-body d-flex flex-column">
+                    <!-- Header avec statut -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="session-title mb-1" th:text="${sessionItem.subject}">Kundalini Awakening</h5>
+                            <p class="session-time mb-0">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                <span th:text="${#temporals.format(sessionItem.startDateTime, 'dd MMM, HH:mm')}">Apr 23, 4:00 PM</span>
+                                -
+                                <span th:text="${#temporals.format(sessionItem.endDateTime, 'HH:mm')}">5:30 PM</span>
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge credits-badge" th:text="|${sessionItem.creditsRequired} crédit${sessionItem.creditsRequired > 1 ? 's' : ''}|">1 crédit</span>
+                            <br>
+                            <span class="badge session-status mt-1"
+                                  th:class="|badge session-status ${sessionItem.availableSpots > 0 ? 'confirmed' : 'waiting'}|"
+                                  th:text="${sessionItem.availableSpots > 0 ? 'Disponible' : 'Complet'}">
+                                Disponible
+                            </span>
+                        </div>
+                    </div>
 
-<!--                    <div class="table-responsive">-->
-<!--                        <table class="table table-hover mb-0">-->
-<!--                            <thead>-->
-<!--                            <tr>-->
-<!--                                <th>Nom</th>-->
-<!--                                <th>Prénom</th>-->
-<!--                                <th>Date de naissance</th>-->
-<!--                                <th>Sexe</th>-->
-<!--                                <th>Email</th>-->
-<!--                                <th>Téléphone</th>-->
-<!--                                <th class="text-center col-md-2">Actions</th>-->
-<!--                            </tr>-->
-<!--                            </thead>-->
-<!--                            <tbody>-->
-<!--                            &lt;!&ndash; Itération sur la liste des patients &ndash;&gt;-->
-<!--                            <tr th:each="patient : ${patients}" th:if="${patients != null}">-->
-<!--                                <td th:text="${patient.lastName}">Nom</td>-->
-<!--                                <td th:text="${patient.firstName}">Prénom</td>-->
-<!--                                <td th:text="${patient.birthday}">01/01/1980</td>-->
-<!--                                <td th:text="${patient.gender}">H</td>-->
-<!--                                <td th:text="${patient.email}">patient@example.com</td>-->
-<!--                                <td th:text="${patient.phone}">0123456789</td>-->
-<!--                                <td class="action-buttons col-md-2 text-end">-->
-<!--                                    <div class="d-flex justify-content-end">-->
-<!--                                        <a th:href="@{/patient/{id}/notes(id=${patient.id})}" class="btn btn-sm btn-primary me-2">-->
-<!--                                            <i class="fas fa-eye"></i> Info-->
-<!--                                        </a>-->
-<!--                                        <a th:href="@{/patient/update/{id} (id=${patient.id})}" class="btn btn-sm btn-outline-primary">-->
-<!--                                            <i class="fas fa-edit"></i> Modifier-->
-<!--                                        </a>-->
-<!--                                    </div>-->
-<!--                                </td>-->
-<!--                            </tr>-->
-<!--                            &lt;!&ndash; Message si pas de patients &ndash;&gt;-->
-<!--                            <tr th:if="${patients == null || patients.isEmpty()}">-->
-<!--                                <td colspan="6" class="text-center py-4">-->
-<!--                                    Aucun patient enregistré-->
-<!--&lt;!&ndash;                                    <a href="/update-patient" class="btn btn-sm btn-primary ms-2">Ajouter un patient</a>&ndash;&gt;-->
-<!--                                </td>-->
-<!--                            </tr>-->
-<!--                            </tbody>-->
-<!--                        </table>-->
-<!--                    </div>-->
+                    <!-- Description -->
+                    <p class="text-muted mb-3 flex-grow-1" th:text="${sessionItem.description}">
+                        Découvrez l'éveil de l'énergie intérieure à travers des postures, la respiration et la méditation.
+                    </p>
+
+                    <!-- Professeur -->
+                    <div class="session-professor mb-2">
+                        <i class="fas fa-user-circle me-1"></i>
+                        <span>Prof. </span><span th:text="${sessionItem.teacherName ?: 'Non défini'}">Sophia Lee</span>
+                    </div>
+
+                    <!-- Lieu -->
+                    <div class="session-location mb-3">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        <span th:text="${sessionItem.roomName}">Zen Garden Studio</span>
+                        <span th:if="${sessionItem.postalCode}">
+                            - <span th:text="${sessionItem.postalCode}">75001</span>
+                        </span>
+                        <br th:if="${sessionItem.googleMapsLink}">
+                        <a th:if="${sessionItem.googleMapsLink}"
+                           th:href="${sessionItem.googleMapsLink}"
+                           target="_blank"
+                           class="text-primary text-decoration-none">
+                            <i class="fas fa-external-link-alt me-1"></i>Voir sur Google Maps
+                        </a>
+                    </div>
+
+                    <!-- Informations supplémentaires -->
+                    <div class="d-flex justify-content-between align-items-center text-muted mb-3">
+                        <small>
+                            <i class="fas fa-users me-1"></i>
+                            <span th:text="|${sessionItem.registeredParticipants ?: 0}/${sessionItem.availableSpots} places|">5/12 places</span>
+                        </small>
+                        <small th:if="${sessionItem.bringYourMattress}">
+                            <i class="fas fa-exclamation-circle me-1 text-warning"></i>
+                            Apportez votre tapis
+                        </small>
+                    </div>
+
+                    <!-- Action -->
+                    <button class="btn btn-register w-100 mt-auto"
+                            th:onclick="|reserveSession(${sessionItem.id})|"
+                            th:disabled="${sessionItem.availableSpots <= 0}">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        <span th:text="${sessionItem.availableSpots > 0 ? 'Réserver' : 'Liste d\'attente'}">Réserver</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message si pas de sessions -->
+        <div class="col-12" th:if="${sessions == null || sessions.isEmpty()}">
+            <div class="text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                    <h5>Aucune session disponible</h5>
+                    <p>Les nouvelles sessions seront bientôt disponibles.</p>
                 </div>
             </div>
         </div>
@@ -110,18 +164,9 @@
     </div>
 </footer>
 
+<!-- Scripts dans le bon ordre -->
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/client.js}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-

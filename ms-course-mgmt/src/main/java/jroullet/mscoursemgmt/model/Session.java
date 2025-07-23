@@ -20,6 +20,9 @@ public class Session {
     @Enumerated(EnumType.STRING)
     private Subject subject;
     private String description;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private SessionStatus status = SessionStatus.SCHEDULED;
     private String roomName;
     private String postalCode;
     private String googleMapsLink;
@@ -37,5 +40,6 @@ public class Session {
     @Column(name = "participant_id")
     private List<Long> participantIds;
     private Boolean bringYourMattress;
+
 
 }

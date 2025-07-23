@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="app-success" th:content="${success}" th:if="${success}"/>
+    <meta name="app-error" th:content="${error}" th:if="${error}"/>
     <title>Administration | KundApp Admin</title>
     <link th:href="@{/css/mdb.min.css}" rel="stylesheet"/>
     <link th:href="@{/css/index.css}" rel="stylesheet"/>
@@ -95,6 +97,12 @@
                 <button class="nav-link" id="users-tab" data-mdb-toggle="tab"
                         data-mdb-target="#users-content" type="button" role="tab">
                     Clients
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sessions-tab" data-mdb-toggle="tab"
+                        data-mdb-target="#sessions-content" type="button" role="tab">
+                    Sessions
                 </button>
             </li>
         </ul>
@@ -246,6 +254,80 @@
                     </table>
                 </div>
             </div>
+            <!-- SESSIONS TAB - Version corrigée sans propriétés manquantes -->
+            <div class="tab-pane fade" id="sessions-content" role="tabpanel">
+                <div class="admin-card-header" style="background: white; color: var(--admin-primary); padding: 20px; border-bottom: 3px solid white;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="admin-card-title mb-0">Liste des Sessions</h5>
+                    </div>
+                </div>
+
+                <!-- Sessions Table -->
+                <div class="admin-table-container" style="margin-top: 15px; border-radius: 0;">
+                    <table class="table admin-table">
+                        <thead>
+                        <tr>
+                            <th>Date/Heure</th>
+                            <th>Lieu</th>
+                            <th>Teacher</th>
+                            <th>Sujet</th>
+                            <th>Statut</th>
+                            <th>Participants</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="sessionItem : ${sessions}" th:if="${sessions != null}" class="admin-table-row session-row">
+                            <td th:text="${sessionItem.session.startDateTime}">01/01/2025 14:00</td>
+                            <td>
+                                <div th:text="${sessionItem.session.roomName}">Studio Yoga</div>
+                                <small class="text-muted" th:text="${sessionItem.session.postalCode}">75001</small>
+                            </td>
+                            <td>
+                                <span th:text="${sessionItem.teacherFirstName + ' ' + sessionItem.teacherLastName}" class="teacher-name">Marie Martin</span>
+                            </td>
+                            <td th:text="${sessionItem.session.subject}">YOGA</td>
+                            <td>
+                                <span th:if="${sessionItem.session.status.name() == 'SCHEDULED'}" class="admin-status admin-status-active">
+                                    Programmée
+                                </span>
+                                <span th:if="${sessionItem.session.status.name() == 'CANCELLED'}" class="admin-status admin-status-inactive">
+                                    Annulée
+                                </span>
+                                <span th:if="${sessionItem.session.status.name() == 'COMPLETED'}" class="admin-status admin-status-completed">
+                                    Terminée
+                                </span>
+                            </td>
+                            <td>
+                                <span th:text="${sessionItem.session.registeredParticipants ?: 0}">5</span> participants
+                                <button class="btn btn-sm btn-outline-info ms-2"
+                                        th:onclick="|showParticipants(${sessionItem.session.id})|"
+                                        title="Voir les participants">
+                                    👥
+                                </button>
+                            </td>
+
+                            <td class="text-center admin-actions">
+                                <div class="admin-action-buttons">
+                                    <button class="btn btn-admin-edit" th:onclick="|openEditSessionModal(${sessionItem.session.id})|" title="Modifier">
+                                        Modifier
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Empty state -->
+                        <tr th:if="${sessions == null || sessions.isEmpty()}" class="admin-empty-state">
+                            <td colspan="6" class="text-center py-5">
+                                <div class="admin-empty-content">
+                                    <h5 class="admin-empty-title">Aucune session trouvée</h5>
+                                    <p class="admin-empty-text">Les sessions créées par les teachers apparaîtront ici</p>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -329,6 +411,7 @@
         </div>
     </div>
 </div>
+
 <!-- Teacher Update Modal - Modification SANS password -->
 <div class="modal fade" id="teacherUpdateModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -485,6 +568,7 @@
         </div>
     </div>
 </div>
+
 <!-- User Update Modal - Modification SANS password -->
 <div class="modal fade" id="userUpdateModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -526,7 +610,6 @@
                     <div class="mb-3">
                         <label for="userUpdateCredits" class="form-label">Credits</label>
                         <input type="number" class="form-control" id="userUpdateCredits" name="credits">
-
                     </div>
 
                     <!-- Section Adresse -->
@@ -561,6 +644,160 @@
         </div>
     </div>
 </div>
+<!-- Session Edit Modal -->
+<div class="modal fade" id="sessionEditModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifier la session</h5>
+                <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+            </div>
+            <form id="sessionEditForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" id="sessionEditId" name="id">
+
+                    <!-- Sujet (obligatoire) -->
+                    <div class="mb-3">
+                        <label for="sessionEditSubject" class="form-label">Type de cours *</label>
+                        <select class="form-select" id="sessionEditSubject" name="subject" required>
+                            <option value="">Choisissez un type de cours...</option>
+                            <option value="YOGA">Yoga</option>
+                            <option value="KUNDALINI">Kundalini</option>
+                            <option value="PILATES">Pilates</option>
+                            <option value="SOIN_ENERGETIQUE">Soin énergétique</option>
+                            <option value="MEDITATION">Méditation</option>
+                        </select>
+                    </div>
+
+                    <!-- Description (obligatoire) -->
+                    <div class="mb-3">
+                        <label for="sessionEditDescription" class="form-label">Description *</label>
+                        <textarea class="form-control" id="sessionEditDescription" name="description"
+                                  rows="3" placeholder="Décrivez cette séance en détail..." required></textarea>
+                    </div>
+
+                    <!-- Informations de lieu -->
+                    <hr>
+                    <h6 class="mb-3">📍 Lieu de la séance</h6>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="sessionEditRoomName" class="form-label">Nom de la salle/lieu *</label>
+                            <input type="text" class="form-control" id="sessionEditRoomName" name="roomName" required
+                                   placeholder="Ex: Studio Yoga Paris, Salle A, Parc des Buttes Chaumont...">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="sessionEditPostalCode" class="form-label">Code postal *</label>
+                            <input type="text" class="form-control" id="sessionEditPostalCode" name="postalCode"
+                                   pattern="^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$" required
+                                   placeholder="75001" maxlength="5">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sessionEditGoogleMapsLink" class="form-label">Lien Google Maps</label>
+                        <input type="url" class="form-control" id="sessionEditGoogleMapsLink" name="googleMapsLink"
+                               placeholder="https://maps.app.goo.gl/...">
+                        <div class="form-text">Optionnel - Ajoutez un lien Google Maps pour faciliter l'accès</div>
+                    </div>
+
+                    <!-- Date et heure -->
+                    <hr>
+                    <h6 class="mb-3">🕐 Date et horaires</h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="sessionEditDate" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="sessionEditDate" name="date" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="sessionEditTime" class="form-label">Heure de début *</label>
+                            <input type="time" class="form-control" id="sessionEditTime" name="time" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="sessionEditDurationMinutes" class="form-label">Durée (minutes) *</label>
+                            <select class="form-select" id="sessionEditDurationMinutes" name="durationMinutes" required>
+                                <option value="">Choisir...</option>
+                                <option value="15">15 min</option>
+                                <option value="30">30 min</option>
+                                <option value="45">45 min</option>
+                                <option value="60">1h00</option>
+                                <option value="75">1h15</option>
+                                <option value="90">1h30</option>
+                                <option value="105">1h45</option>
+                                <option value="120">2h00</option>
+                                <option value="150">2h30</option>
+                                <option value="180">3h00</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Participants et crédits -->
+                    <hr>
+                    <h6 class="mb-3">👥 Participants et crédits</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="sessionEditAvailableSpots" class="form-label">Nombre de places *</label>
+                            <input type="number" class="form-control" id="sessionEditAvailableSpots"
+                                   name="availableSpots" min="1" max="50" required>
+                            <div class="form-text">Entre 1 et 50 participants</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sessionEditCreditsRequired" class="form-label">Crédits requis *</label>
+                            <input type="number" class="form-control" id="sessionEditCreditsRequired"
+                                   name="creditsRequired" min="1" max="10" required>
+                            <div class="form-text">Nombre de crédits nécessaires pour participer</div>
+                        </div>
+                    </div>
+
+                    <!-- Matériel -->
+                    <hr>
+                    <h6 class="mb-3">🧘 Matériel</h6>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sessionEditBringYourMattress"
+                                   name="bringYourMattress" value="true">
+                            <label class="form-check-label" for="sessionEditBringYourMattress">
+                                <strong>Les participants doivent apporter leur tapis</strong>
+                            </label>
+                            <div class="form-text">Cochez si les participants doivent venir avec leur propre équipement</div>
+                        </div>
+                        <!-- Hidden input pour gérer le cas où la checkbox n'est pas cochée -->
+                        <input type="hidden" name="bringYourMattress" value="false">
+                    </div>
+
+                    <!-- Section participants inscrits (info only) -->
+                    <hr>
+                    <h6 class="mb-3">📋 Participants inscrits</h6>
+                    <div class="alert alert-info" id="sessionEditParticipantsInfo">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span id="sessionEditParticipantsCount">0 participant(s) inscrit(s)</span>
+                            <button type="button" class="btn btn-sm btn-outline-info" id="sessionEditViewParticipants">
+                                Voir la liste
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="me-auto">
+                        <!-- Bouton Annuler la session (rouge, à gauche) -->
+                        <button type="button" class="btn btn-danger" id="sessionEditCancelBtn">
+                            <i class="fas fa-ban me-1"></i>
+                            Annuler cette session
+                        </button>
+                    </div>
+                    <div>
+                        <!-- Boutons standards (à droite) -->
+                        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Fermer</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            Sauvegarder
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <!-- Credits Modal -->
 <div class="modal fade" id="creditsModal" tabindex="-1">
     <div class="modal-dialog">
@@ -587,6 +824,50 @@
     </div>
 </div>
 
+<!-- Participants Modal -->
+<div class="modal fade" id="participantsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Participants à la séance</h5>
+                <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="participantsLoading" class="text-center py-3" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p class="mt-2">Chargement des participants...</p>
+                </div>
+                <div id="participantsContent">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Prénom</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                            </tr>
+                            </thead>
+                            <tbody id="participantsTableBody">
+                            <!-- Content will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="participantsEmpty" class="text-center py-4" style="display: none;">
+                    <h6>Aucun participant inscrit</h6>
+                    <p class="text-muted">Cette séance n'a pas encore de participants inscrits.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!-- Confirmation Modal -->
 <div class="modal fade" id="confirmationModal" tabindex="-1">
     <div class="modal-dialog">
@@ -612,21 +893,9 @@
     </div>
 </footer>
 
-<script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function() {
-        const successMessage = /*[[${success}]]*/ null;
-        const errorMessage = /*[[${error}]]*/ null;
-
-        if (successMessage) {
-            toastSystem.success('Succès', successMessage);
-        }
-        if (errorMessage) {
-            toastSystem.error('Erreur', errorMessage);
-        }
-    });
-</script>
-
-<script th:src="@{/js/admin.js}"></script>
+<!-- Scripts dans le bon ordre -->
+<script th:src="@{/js/common.js?v=1}"></script>
+<script th:src="@{/js/admin.js?v=1}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
 </body>
 </html>

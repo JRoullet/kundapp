@@ -28,7 +28,7 @@ public class SessionCreationDTO {
             message = "Le code postal doit contenir 5 chiffres")
     private String postalCode;
 
-    @Pattern(regexp = "^https://maps\\.google\\.com/.*",
+    @Pattern(regexp = "^https://(maps\\.google\\.(com|fr)|maps\\.app\\.goo\\.gl)/.*",
             message = "Le lien doit être un lien Google Maps valide")
     private String googleMapsLink;
 

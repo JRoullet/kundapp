@@ -1,24 +1,28 @@
 package jroullet.mscoursemgmt.service.impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import jroullet.mscoursemgmt.dto.SessionCancelDTO;
 import jroullet.mscoursemgmt.dto.SessionCreationDTO;
 import jroullet.mscoursemgmt.dto.SessionDTO;
 import jroullet.mscoursemgmt.dto.SessionUpdateDTO;
+import jroullet.mscoursemgmt.exception.BusinessException;
 import jroullet.mscoursemgmt.exception.SessionStartingTimeException;
 import jroullet.mscoursemgmt.exception.SessionOverlappingTimeException;
 import jroullet.mscoursemgmt.mapper.SessionMapper;
 import jroullet.mscoursemgmt.model.Session;
+import jroullet.mscoursemgmt.model.SessionStatus;
 import jroullet.mscoursemgmt.repository.SessionRepository;
 import jroullet.mscoursemgmt.service.SessionService;
+import jroullet.mscoursemgmt.service.utils.SessionJobManagement;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +31,12 @@ public class SessionImplService implements SessionService {
 
     private final SessionRepository sessionRepository;
     private final SessionMapper sessionMapper;
-    private final Logger logger = LoggerFactory.getLogger(SessionImplService.class);
+    private final SessionJobManagement sessionJobManagement;
 
     @Override
     public SessionDTO createSession(Long teacherId, SessionCreationDTO dto) {
 
-        validateSessionCreation(dto,teacherId);
+        sessionJobManagement.validateSessionCreation(dto,teacherId);
 
         Session session = sessionMapper.toEntity(dto);
 
@@ -49,32 +53,55 @@ public class SessionImplService implements SessionService {
 
     @Override
     public List<SessionDTO> getUpcomingSessionsByTeacher(Long teacherId) {
-        LocalDateTime now = LocalDateTime.now();
-        List<Session> upcomingSessions = sessionRepository
-                .findByTeacherIdAndStartDateTimeAfterOrderByStartDateTimeAsc(teacherId, now);
-        logger.info("Loaded {} sessions: {}", upcomingSessions.size(), upcomingSessions);
-        return upcomingSessions.stream()
+
+        // Update completed sessions before fetching all sessions
+        sessionJobManagement.updateCompletedSessions();
+
+        return sessionRepository.findByTeacherIdAndStatusOrderByStartDateTimeAsc(teacherId, SessionStatus.SCHEDULED)
+                .stream()
                 .map(sessionMapper::toDTO)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
-    public List<SessionDTO> getPastSessionsByTeacher(Long teacherId) {
-        LocalDateTime now = LocalDateTime.now();
-        List<Session> pastSessions = sessionRepository
-                .findByTeacherIdAndStartDateTimeBeforeOrderByStartDateTimeDesc(teacherId, now);
-        return pastSessions.stream()
+    public List<SessionDTO> getHistorySessionsByTeacher(Long teacherId) {
+
+        // Update completed sessions before fetching all sessions
+        sessionJobManagement.updateCompletedSessions();
+
+        return sessionRepository.findByTeacherIdOrderByStartDateTimeDesc(teacherId)
+                .stream()
+                .filter(session -> session.getStatus() != SessionStatus.SCHEDULED)
                 .map(sessionMapper::toDTO)
-                .collect(Collectors.toList());
+                .collect(toList());
+    }
+
+
+    @Override
+    @Transactional
+    public void cancelSession(SessionCancelDTO dto) {
+        Session session = sessionRepository.findById(dto.getSessionId())
+                .orElseThrow(() -> new EntityNotFoundException("Session not found"));
+
+        // check ownership
+        if (!session.getTeacherId().equals(dto.getTeacherId())) {
+            throw new SecurityException("You can only cancel your own sessions");
+        }
+
+        // check session status
+        if (session.getStatus() != SessionStatus.SCHEDULED) {
+            throw new BusinessException("Only scheduled sessions can be cancelled");
+        }
+
+        session.setStatus(SessionStatus.CANCELLED);
+        sessionRepository.save(session);
     }
 
     @Override
-    public List<SessionDTO> getAllSessionsByTeacher(Long teacherId) {
-        List<Session> allSessions = sessionRepository
-                .findByTeacherIdOrderByStartDateTimeDesc(teacherId);
-        return allSessions.stream()
-                .map(sessionMapper::toDTO)
-                .collect(Collectors.toList());
+    public SessionDTO getSessionById(Long sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new EntityNotFoundException("Session not found with ID: " + sessionId));
+        return sessionMapper.toDTO(session);
     }
 
 
@@ -88,22 +115,15 @@ public class SessionImplService implements SessionService {
 
     }
 
-    // TODO : Migrate to Utils
-    private void validateSessionCreation(SessionCreationDTO dto, Long teacherId) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime sessionStart = dto.getStartDateTime();
-        LocalDateTime sessionEnd = sessionStart.plusMinutes(dto.getDurationMinutes());
+    @Override
+    public List<SessionDTO> getAllSessions() {
 
-        //Verify session is set on a possible day
-        if(sessionStart.isBefore(now)) {
-            throw new SessionStartingTimeException("La session ne peut pas être dans le passé");
-        }
-        //Verify session is not overlapping another session
-        List<Session> conflictingSessions = sessionRepository
-                .findByTeacherIdAndStartDateTimeBetween(teacherId, sessionStart, sessionEnd);
+        // Update completed sessions before fetching all sessions
+        sessionJobManagement.updateCompletedSessions();
 
-        if (!conflictingSessions.isEmpty()) {
-            throw new SessionOverlappingTimeException("Vous avez déjà une session programmée à ces horaires");
-        }
+        List<Session> sessions = sessionRepository.findAll();
+        return sessions.stream()
+                .map(sessionMapper::toDTO)
+                .collect(toList());
     }
 }
