@@ -7,8 +7,6 @@ import jroullet.mscoursemgmt.dto.SessionCreationDTO;
 import jroullet.mscoursemgmt.dto.SessionDTO;
 import jroullet.mscoursemgmt.dto.SessionUpdateDTO;
 import jroullet.mscoursemgmt.exception.BusinessException;
-import jroullet.mscoursemgmt.exception.SessionStartingTimeException;
-import jroullet.mscoursemgmt.exception.SessionOverlappingTimeException;
 import jroullet.mscoursemgmt.mapper.SessionMapper;
 import jroullet.mscoursemgmt.model.Session;
 import jroullet.mscoursemgmt.model.SessionStatus;
@@ -106,24 +104,45 @@ public class SessionImplService implements SessionService {
 
 
     @Override
-    public SessionDTO updateSession(Long id, SessionUpdateDTO dto) {
-        return null;
-    }
-
-    @Override
-    public void deleteSession(Long id) {
-
-    }
-
-    @Override
-    public List<SessionDTO> getAllSessions() {
+    public List<SessionDTO> getAllSessionsForAdmin() {
 
         // Update completed sessions before fetching all sessions
         sessionJobManagement.updateCompletedSessions();
 
-        List<Session> sessions = sessionRepository.findAll();
+        List<Session> sessions = sessionRepository.findAllOrderByStartDateTimeDesc();
         return sessions.stream()
                 .map(sessionMapper::toDTO)
                 .collect(toList());
     }
+
+    @Override
+    public SessionDTO updateSessionByAdmin(Long sessionId, SessionUpdateDTO dto) {
+        SessionDTO sessionDTO = getSessionById(sessionId);
+        return sessionJobManagement.updateSessionCommon(sessionDTO,dto);
+    }
+
+    @Override
+    public void cancelSessionByAdmin(Long sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new EntityNotFoundException("Session not found with ID: " + sessionId));
+
+        if (session.getStatus() != SessionStatus.SCHEDULED) {
+            throw new BusinessException("Only scheduled sessions can be cancelled");
+        }
+
+        session.setStatus(SessionStatus.CANCELLED);
+
+        sessionRepository.save(session);
+    }
+
+    @Override
+    public SessionDTO updateSessionByTeacher(Long sessionId, Long requestingUserId, SessionUpdateDTO sessionUpdateDTO) {
+        SessionDTO sessionDTO = getSessionById(sessionId);
+        // Check if the session belongs to the requesting teacher
+        if(!sessionDTO.getTeacherId().equals(requestingUserId)) {
+           throw new SecurityException("You can only update your own sessions");
+        }
+        return sessionJobManagement.updateSessionCommon(sessionDTO,sessionUpdateDTO);
+    }
+
 }

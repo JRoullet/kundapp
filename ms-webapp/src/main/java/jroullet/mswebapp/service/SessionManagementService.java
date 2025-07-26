@@ -13,7 +13,6 @@ import jroullet.mswebapp.dto.user.UserParticipantDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +28,11 @@ public class SessionManagementService {
     private final CourseManagementFeignClient courseFeignClient;
     private final SessionService sessionService;
 
+
+    /**
+     *     TEACHER METHODS
+      */
+
     public List<SessionDTO> getUpcomingSessionsForCurrentTeacher(Long teacherId) {
         try {
             List<SessionDTO> upcomingSessions = courseFeignClient.getUpcomingSessionsByTeacher(teacherId);
@@ -43,7 +47,9 @@ public class SessionManagementService {
 
     public List<SessionDTO> getPastSessionsForCurrentTeacher(Long teacherId) {
         try {
-            return courseFeignClient.getPastSessionsByTeacher(teacherId);
+            List<SessionDTO> pastSessions = courseFeignClient.getPastSessionsByTeacher(teacherId);
+            log.info("Loaded {} past sessions for teacher ID: {}", pastSessions.size(), teacherId);
+            return pastSessions;
         } catch (FeignException e) {
             log.error("Error fetching past sessions for teacher {}: {}", teacherId, e.getMessage());
             return Collections.emptyList();
@@ -52,7 +58,9 @@ public class SessionManagementService {
 
     public SessionDTO createSessionForCurrentTeacher(Long teacherId, SessionCreationDTO dto) {
         try {
-            return courseFeignClient.createSession(teacherId, dto);
+            SessionDTO session = courseFeignClient.createSession(teacherId, dto);
+            log.info("Session created successfully for teacher ID: {}", teacherId);
+            return session;
         } catch (FeignException e) {
             log.error("Error creating session for teacher {}: {}", teacherId, e.getMessage());
             throw e; // Re-throw pour que le controller gère l'erreur spécifique
@@ -68,20 +76,27 @@ public class SessionManagementService {
                     .build();
 
             courseFeignClient.cancelSession(dto);
+            log.info("Session {} canceled successfully by teacher ID: {}", sessionId, currentUserId);
         } catch (FeignException e) {
             log.error("Error canceling session {} : {}", sessionId, e.getMessage());
             throw e;
         }
     }
 
-    //ADMIN METHODS
+
+    /**
+     *     ADMIN METHODS
+     */
+
     public List<AdminSessionDTO> getAllSessionsForAdmin() {
-        List<SessionDTO> sessions = courseFeignClient.getAllSessions();
+        List<SessionDTO> sessions = courseFeignClient.getAllSessionsForAdmin();
+        log.info("Loaded {} sessions", sessions.size());
         return sessions.stream()
                 .map(this::enrichWithTeacher)
                 .collect(toList());
     }
 
+    // Enrich session with teacher information for admin view and filtering
     private AdminSessionDTO enrichWithTeacher(SessionDTO session) {
         TeacherDTO teacher = identityFeignClient.getTeacherById(session.getTeacherId());
         return AdminSessionDTO.builder()
@@ -92,6 +107,19 @@ public class SessionManagementService {
     }
 
 
+    public void cancelSessionForAdmin(Long sessionId) {
+        try {
+            courseFeignClient.cancelSessionByAdmin(sessionId);
+            log.info("Session {} canceled successfully", sessionId);
+        } catch (FeignException e) {
+            log.error("Error canceling session {} : {}", sessionId, e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     *      Common Methods
+     */
     public List<UserParticipantDTO> getSessionParticipants(Long sessionId) {
         SessionDTO session = courseFeignClient.getSessionById(sessionId);
         if (session.getParticipantIds().isEmpty()) {

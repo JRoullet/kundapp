@@ -1,9 +1,11 @@
 package jroullet.mscoursemgmt.controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jroullet.mscoursemgmt.dto.SessionCancelDTO;
 import jroullet.mscoursemgmt.dto.SessionCreationDTO;
 import jroullet.mscoursemgmt.dto.SessionDTO;
+import jroullet.mscoursemgmt.dto.SessionUpdateDTO;
 import jroullet.mscoursemgmt.exception.BusinessException;
 import jroullet.mscoursemgmt.exception.SessionStartingTimeException;
 import jroullet.mscoursemgmt.service.SessionService;
@@ -22,6 +24,19 @@ import java.util.List;
 public class SessionController {
 
     private final SessionService sessionService;
+
+    // Get session by ID
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<SessionDTO> getSessionById(@PathVariable Long sessionId) {
+        log.info("Fetching session by ID: {}", sessionId);
+        try {
+            SessionDTO session = sessionService.getSessionById(sessionId);
+            return ResponseEntity.status(HttpStatus.OK).body(session);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid session ID: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
     @PostMapping
     public ResponseEntity<SessionDTO> createSession(@RequestParam Long teacherId,
@@ -50,6 +65,19 @@ public class SessionController {
         }
     }
 
+    @PutMapping("/{sessionId}/teacher/{teacherId}")
+    public ResponseEntity<SessionDTO> updateSessionByTeacher(@PathVariable Long sessionId,
+                                                             @PathVariable Long teacherId,
+                                                             @RequestBody @Valid SessionUpdateDTO sessionUpdateDTO) {
+        try {
+            SessionDTO updatedSession = sessionService.updateSessionByTeacher(sessionId, teacherId, sessionUpdateDTO);
+            return ResponseEntity.ok(updatedSession);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (BusinessException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
     // Next sessions for current teacher
     @GetMapping("/teacher/{teacherId}/upcoming")
@@ -69,25 +97,37 @@ public class SessionController {
 
     // All sessions for all teachers (admin)
     @GetMapping("/all")
-    public ResponseEntity<List<SessionDTO>> getAllSessions() {
+    public ResponseEntity<List<SessionDTO>> getAllSessionsForAdmin() {
         log.info("Fetching all sessions");
-        List<SessionDTO> sessions = sessionService.getAllSessions();
+        List<SessionDTO> sessions = sessionService.getAllSessionsForAdmin();
         return ResponseEntity.status(HttpStatus.OK).body(sessions);
     }
 
-    // Get session by ID
-    @GetMapping
-    public ResponseEntity<SessionDTO> getSessionById(@RequestParam Long sessionId) {
-        log.info("Fetching session by ID: {}", sessionId);
+
+    @PutMapping("/admin/{sessionId}/update")
+    public ResponseEntity<SessionDTO> updateSessionByAdmin(@PathVariable Long sessionId,
+                                                           @RequestBody @Valid SessionUpdateDTO sessionUpdateDTO) {
         try {
-            SessionDTO session = sessionService.getSessionById(sessionId);
-            return ResponseEntity.status(HttpStatus.OK).body(session);
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid session ID: {}", e.getMessage());
+            SessionDTO updatedSession = sessionService.updateSessionByAdmin(sessionId, sessionUpdateDTO);
+            return ResponseEntity.ok(updatedSession);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (BusinessException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    @PostMapping("/admin/cancel")
+    public ResponseEntity<Void> cancelSessionByAdmin(@RequestParam Long sessionId) {
+        try {
+            sessionService.cancelSessionByAdmin(sessionId);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (BusinessException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
 
 

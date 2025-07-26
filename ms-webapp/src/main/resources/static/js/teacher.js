@@ -5,11 +5,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Teacher page loaded');
 
-    // Set minimum date to today for session creation
-    const today = new Date().toISOString().split('T')[0];
-    const sessionDate = document.getElementById('sessionDate');
-    if (sessionDate) {
-        sessionDate.setAttribute('min', today);
+    // Set minimum datetime to now for both creation and update
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // Adjust for timezone
+    const minDateTime = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+
+    const sessionStartDateTime = document.getElementById('sessionStartDateTime');
+    if (sessionStartDateTime) {
+        sessionStartDateTime.setAttribute('min', minDateTime);
     }
 
     // Session form validation on submit
@@ -20,24 +23,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 return false;
             }
+        });
+    }
 
-            // Combine date and time into startDateTime
-            const dateValue = document.getElementById('sessionDate').value;
-            const timeValue = document.getElementById('sessionTime').value;
-
-            if (dateValue && timeValue) {
-                const startDateTime = dateValue + 'T' + timeValue;
-
-                // Create hidden input for startDateTime
-                let startDateTimeInput = document.getElementById('startDateTime');
-                if (!startDateTimeInput) {
-                    startDateTimeInput = document.createElement('input');
-                    startDateTimeInput.type = 'hidden';
-                    startDateTimeInput.name = 'startDateTime';
-                    startDateTimeInput.id = 'startDateTime';
-                    sessionForm.appendChild(startDateTimeInput);
-                }
-                startDateTimeInput.value = startDateTime;
+    // Session update form validation on submit
+    const sessionUpdateForm = document.getElementById('sessionUpdateForm');
+    if (sessionUpdateForm) {
+        sessionUpdateForm.addEventListener('submit', function(e) {
+            if (!validateSessionUpdateForm()) {
+                e.preventDefault();
+                return false;
             }
         });
     }
@@ -60,15 +55,19 @@ function openCreateSessionModal() {
 
     modalTitle.textContent = 'Créer une séance';
     sessionForm.reset();
-    sessionForm.action = '/teacher/session/create';
+    sessionForm.action = '/teacher/sessions/create';
 
-    // Set default values
-    const today = new Date().toISOString().split('T')[0];
-    const sessionDate = document.getElementById('sessionDate');
-    if (sessionDate) {
-        sessionDate.setAttribute('min', today);
+    // Set minimum datetime to now
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const minDateTime = now.toISOString().slice(0, 16);
+
+    const sessionStartDateTime = document.getElementById('sessionStartDateTime');
+    if (sessionStartDateTime) {
+        sessionStartDateTime.setAttribute('min', minDateTime);
     }
 
+    // Set default values
     const availableSpots = document.getElementById('sessionAvailableSpots');
     if (availableSpots) {
         availableSpots.value = '10';
@@ -88,12 +87,19 @@ function openCreateSessionModal() {
     modal.show();
 }
 
-function openEditSessionModal(sessionId) {
-    document.getElementById('sessionModalTitle').textContent = 'Modifier la séance';
-    document.getElementById('sessionForm').action = '/teacher/session/' + sessionId + '/update';
+// ========================================
+// SESSION UPDATE MODAL MANAGEMENT
+// ========================================
 
-    // Fetch session data
-    fetch('/teacher/session/' + sessionId + '/data')
+function openEditSessionModal(sessionId) {
+    console.log('Opening edit session modal for session:', sessionId);
+
+    // Configure form action
+    document.getElementById('sessionUpdateForm').action = '/teacher/sessions/' + sessionId + '/update';
+    document.getElementById('sessionUpdateId').value = sessionId;
+
+    // Fetch session data from endpoint
+    fetch('/teacher/sessions/' + sessionId + '/details')
         .then(response => {
             if (!response.ok) {
                 throw new Error('Session not found');
@@ -101,26 +107,37 @@ function openEditSessionModal(sessionId) {
             return response.json();
         })
         .then(session => {
-            // Populate form fields
-            document.getElementById('sessionSubject').value = session.subject || '';
-            document.getElementById('sessionDescription').value = session.description || '';
-            document.getElementById('sessionRoomName').value = session.roomName || '';
-            document.getElementById('sessionPostalCode').value = session.postalCode || '';
-            document.getElementById('sessionGoogleMapsLink').value = session.googleMapsLink || '';
+            console.log('Session data loaded:', session);
 
-            // Handle startDateTime splitting
+            // Populate basic fields
+            document.getElementById('sessionUpdateSubject').value = session.subject || '';
+            document.getElementById('sessionUpdateDescription').value = session.description || '';
+            document.getElementById('sessionUpdateRoomName').value = session.roomName || '';
+            document.getElementById('sessionUpdatePostalCode').value = session.postalCode || '';
+            document.getElementById('sessionUpdateGoogleMapsLink').value = session.googleMapsLink || '';
+            document.getElementById('sessionUpdateAvailableSpots').value = session.availableSpots || '';
+            document.getElementById('sessionUpdateCreditsRequired').value = session.creditsRequired || '';
+            document.getElementById('sessionUpdateDurationMinutes').value = session.durationMinutes || '';
+
+            // Handle checkbox
+            document.getElementById('sessionUpdateBringYourMattress').checked = session.bringYourMattress || false;
+
             if (session.startDateTime) {
-                const startDate = new Date(session.startDateTime);
-                document.getElementById('sessionDate').value = startDate.toISOString().split('T')[0];
-                document.getElementById('sessionTime').value = startDate.toTimeString().split(' ')[0].substring(0,5);
+                const datetimeLocal = session.startDateTime.slice(0, 16);
+                document.getElementById('sessionUpdateStartDateTime').value = datetimeLocal;
             }
 
-            document.getElementById('sessionDurationMinutes').value = session.durationMinutes || '';
-            document.getElementById('sessionAvailableSpots').value = session.availableSpots || '';
-            document.getElementById('sessionCreditsRequired').value = session.creditsRequired || '';
-            document.getElementById('sessionBringYourMattress').checked = session.bringYourMattress || false;
+            // Update participants count
+            const participantsCount = session.registeredParticipants || 0;
+            document.getElementById('sessionUpdateParticipantsCount').textContent =
+                `${participantsCount} participant(s) inscrit(s)`;
 
-            const modal = new mdb.Modal(document.getElementById('sessionModal'));
+            // Configure cancel button
+            const cancelBtn = document.getElementById('sessionUpdateCancelBtn');
+            cancelBtn.onclick = () => confirmCancelSessionFromUpdateModal(sessionId);
+
+            // Show modal
+            const modal = new mdb.Modal(document.getElementById('sessionUpdateModal'));
             modal.show();
         })
         .catch(error => {
@@ -129,28 +146,26 @@ function openEditSessionModal(sessionId) {
         });
 }
 
-// ========================================
-// SESSION ACTIONS
-// ========================================
-
-function confirmCancelSession(sessionId) {
+function confirmCancelSessionFromUpdateModal(sessionId) {
     showConfirmation(
         'Annuler la séance',
         'Êtes-vous sûr de vouloir annuler cette séance ? Cette action est irréversible et les participants seront notifiés.',
         function() {
-            submitActionWithParams('/teacher/session/cancel', {sessionId:sessionId});
+            // Close update modal first
+            const updateModal = mdb.Modal.getInstance(document.getElementById('sessionUpdateModal'));
+            updateModal.hide();
+
+            // Submit cancellation request
+            submitActionWithParams('/teacher/sessions/cancel', {sessionId: sessionId});
         }
     );
 }
 
 // ========================================
-// FORM VALIDATION
+// FORM VALIDATION - UNIFIED
 // ========================================
 
-function validateSessionForm() {
-    const form = document.getElementById('sessionForm');
-    const formData = new FormData(form);
-
+function validateSessionCommonFields(formData) {
     // Subject validation (required)
     const subject = formData.get('subject');
     if (!subject) {
@@ -183,7 +198,6 @@ function validateSessionForm() {
     // Google Maps link validation (optional but if present must be valid)
     const googleMapsLink = formData.get('googleMapsLink');
     if (googleMapsLink && googleMapsLink.trim() !== '') {
-        // Flexible regex accepting all Google Maps formats
         const googleMapsRegex = /^https:\/\/(maps\.google\.(com|fr)|maps\.app\.goo\.gl)\/.*/;
         if (!googleMapsRegex.test(googleMapsLink)) {
             toastSystem.error('Erreur de validation', 'Le lien doit être un lien Google Maps valide');
@@ -191,16 +205,14 @@ function validateSessionForm() {
         }
     }
 
-    // Date and time validation (combined as startDateTime)
-    const sessionDate = formData.get('date');
-    const sessionTime = formData.get('time');
-
-    if (!sessionDate || !sessionTime) {
+    // Start date time validation (unified for both forms)
+    const startDateTime = formData.get('startDateTime');
+    if (!startDateTime) {
         toastSystem.error('Erreur de validation', 'La date et l\'heure sont obligatoires');
         return false;
     }
 
-    const sessionDateTime = new Date(sessionDate + 'T' + sessionTime);
+    const sessionDateTime = new Date(startDateTime);
     const now = new Date();
 
     if (sessionDateTime <= now) {
@@ -230,4 +242,16 @@ function validateSessionForm() {
     }
 
     return true;
+}
+
+function validateSessionForm() {
+    const form = document.getElementById('sessionForm');
+    const formData = new FormData(form);
+    return validateSessionCommonFields(formData);
+}
+
+function validateSessionUpdateForm() {
+    const form = document.getElementById('sessionUpdateForm');
+    const formData = new FormData(form);
+    return validateSessionCommonFields(formData);
 }

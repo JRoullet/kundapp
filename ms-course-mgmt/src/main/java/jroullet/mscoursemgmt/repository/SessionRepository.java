@@ -21,13 +21,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     List<Session> findSessionByTeacherId(Long teacherId);
 
     // Time conflicting sessions for teacher
-//    @SQL()
     List<Session> findByTeacherIdAndStartDateTimeBetween(Long teacherId, LocalDateTime sessionStart, LocalDateTime sessionEnd);
-
-//    // Upcoming sessions
-//    @Query("SELECT s FROM Session s WHERE s.teacherId = :teacherId AND s.startDateTime > CURRENT_TIMESTAMP")
-//    List<Session> findByTeacherIdAndStartDateTimeAfterOrderByStartDateTimeAsc(
-//            Long teacherId, LocalDateTime now);
 
     /** Upcoming sessions */
     // Next sessions are first
@@ -50,4 +44,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     @Query("SELECT s FROM Session s WHERE s.status = :status AND s.startDateTime > :now ORDER BY s.startDateTime ASC")
     List<Session> findByStatusAndStartDateTimeAfterOrderByStartDateTimeAsc(@Param("status") SessionStatus status,
                                                                            @Param("now") LocalDateTime now);
+
+    @Query("SELECT s FROM Session s ORDER BY s.startDateTime DESC")
+    List<Session> findAllOrderByStartDateTimeDesc();
 }

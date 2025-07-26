@@ -83,6 +83,22 @@ function openEditTeacherModal(teacherId) {
             document.getElementById('teacherUpdateZipCode').value = address.zipCode || '';
             document.getElementById('teacherUpdateCountry').value = address.country || '';
 
+            // Configure action buttons
+            const deleteBtn = document.getElementById('teacherUpdateDeleteBtn');
+            const toggleStatusBtn = document.getElementById('teacherUpdateToggleStatusBtn');
+
+            deleteBtn.onclick = () => confirmDeleteTeacherFromModal(teacherId);
+
+            if (teacher.status) {
+                toggleStatusBtn.textContent = 'Désactiver ce teacher';
+                toggleStatusBtn.className = 'btn btn-warning';
+                toggleStatusBtn.onclick = () => confirmDisableTeacherFromModal(teacherId);
+            } else {
+                toggleStatusBtn.textContent = 'Activer ce teacher';
+                toggleStatusBtn.className = 'btn btn-success';
+                toggleStatusBtn.onclick = () => confirmEnableTeacherFromModal(teacherId);
+            }
+
             // Show modal
             const modal = new mdb.Modal(document.getElementById('teacherUpdateModal'));
             modal.show();
@@ -134,6 +150,24 @@ function openEditUserModal(userId) {
             document.getElementById('userUpdateCity').value = address.city || '';
             document.getElementById('userUpdateZipCode').value = address.zipCode || '';
             document.getElementById('userUpdateCountry').value = address.country || '';
+
+            // Configure action buttons
+            const creditsBtn = document.getElementById('userUpdateCreditsBtn');
+            const deleteBtn = document.getElementById('userUpdateDeleteBtn');
+            const toggleStatusBtn = document.getElementById('userUpdateToggleStatusBtn');
+
+            creditsBtn.onclick = () => openCreditsModal(userId);
+            deleteBtn.onclick = () => confirmDeleteUserFromModal(userId);
+
+            if (user.status) {
+                toggleStatusBtn.textContent = 'Désactiver ce client';
+                toggleStatusBtn.className = 'btn btn-warning';
+                toggleStatusBtn.onclick = () => confirmDisableUserFromModal(userId);
+            } else {
+                toggleStatusBtn.textContent = 'Activer ce client';
+                toggleStatusBtn.className = 'btn btn-success';
+                toggleStatusBtn.onclick = () => confirmEnableUserFromModal(userId);
+            }
 
             // Show modal
             const modal = new mdb.Modal(document.getElementById('userUpdateModal'));
@@ -214,11 +248,8 @@ function showParticipants(sessionId) {
 }
 
 function openEditSessionModal(sessionId) {
-    // Configure form
-    document.getElementById('sessionEditForm').action = '/admin/sessions/' + sessionId + '/update';
-    document.getElementById('sessionEditId').value = sessionId;
-
-    fetch('/admin/sessions/' + sessionId)
+    // Récupérer les données de la session via ton endpoint existant
+    fetch('/admin/sessions/' + sessionId + '/details')
         .then(response => {
             if (!response.ok) {
                 throw new Error('Session not found');
@@ -226,7 +257,13 @@ function openEditSessionModal(sessionId) {
             return response.json();
         })
         .then(session => {
-            // Remplir les champs de base
+            // Configure form seulement si la session est modifiable
+            if (session.status === 'SCHEDULED') {
+                document.getElementById('sessionEditForm').action = '/admin/sessions/' + sessionId + '/update';
+                document.getElementById('sessionEditId').value = sessionId;
+            }
+
+            // Remplir les champs (pré-rempli dans tous les cas)
             document.getElementById('sessionEditSubject').value = session.subject || '';
             document.getElementById('sessionEditDescription').value = session.description || '';
             document.getElementById('sessionEditRoomName').value = session.roomName || '';
@@ -241,9 +278,7 @@ function openEditSessionModal(sessionId) {
 
             // Date et heure (conversion de LocalDateTime)
             if (session.startDateTime) {
-                const startDate = new Date(session.startDateTime);
-                document.getElementById('sessionEditDate').value = startDate.toISOString().split('T')[0];
-                document.getElementById('sessionEditTime').value = startDate.toTimeString().slice(0, 5);
+                document.getElementById('sessionEditStartDateTime').value = session.startDateTime.slice(0, 16);
             }
 
             // Participants info
@@ -256,13 +291,34 @@ function openEditSessionModal(sessionId) {
             viewParticipantsBtn.onclick = () => showParticipants(sessionId);
             viewParticipantsBtn.disabled = participantsCount === 0;
 
-            // Bouton annuler session
+            // Gestion des boutons selon le statut
+            const saveBtn = document.querySelector('#sessionEditModal .btn-primary');
             const cancelBtn = document.getElementById('sessionEditCancelBtn');
+            const formElements = document.querySelectorAll('#sessionEditForm input, #sessionEditForm select, #sessionEditForm textarea');
+
             if (session.status === 'SCHEDULED') {
-                cancelBtn.style.display = 'block';
+                // Session modifiable
+                saveBtn.style.display = 'inline-block';
+                saveBtn.disabled = false;
+                cancelBtn.style.display = 'inline-block';
                 cancelBtn.onclick = () => confirmCancelSessionFromModal(sessionId);
+
+                // Activer tous les champs
+                formElements.forEach(el => el.disabled = false);
+
+                // Changer le titre de la modale
+                document.querySelector('#sessionEditModal .modal-title').textContent = 'Modifier la session';
             } else {
+                // Session non modifiable (CANCELLED ou COMPLETED)
+                saveBtn.style.display = 'none';
                 cancelBtn.style.display = 'none';
+
+                // Désactiver tous les champs (lecture seule)
+                formElements.forEach(el => el.disabled = true);
+
+                // Changer le titre de la modale
+                const statusText = session.status === 'CANCELLED' ? 'annulée' : 'terminée';
+                document.querySelector('#sessionEditModal .modal-title').textContent = `Consultation session ${statusText}`;
             }
 
             // Show modal
@@ -285,7 +341,7 @@ function confirmCancelSessionFromModal(sessionId) {
             editModal.hide();
 
             // Puis envoyer la requête d'annulation
-            submitAction('/admin/sessions/' + sessionId + '/cancel');
+            submitActionWithParams('/admin/sessions/cancel', {sessionId: sessionId});
         }
     );
 }
@@ -403,66 +459,79 @@ function clearGlobalSearch() {
     filterCurrentTab();
 }
 
+
 // ========================================
-// CONFIRMATION ACTIONS
+// CONFIRMATION ACTIONS FROM MODALS
 // ========================================
 
-function confirmDisableTeacher(teacherId) {
-    showConfirmation(
-        'Désactiver le Teacher',
-        'Êtes-vous sûr de vouloir désactiver ce teacher ?',
-        function() {
-            submitAction('/admin/teachers/' + teacherId + '/disable');
-        }
-    );
-}
-
-function confirmEnableTeacher(teacherId) {
-    showConfirmation(
-        'Activer le Teacher',
-        'Êtes-vous sûr de vouloir activer ce teacher ?',
-        function() {
-            submitAction('/admin/teachers/' + teacherId + '/enable');
-        }
-    );
-}
-
-function confirmDeleteTeacher(teacherId) {
+function confirmDeleteTeacherFromModal(teacherId) {
     showConfirmation(
         'Supprimer le Teacher',
         'Êtes-vous sûr de vouloir supprimer définitivement ce teacher ?',
         function() {
+            const modal = mdb.Modal.getInstance(document.getElementById('teacherUpdateModal'));
+            modal.hide();
             submitAction('/admin/teachers/' + teacherId + '/delete');
         }
     );
 }
 
-function confirmDisableUser(userId) {
+function confirmDisableTeacherFromModal(teacherId) {
+    showConfirmation(
+        'Désactiver le Teacher',
+        'Êtes-vous sûr de vouloir désactiver ce teacher ?',
+        function() {
+            const modal = mdb.Modal.getInstance(document.getElementById('teacherUpdateModal'));
+            modal.hide();
+            submitAction('/admin/teachers/' + teacherId + '/disable');
+        }
+    );
+}
+
+function confirmEnableTeacherFromModal(teacherId) {
+    showConfirmation(
+        'Activer le Teacher',
+        'Êtes-vous sûr de vouloir activer ce teacher ?',
+        function() {
+            const modal = mdb.Modal.getInstance(document.getElementById('teacherUpdateModal'));
+            modal.hide();
+            submitAction('/admin/teachers/' + teacherId + '/enable');
+        }
+    );
+}
+
+function confirmDeleteUserFromModal(userId) {
+    showConfirmation(
+        'Supprimer le Client',
+        'Êtes-vous sûr de vouloir supprimer définitivement ce client ?',
+        function() {
+            const modal = mdb.Modal.getInstance(document.getElementById('userUpdateModal'));
+            modal.hide();
+            submitAction('/admin/users/' + userId + '/delete');
+        }
+    );
+}
+
+function confirmDisableUserFromModal(userId) {
     showConfirmation(
         'Désactiver le Client',
         'Êtes-vous sûr de vouloir désactiver ce client ?',
         function() {
+            const modal = mdb.Modal.getInstance(document.getElementById('userUpdateModal'));
+            modal.hide();
             submitAction('/admin/users/' + userId + '/disable');
         }
     );
 }
 
-function confirmEnableUser(userId) {
+function confirmEnableUserFromModal(userId) {
     showConfirmation(
         'Activer le Client',
         'Êtes-vous sûr de vouloir activer ce client ?',
         function() {
+            const modal = mdb.Modal.getInstance(document.getElementById('userUpdateModal'));
+            modal.hide();
             submitAction('/admin/users/' + userId + '/enable');
-        }
-    );
-}
-
-function confirmDeleteUser(userId) {
-    showConfirmation(
-        'Supprimer le Client',
-        'Êtes-vous sûr de vouloir supprimer définitivement ce client ?',
-        function() {
-            submitAction('/admin/users/' + userId + '/delete');
         }
     );
 }

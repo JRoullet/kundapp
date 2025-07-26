@@ -74,22 +74,4 @@ public class AuthenticationRegistrationController {
         }
     }
 
-    // TEST POSTMAN WITH JSON
-    @PostMapping(value = "/signup", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public ResponseEntity<?> processSignUpJson(@RequestBody RegisterRequestDTO form, HttpServletRequest request) {
-        logger.info("Content-Type: {}", request.getContentType());
-        logger.info("Raw form object: {}", form);
-        logger.info("Form email: {}", form.getEmail());
-        logger.info("Form password: {}", form.getPassword());
-        logger.info("Processing JSON signup for email: {}", form.getEmail());
-        try {
-            userService.registration(form);
-            return ResponseEntity.ok().body(Map.of("message", "Registration successful"));
-        } catch (RuntimeException e) {
-            logger.error("Registration failed: ", e);
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
 }

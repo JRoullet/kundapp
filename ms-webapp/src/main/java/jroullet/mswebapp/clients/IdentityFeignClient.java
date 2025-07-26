@@ -17,15 +17,15 @@ import java.util.List;
 @FeignClient(name = "ms-identity", path = "/api")
 public interface IdentityFeignClient {
 
-// TEACHER SECTION
     /**
-     * Create a new teacher
-     */
-    @PostMapping("/admin/teachers")
-    TeacherDTO registerTeacher(@RequestBody TeacherRegistrationDTO dto);
+     *     TEACHER SECTION
+      */
 
     @GetMapping("/teachers/{id}")
     TeacherDTO getTeacherById(@PathVariable Long id);
+
+    @PostMapping("/admin/teachers")
+    TeacherDTO registerTeacher(@RequestBody TeacherRegistrationDTO dto);
 
     @PostMapping("/admin/teachers/{id}/update")
     TeacherDTO updateTeacher(@PathVariable Long id, @RequestBody TeacherUpdateDTO teacherUpdateDTO);
@@ -39,7 +39,10 @@ public interface IdentityFeignClient {
     @DeleteMapping("/admin/teachers/{id}/delete")
     void deleteTeacher(@PathVariable("id") Long id);
 
-// USER SECTION
+    /**
+     *     USER SECTION
+      */
+
     @GetMapping("/admin/users/{id}")
     UserDTO getUserById(@PathVariable("id") Long id);
 
@@ -61,12 +64,17 @@ public interface IdentityFeignClient {
     @PostMapping("/admin/users/{id}/credits/add")
     void addUserCredits(@PathVariable("id") Long id, @RequestParam Integer credits);
 
-//SESSION USERS SECTION
+    /**
+     *     SESSION USERS SECTION
+     */
+
     @PostMapping("/admin/users/list")
     List<UserParticipantDTO> getUsersByIds(@RequestBody List<Long> userIds);
 
 
-    // AUTHENTICATION SECTION
+    /**
+     *     AUTHENTICATION SECTION
+      */
 
     // Authentication request
     @PostMapping("/authenticate")
@@ -80,10 +88,8 @@ public interface IdentityFeignClient {
     @GetMapping("/user")
     UserDTO findUserDtoByEmail(@RequestParam String email);
 
-    // Returns All Users
+    // Returns list of all Users
     @GetMapping("/users")
     List<UserDTO> getAllUsers();
-
-
 
 }

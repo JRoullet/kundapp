@@ -1,19 +1,19 @@
-package jroullet.mscoursemgmt.dto;
+package jroullet.mswebapp.dto.session;
 
 import jakarta.validation.constraints.*;
-import jroullet.mscoursemgmt.model.Subject;
-import lombok.*;
+import jroullet.mswebapp.model.Subject;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SessionUpdateDTO {
-
     @NotNull(message = "Le type de séance est obligatoire")
     private Subject subject;
 
@@ -47,4 +47,5 @@ public class SessionUpdateDTO {
 
     private Integer creditsRequired;
     private Boolean bringYourMattress;
+
 }

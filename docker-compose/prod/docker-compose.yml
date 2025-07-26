@@ -3,6 +3,9 @@ services:
   msconfigserver:
     image: jroullet/kundapp-ms-configserver:latest
     container_name: configserver-ms
+    networks:
+      - kundapp-internal
+      - kundapp-public
     ports:
       - "8888:8888"
     healthcheck:
@@ -22,6 +25,9 @@ services:
   msdiscovery:
     image: jroullet/kundapp-ms-discovery:latest
     container_name: discovery-ms
+    networks:
+      - kundapp-internal
+      - kundapp-public
     ports:
       - "8761:8761"
     depends_on:
@@ -39,6 +45,9 @@ services:
 
   msidentitydb:
     container_name: identitydb
+    networks:
+      - kundapp-public
+      - kundapp-internal
     ports:
       - "3308:3306"
     environment:
@@ -51,6 +60,9 @@ services:
 
   mscoursemgmtdb:
     container_name: coursemgmtdb
+    networks:
+      - kundapp-public
+      - kundapp-internal
     ports:
       - "3309:3306"
     environment:
@@ -78,6 +90,9 @@ services:
     container_name: webapp-ms
     ports:
       - "8080:8080"
+    networks:
+      - kundapp-public
+      - kundapp-internal
     depends_on:
       msidentitydb:
         condition: service_healthy
@@ -90,8 +105,6 @@ services:
   msidentity:
     image: jroullet/kundapp-ms-identity:latest
     container_name: identity-ms
-    ports:
-      - "8090:8090"
     depends_on:
       msidentitydb:
         condition: service_healthy
@@ -104,8 +117,6 @@ services:
   mscoursemgmt:
     image: jroullet/kundapp-ms-course-mgmt:latest
     container_name: course-mgmt-ms
-    ports:
-      - "9000:9000"
     depends_on:
       mscoursemgmtdb:
         condition: service_healthy
@@ -132,7 +143,7 @@ services:
       - ./docker/mysql-course-init/02-data.sql:/tmp/insert-course-data.sql
     extends:
       file: common-config.yml
-      service: network-deploy-service
+      service: microservice-base-config
     command: >
       sh -c "
         echo 'Waiting for services...' &&
@@ -184,5 +195,8 @@ secrets:
     file: ./git_password.txt
 
 networks:
-  kundapp:
-    driver: "bridge"
+  kundapp-public:
+    driver: bridge
+  kundapp-internal:
+    driver: bridge
+    internal: true

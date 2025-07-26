@@ -15,6 +15,9 @@ public class UserService {
     private final IdentityFeignClient identityFeignClient;
     private final static Logger logger = LoggerFactory.getLogger(UserService.class);
 
+    /**
+     * Process user registration
+     */
     public void registration(RegisterRequestDTO form) {
         logger.info("Processing registration for email: {}", form.getEmail());
         try {

@@ -98,6 +98,12 @@ footer {
     border-color: var(--primary);
 }
 
+.btn-outline-secondary.btn-sm {
+    opacity: 0.7;
+    font-size: 0.8em;
+    padding: 4px 8px;
+}
+
 .action-buttons .btn {
     margin-right: 5px;
 }
