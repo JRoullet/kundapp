@@ -80,7 +80,10 @@
                                 <td th:text="${#temporals.format(sessionItem.startDateTime, 'dd/MM/yyyy')}">01/01/2025</td>
                                 <td th:text="${#temporals.format(sessionItem.startDateTime, 'HH:mm')}">14:00</td>
                                 <td th:text="${sessionItem.subject}">YOGA</td>
-                                <td th:text="${sessionItem.roomName}">Studio Yoga</td>
+                                <td>
+                                    <span th:if="${sessionItem.isOnline}">En ligne</span>
+                                    <span th:unless="${sessionItem.isOnline}" th:text="${sessionItem.roomName}">Studio Yoga</span>
+                                </td>
                                 <td th:text="${sessionItem.registeredParticipants != null ? sessionItem.registeredParticipants : 0}">0</td>
                                 <td th:text="${sessionItem.availableSpots - (sessionItem.registeredParticipants != null ? sessionItem.registeredParticipants : 0)}">10</td>
                                 <td class="text-center">
@@ -141,31 +144,62 @@
                     <div class="mb-3">
                         <label for="sessionDescription" class="form-label">Description *</label>
                         <textarea class="form-control" id="sessionDescription" name="description"
-                                  rows="3" placeholder="Décrivez cette séance en détail..." required></textarea>
+                                  rows="3" placeholder="Description de la séance" required></textarea>
+                    </div>
+                    <!-- Type de session -->
+                    <hr>
+                    <h6 class="mb-3">Type de session</h6>
+                    <div class="mb-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sessionType" id="sessionTypeIrl" value="false" checked>
+                            <label class="form-check-label" for="sessionTypeIrl">
+                                <i class="fas fa-map-marker-alt me-1"></i>En présentiel
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sessionType" id="sessionTypeOnline" value="true">
+                            <label class="form-check-label" for="sessionTypeOnline">
+                                <i class="fas fa-video me-1"></i>En ligne
+                            </label>
+                        </div>
+                        <input type="hidden" id="sessionIsOnline" name="isOnline" value="false">
                     </div>
 
                     <!-- Informations de lieu -->
                     <hr>
-                    <h6 class="mb-3">Lieu de la séance</h6>
-                    <div class="row">
-                        <div class="col-md-8 mb-3">
-                            <label for="sessionRoomName" class="form-label">Nom de la salle/lieu *</label>
-                            <input type="text" class="form-control" id="sessionRoomName" name="roomName" required
-                                   placeholder="Ex: Studio Yoga Paris, Salle A, Parc des Buttes Chaumont...">
+                    <h6 class="mb-3" id="locationSectionTitle">Lieu de la séance</h6>
+
+                    <!-- Champs pour session IRL -->
+                    <div id="irlFields">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="sessionRoomName" class="form-label">Nom de la salle/lieu *</label>
+                                <input type="text" class="form-control" id="sessionRoomName" name="roomName"
+                                       placeholder="Ex: Studio Yoga Paris, Salle A, Parc des Buttes Chaumont...">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="sessionPostalCode" class="form-label">Code postal *</label>
+                                <input type="text" class="form-control" id="sessionPostalCode" name="postalCode"
+                                       pattern="^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$"
+                                       placeholder="75001" maxlength="5">
+                            </div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="sessionPostalCode" class="form-label">Code postal *</label>
-                            <input type="text" class="form-control" id="sessionPostalCode" name="postalCode"
-                                   pattern="^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$" required
-                                   placeholder="75001" maxlength="5">
+                        <div class="mb-3">
+                            <label for="sessionGoogleMapsLink" class="form-label">Lien Google Maps</label>
+                            <input type="url" class="form-control" id="sessionGoogleMapsLink" name="googleMapsLink"
+                                   placeholder="https://maps.app.goo.gl/...">
+                            <div class="form-text">Optionnel - Ajoutez un lien Google Maps pour faciliter l'accès</div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="sessionGoogleMapsLink" class="form-label">Lien Google Maps</label>
-                        <input type="url" class="form-control" id="sessionGoogleMapsLink" name="googleMapsLink"
-                               placeholder="https://maps.app.goo.gl/...">
-                        <div class="form-text">Optionnel - Ajoutez un lien Google Maps pour faciliter l'accès</div>
+                    <!-- Champs pour session en ligne -->
+                    <div id="onlineFields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="sessionZoomLink" class="form-label">Lien Zoom *</label>
+                            <input type="url" class="form-control" id="sessionZoomLink" name="zoomLink"
+                                   placeholder="https://zoom.us/j/123456789">
+                            <div class="form-text">Lien de la réunion Zoom pour la session en ligne</div>
+                        </div>
                     </div>
 
                     <!-- Date et heure - UNIFIED with datetime-local -->
@@ -213,19 +247,20 @@
                     </div>
 
                     <!-- Matériel -->
-                    <hr>
-                    <h6 class="mb-3">Matériel</h6>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="sessionBringYourMattress"
-                                   name="bringYourMattress" value="true">
-                            <label class="form-check-label" for="sessionBringYourMattress">
-                                <strong>Les participants doivent apporter leur tapis</strong>
-                            </label>
-                            <div class="form-text">Cochez si les participants doivent venir avec leur propre équipement</div>
+                    <div id="materialCompleteSection">
+                        <hr>
+                        <h6 class="mb-3">Matériel</h6>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sessionBringYourMattress"
+                                       name="bringYourMattress" value="true">
+                                <label class="form-check-label" for="sessionBringYourMattress">
+                                    <strong>Les participants doivent apporter leur tapis</strong>
+                                </label>
+                                <div class="form-text">Cochez si les participants doivent venir avec leur propre équipement</div>
+                            </div>
+                            <input type="hidden" name="bringYourMattress" value="false">
                         </div>
-                        <!-- Hidden input pour gérer le cas où la checkbox n'est pas cochée -->
-                        <input type="hidden" name="bringYourMattress" value="false">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -302,7 +337,7 @@
                             <input type="datetime-local" class="form-control" id="sessionUpdateStartDateTime" name="startDateTime" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="sessionUpdateDurationMinutes" class="form-label">Durée (minutes) *</label>
+                            <label for="sessionUpdateDurationMinutes" class="form-label">Durée *</label>
                             <select class="form-select" id="sessionUpdateDurationMinutes" name="durationMinutes" required>
                                 <option value="">Choisir...</option>
                                 <option value="15">15 min</option>

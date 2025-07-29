@@ -152,11 +152,9 @@ function openEditUserModal(userId) {
             document.getElementById('userUpdateCountry').value = address.country || '';
 
             // Configure action buttons
-            const creditsBtn = document.getElementById('userUpdateCreditsBtn');
             const deleteBtn = document.getElementById('userUpdateDeleteBtn');
             const toggleStatusBtn = document.getElementById('userUpdateToggleStatusBtn');
 
-            creditsBtn.onclick = () => openCreditsModal(userId);
             deleteBtn.onclick = () => confirmDeleteUserFromModal(userId);
 
             if (user.status) {

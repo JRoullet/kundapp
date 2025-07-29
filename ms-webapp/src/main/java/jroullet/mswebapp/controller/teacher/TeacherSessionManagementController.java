@@ -4,8 +4,10 @@ import feign.FeignException;
 import jakarta.validation.Valid;
 import jroullet.mswebapp.auth.SessionService;
 import jroullet.mswebapp.clients.CourseManagementFeignClient;
-import jroullet.mswebapp.dto.session.SessionCreationDTO;
-import jroullet.mswebapp.dto.session.SessionDTO;
+import jroullet.mswebapp.dto.session.create.SessionCreationDTO;
+import jroullet.mswebapp.dto.session.create.SessionCreationResponseDTO;
+import jroullet.mswebapp.dto.session.create.SessionCreationWithTeacherDTO;
+import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
 import jroullet.mswebapp.dto.session.SessionUpdateDTO;
 import jroullet.mswebapp.exception.BusinessException;
 import jroullet.mswebapp.model.Subject;
@@ -24,7 +26,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.format.DateTimeFormatter;
 
 @Controller
-@RequestMapping("/teacher")
+@RequestMapping("/teacher/sessions")
 @RequiredArgsConstructor
 public class TeacherSessionManagementController {
     private final SessionManagementService sessionManagementService;
@@ -32,12 +34,12 @@ public class TeacherSessionManagementController {
     private final CourseManagementFeignClient courseFeignClient;
     private final Logger logger = LoggerFactory.getLogger(TeacherSessionManagementController.class);
 
-    @GetMapping("/sessions/{sessionId}/details")
+    @GetMapping("/{sessionId}/details")
     @ResponseBody
-    public ResponseEntity<SessionDTO> getSessionDetails(@PathVariable Long sessionId) {
+    public ResponseEntity<SessionWithParticipantsDTO> getSessionDetails(@PathVariable Long sessionId) {
         try {
             Long teacherId = sessionService.getCurrentUser().getId();
-            SessionDTO session = courseFeignClient.getSessionById(sessionId);
+            SessionWithParticipantsDTO session = courseFeignClient.getSessionById(sessionId);
 
             //Teacher can only access their own sessions
             if (!session.getTeacherId().equals(teacherId)) {
@@ -51,31 +53,30 @@ public class TeacherSessionManagementController {
         }
     }
 
-    @GetMapping("/sessions/new")
+    @GetMapping("/new")
     public ModelAndView showCreateSessionForm() {
          return new ModelAndView("teacher/create-session")
-                 .addObject("sessionCreationDTO", new SessionCreationDTO())
+                 .addObject("sessionCreationDTO", new SessionCreationWithTeacherDTO())
                  .addObject("subjects", Subject.values());
 
     }
 
-    @PostMapping("/sessions/create")
+    @PostMapping("/create")
     public ModelAndView createSession(@ModelAttribute @Valid SessionCreationDTO sessionCreationDTO,
                                       BindingResult bindingResult,
                                       RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            return new ModelAndView("teacher/create-session")
+            return new ModelAndView("home-teacher")
                     .addObject("sessionCreationDTO", sessionCreationDTO)
                     .addObject("subjects", Subject.values());
         }
 
         try{
             // Gets actual user Id
-            Long teacherId = sessionService.getCurrentUser().getId();
-            SessionDTO createdSession = sessionManagementService.createSessionForCurrentTeacher(teacherId, sessionCreationDTO);
+            SessionCreationResponseDTO createdSession = sessionManagementService.createSessionForCurrentTeacher(sessionCreationDTO);
             redirectAttributes.addFlashAttribute("success",
-                    "Session créée avec succès : " + createdSession.getSubject() + " le " +
-                            createdSession.getStartDateTime().format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm")));
+                    "Session créée avec succès : " + createdSession.getSessionId() + " le " +
+                            createdSession.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm")));
         } catch (FeignException.Conflict e) {
             redirectAttributes.addFlashAttribute("error",
                     "Vous avez déjà une session programmée à ces horaires");
@@ -91,7 +92,7 @@ public class TeacherSessionManagementController {
         return new ModelAndView("redirect:/teacher");
     }
 
-    @PostMapping("/sessions/cancel")
+    @PostMapping("/cancel")
     public ModelAndView cancelSession(@RequestParam Long sessionId, RedirectAttributes redirectAttributes) {
         try {
             sessionManagementService.cancelSessionForCurrentTeacher(sessionId);
@@ -102,7 +103,7 @@ public class TeacherSessionManagementController {
         return new ModelAndView("redirect:/teacher");
     }
 
-    @PostMapping("/sessions/{sessionId}/update")
+    @PostMapping("/{sessionId}/update")
     public ModelAndView updateSession(@PathVariable Long sessionId,
                                       @ModelAttribute @Valid SessionUpdateDTO sessionUpdateDTO,
                                       BindingResult result,

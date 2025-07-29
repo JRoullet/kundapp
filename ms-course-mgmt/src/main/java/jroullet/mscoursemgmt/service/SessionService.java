@@ -1,30 +1,28 @@
 package jroullet.mscoursemgmt.service;
 
-import jakarta.validation.Valid;
-import jroullet.mscoursemgmt.dto.SessionCancelDTO;
-import jroullet.mscoursemgmt.dto.SessionCreationDTO;
-import jroullet.mscoursemgmt.dto.SessionDTO;
-import jroullet.mscoursemgmt.dto.SessionUpdateDTO;
+import jroullet.mscoursemgmt.dto.*;
 
 import java.util.List;
 
 public interface SessionService {
 
     //Common methods
-    SessionDTO getSessionById(Long sessionId);
+    SessionWithParticipantsDTO getSessionById(Long sessionId);
 
      //Teacher methods
-     SessionDTO createSession(Long teacherId, SessionCreationDTO dto);
-    List<SessionDTO> getUpcomingSessionsByTeacher(Long teacherId);
-    List<SessionDTO> getHistorySessionsByTeacher(Long teacherId);
-    void cancelSession(SessionCancelDTO dto);
-    SessionDTO updateSessionByTeacher(Long sessionId, Long teacherId, SessionUpdateDTO sessionUpdateDTO);
+    SessionCreationResponseDTO createSession(SessionCreationWithTeacherDTO dto);
+    List<SessionWithParticipantsDTO> getUpcomingSessionsByTeacher(Long teacherId);
+    List<SessionWithParticipantsDTO> getHistorySessionsByTeacher(Long teacherId);
+    void cancelSessionByTeacher(SessionCancelDTO dto);
+    SessionWithParticipantsDTO updateSessionByTeacher(Long sessionId, Long teacherId, SessionUpdateDTO sessionUpdateDTO);
 
     //Admin methods
-    SessionDTO updateSessionByAdmin(Long id, SessionUpdateDTO dto);
+    SessionWithParticipantsDTO updateSessionByAdmin(Long id, SessionUpdateDTO dto);
     void cancelSessionByAdmin(Long sessionId);
-    List<SessionDTO> getAllSessionsForAdmin();
+    List<SessionWithParticipantsDTO> getAllSessionsForAdmin();
 
-
-
+    //Client methods
+    List<SessionNoParticipantsDTO> getAvailableSessionsForClient();
+    List<SessionNoParticipantsDTO> getUpcomingSessionsForClient(Long participantId);
+    List<SessionNoParticipantsDTO> getPastSessionsForClient(Long participantId);
 }

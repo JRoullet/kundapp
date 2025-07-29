@@ -1,8 +1,8 @@
 package jroullet.mscoursemgmt.service.utils;
 
 import jakarta.persistence.EntityNotFoundException;
-import jroullet.mscoursemgmt.dto.SessionCreationDTO;
-import jroullet.mscoursemgmt.dto.SessionDTO;
+import jroullet.mscoursemgmt.dto.SessionCreationWithTeacherDTO;
+import jroullet.mscoursemgmt.dto.SessionWithParticipantsDTO;
 import jroullet.mscoursemgmt.dto.SessionUpdateDTO;
 import jroullet.mscoursemgmt.exception.BusinessException;
 import jroullet.mscoursemgmt.exception.SessionOverlappingTimeException;
@@ -46,7 +46,7 @@ public class SessionJobManagement {
     /**
      * Session Creation
      */
-    public void validateSessionCreation(SessionCreationDTO dto, Long teacherId) {
+    public void validateSessionCreation(SessionCreationWithTeacherDTO dto) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime sessionStart = dto.getStartDateTime();
         LocalDateTime sessionEnd = sessionStart.plusMinutes(dto.getDurationMinutes());
@@ -57,7 +57,7 @@ public class SessionJobManagement {
         }
         //Verify session is not overlapping another session
         List<Session> conflictingSessions = sessionRepository
-                .findByTeacherIdAndStartDateTimeBetween(teacherId, sessionStart, sessionEnd);
+                .findByTeacherIdAndStartDateTimeBetween(dto.getTeacherId(), sessionStart, sessionEnd);
 
         if (!conflictingSessions.isEmpty()) {
             throw new SessionOverlappingTimeException("Vous avez déjà une session programmée à ces horaires");
@@ -68,10 +68,9 @@ public class SessionJobManagement {
      * Session Update Methods
      */
 
-    public
-    SessionDTO updateSessionCommon(SessionDTO sessionDTO, SessionUpdateDTO dto) {
+    public SessionWithParticipantsDTO updateSessionCommon(SessionWithParticipantsDTO sessionWithParticipantsDTO, SessionUpdateDTO dto) {
 
-        if (sessionDTO.getStatus() != SessionStatus.SCHEDULED) {
+        if (sessionWithParticipantsDTO.getStatus() != SessionStatus.SCHEDULED) {
             throw new BusinessException("Only scheduled sessions can be updated");
         }
         //Verify session starts in future
@@ -80,14 +79,14 @@ public class SessionJobManagement {
         }
 
         //Verify time conflicts with other sessions
-        validateTimeConflicts(sessionDTO.getTeacherId(), dto.getStartDateTime(), dto.getDurationMinutes(), sessionDTO.getId());
+        validateTimeConflicts(sessionWithParticipantsDTO.getTeacherId(), dto.getStartDateTime(), dto.getDurationMinutes(), sessionWithParticipantsDTO.getId());
 
         //Verify spots are not reduced below registered participants
-        if (dto.getAvailableSpots() < (sessionDTO.getRegisteredParticipants() != null ? sessionDTO.getRegisteredParticipants() : 0)) {
+        if (dto.getAvailableSpots() < (sessionWithParticipantsDTO.getRegisteredParticipants() != null ? sessionWithParticipantsDTO.getRegisteredParticipants() : 0)) {
             throw new BusinessException("Cannot reduce spots below registered participants count");
         }
 
-        Session session = sessionRepository.findById(sessionDTO.getId())
+        Session session = sessionRepository.findById(sessionWithParticipantsDTO.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Session not found"));
 
         // Mapping to entity and modifying it

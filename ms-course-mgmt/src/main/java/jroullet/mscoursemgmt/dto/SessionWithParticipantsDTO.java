@@ -14,19 +14,27 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionDTO {
+public class SessionWithParticipantsDTO {
 
     private Long id;
-    private Long teacherId;
     private Subject subject;
     private SessionStatus status;
     private String statusDisplay;
     private String description;
 
-    // Room
+    // Teacher
+    private Long teacherId;
+    private String teacherFirstName;
+    private String teacherLastName;
+
+    // IRL session fields
     private String roomName;
     private String postalCode;
     private String googleMapsLink;
+
+    // Online session fields
+    private Boolean isOnline;
+    private String zoomLink;
 
     // Time
     private LocalDateTime startDateTime;
@@ -35,7 +43,7 @@ public class SessionDTO {
     // Credits
     private Integer creditsRequired;
 
-    //Mattress
+    // Mattress (only for IRL sessions)
     private Boolean bringYourMattress;
 
     // Spots
@@ -49,6 +57,7 @@ public class SessionDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Participants list is for the teacher
+    // Participants list
     private List<Long> participantIds;
+
 }

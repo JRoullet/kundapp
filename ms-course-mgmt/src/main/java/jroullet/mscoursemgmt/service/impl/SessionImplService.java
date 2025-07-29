@@ -2,10 +2,7 @@ package jroullet.mscoursemgmt.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import jroullet.mscoursemgmt.dto.SessionCancelDTO;
-import jroullet.mscoursemgmt.dto.SessionCreationDTO;
-import jroullet.mscoursemgmt.dto.SessionDTO;
-import jroullet.mscoursemgmt.dto.SessionUpdateDTO;
+import jroullet.mscoursemgmt.dto.*;
 import jroullet.mscoursemgmt.exception.BusinessException;
 import jroullet.mscoursemgmt.mapper.SessionMapper;
 import jroullet.mscoursemgmt.model.Session;
@@ -31,26 +28,49 @@ public class SessionImplService implements SessionService {
     private final SessionMapper sessionMapper;
     private final SessionJobManagement sessionJobManagement;
 
+    /**
+     * Teacher part
+     */
     @Override
-    public SessionDTO createSession(Long teacherId, SessionCreationDTO dto) {
+    public SessionWithParticipantsDTO getSessionById(Long sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new EntityNotFoundException("Session not found with ID: " + sessionId));
+        return sessionMapper.toDTO(session);
+    }
 
-        sessionJobManagement.validateSessionCreation(dto,teacherId);
+    @Override
+    public SessionCreationResponseDTO createSession(SessionCreationWithTeacherDTO dto) {
 
-        Session session = sessionMapper.toEntity(dto);
+        sessionJobManagement.validateSessionCreation(dto);
+
+        Session session = sessionMapper.toCreateEntity(dto);
 
         // Defining missing fields
-        session.setTeacherId(teacherId);
         session.setCreatedAt(LocalDateTime.now());
         session.setUpdatedAt(LocalDateTime.now());
         session.setParticipantIds(new ArrayList<>());
 
         Session savedSession = sessionRepository.save(session);
 
-        return sessionMapper.toDTO(savedSession);
+
+        return SessionCreationResponseDTO.builder()
+                .sessionId(savedSession.getId())
+                .createdAt(savedSession.getCreatedAt())
+                .build();
     }
 
     @Override
-    public List<SessionDTO> getUpcomingSessionsByTeacher(Long teacherId) {
+    public SessionWithParticipantsDTO updateSessionByTeacher(Long sessionId, Long requestingUserId, SessionUpdateDTO sessionUpdateDTO) {
+        SessionWithParticipantsDTO sessionWithParticipantsDTO = getSessionById(sessionId);
+        // Check if the session belongs to the requesting teacher
+        if(!sessionWithParticipantsDTO.getTeacherId().equals(requestingUserId)) {
+            throw new SecurityException("You can only update your own sessions");
+        }
+        return sessionJobManagement.updateSessionCommon(sessionWithParticipantsDTO,sessionUpdateDTO);
+    }
+
+    @Override
+    public List<SessionWithParticipantsDTO> getUpcomingSessionsByTeacher(Long teacherId) {
 
         // Update completed sessions before fetching all sessions
         sessionJobManagement.updateCompletedSessions();
@@ -62,7 +82,7 @@ public class SessionImplService implements SessionService {
     }
 
     @Override
-    public List<SessionDTO> getHistorySessionsByTeacher(Long teacherId) {
+    public List<SessionWithParticipantsDTO> getHistorySessionsByTeacher(Long teacherId) {
 
         // Update completed sessions before fetching all sessions
         sessionJobManagement.updateCompletedSessions();
@@ -74,10 +94,9 @@ public class SessionImplService implements SessionService {
                 .collect(toList());
     }
 
-
     @Override
     @Transactional
-    public void cancelSession(SessionCancelDTO dto) {
+    public void cancelSessionByTeacher(SessionCancelDTO dto) {
         Session session = sessionRepository.findById(dto.getSessionId())
                 .orElseThrow(() -> new EntityNotFoundException("Session not found"));
 
@@ -95,16 +114,13 @@ public class SessionImplService implements SessionService {
         sessionRepository.save(session);
     }
 
-    @Override
-    public SessionDTO getSessionById(Long sessionId) {
-        Session session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new EntityNotFoundException("Session not found with ID: " + sessionId));
-        return sessionMapper.toDTO(session);
-    }
 
 
+    /**
+     * Admin part
+     */
     @Override
-    public List<SessionDTO> getAllSessionsForAdmin() {
+    public List<SessionWithParticipantsDTO> getAllSessionsForAdmin() {
 
         // Update completed sessions before fetching all sessions
         sessionJobManagement.updateCompletedSessions();
@@ -116,9 +132,9 @@ public class SessionImplService implements SessionService {
     }
 
     @Override
-    public SessionDTO updateSessionByAdmin(Long sessionId, SessionUpdateDTO dto) {
-        SessionDTO sessionDTO = getSessionById(sessionId);
-        return sessionJobManagement.updateSessionCommon(sessionDTO,dto);
+    public SessionWithParticipantsDTO updateSessionByAdmin(Long sessionId, SessionUpdateDTO dto) {
+        SessionWithParticipantsDTO sessionWithParticipantsDTO = getSessionById(sessionId);
+        return sessionJobManagement.updateSessionCommon(sessionWithParticipantsDTO,dto);
     }
 
     @Override
@@ -135,14 +151,32 @@ public class SessionImplService implements SessionService {
         sessionRepository.save(session);
     }
 
+
+
+    /**
+     * Client part
+     */
     @Override
-    public SessionDTO updateSessionByTeacher(Long sessionId, Long requestingUserId, SessionUpdateDTO sessionUpdateDTO) {
-        SessionDTO sessionDTO = getSessionById(sessionId);
-        // Check if the session belongs to the requesting teacher
-        if(!sessionDTO.getTeacherId().equals(requestingUserId)) {
-           throw new SecurityException("You can only update your own sessions");
-        }
-        return sessionJobManagement.updateSessionCommon(sessionDTO,sessionUpdateDTO);
+    public List<SessionNoParticipantsDTO> getAvailableSessionsForClient() {
+        List<Session> sessions = sessionRepository.findByStatusOrderByStartDateTimeAsc(SessionStatus.SCHEDULED);
+        return sessions.stream()
+                .map(sessionMapper::toSessionGetClientResponseDTO)
+                .collect(toList());
     }
 
+    @Override
+    public List<SessionNoParticipantsDTO> getUpcomingSessionsForClient(Long participantId) {
+        List<Session> sessions = sessionRepository.findByParticipantIdOrderByStartDateTimeAsc(participantId, SessionStatus.SCHEDULED);
+        return sessions.stream()
+                .map(sessionMapper::toSessionGetClientResponseDTO)
+                .collect(toList());
+    }
+
+    @Override
+    public List<SessionNoParticipantsDTO> getPastSessionsForClient(Long participantId) {
+        List<Session> sessions = sessionRepository.findByParticipantIdOrderByStartDateTimeDesc(participantId, SessionStatus.COMPLETED);
+        return sessions.stream()
+                .map(sessionMapper::toSessionGetClientResponseDTO)
+                .collect(toList());
+    }
 }

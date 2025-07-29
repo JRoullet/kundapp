@@ -47,4 +47,14 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
 
     @Query("SELECT s FROM Session s ORDER BY s.startDateTime DESC")
     List<Session> findAllOrderByStartDateTimeDesc();
+
+    @Query("SELECT s FROM Session s WHERE s.status = :sessionStatus ORDER BY s.startDateTime ASC")
+    List<Session> findByStatusOrderByStartDateTimeAsc(@Param("sessionStatus") SessionStatus sessionStatus);
+
+    //TODO : CHECK IF THIS IS CORRECT
+    @Query(value = "SELECT * FROM session s INNER JOIN session_participants sp ON s.id = sp.session_id WHERE sp.participant_id = :participantId AND s.status = :sessionStatus ORDER BY s.start_date_time ASC", nativeQuery = true)
+    List<Session> findByParticipantIdOrderByStartDateTimeAsc(@Param("participantId") Long participantId, @Param("sessionStatus")SessionStatus sessionStatus);
+
+    @Query("SELECT s FROM Session s WHERE :participantId MEMBER OF s.participantIds AND s.status = :sessionStatus ORDER BY s.startDateTime DESC")
+    List<Session> findByParticipantIdOrderByStartDateTimeDesc(@Param("participantId") Long participantId, @Param("sessionStatus")SessionStatus sessionStatus);
 }

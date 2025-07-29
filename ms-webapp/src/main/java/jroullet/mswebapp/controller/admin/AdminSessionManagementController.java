@@ -2,7 +2,7 @@ package jroullet.mswebapp.controller.admin;
 
 import jakarta.validation.Valid;
 import jroullet.mswebapp.clients.CourseManagementFeignClient;
-import jroullet.mswebapp.dto.session.SessionDTO;
+import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
 import jroullet.mswebapp.dto.session.SessionUpdateDTO;
 import jroullet.mswebapp.dto.user.UserParticipantDTO;
 import jroullet.mswebapp.exception.BusinessException;
@@ -31,9 +31,9 @@ public class AdminSessionManagementController {
     //Admin get session details
     @GetMapping("/sessions/{sessionId}/details")
     @ResponseBody
-    public ResponseEntity<SessionDTO> getSessionDetails(@PathVariable Long sessionId) {
+    public ResponseEntity<SessionWithParticipantsDTO> getSessionDetails(@PathVariable Long sessionId) {
         try {
-            SessionDTO session = courseFeignClient.getSessionById(sessionId);
+            SessionWithParticipantsDTO session = courseFeignClient.getSessionById(sessionId);
             return ResponseEntity.ok(session);
         } catch (Exception e) {
             logger.error("Error fetching session details for id: {}", sessionId, e);
@@ -66,7 +66,7 @@ public class AdminSessionManagementController {
     @PostMapping("/sessions/cancel")
     public ModelAndView cancelSession(@RequestParam Long sessionId, RedirectAttributes redirectAttributes) {
         try {
-            sessionManagementService.cancelSessionForAdmin(sessionId);
+            sessionManagementService.cancelSessionByAdmin(sessionId);
             redirectAttributes.addFlashAttribute("success", "Séance annulée avec succès");
         } catch (SecurityException | BusinessException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

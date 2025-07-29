@@ -287,8 +287,7 @@ function submitAction(actionUrl) {
     document.body.removeChild(form);
 }
 
-// TODO DOUBLE METHOD TO Refactor when possible (change endpoints in admin/teacher for each pathvariable to requestparam)
-// Submit form action with CSRF and parameters (NEW function for teacher cancel)
+
 function submitActionWithParams(actionUrl, params = {}) {
     const form = document.createElement('form');
     form.method = 'POST';

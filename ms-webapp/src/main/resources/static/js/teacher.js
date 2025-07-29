@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    initializeSessionTypeHandlers();
 });
 
 // ========================================
@@ -180,28 +182,45 @@ function validateSessionCommonFields(formData) {
         return false;
     }
 
-    // Room name validation (required)
-    const roomName = formData.get('roomName');
-    if (!roomName || roomName.trim().length === 0) {
-        toastSystem.error('Erreur de validation', 'Le nom de la salle/lieu est obligatoire');
-        return false;
-    }
+    // Conditional validation around session type
+    const isOnline = formData.get('isOnline') === 'true';
 
-    // Postal code validation (required with pattern)
-    const postalCode = formData.get('postalCode');
-    const postalCodeRegex = /^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$/;
-    if (!postalCode || !postalCodeRegex.test(postalCode)) {
-        toastSystem.error('Erreur de validation', 'Le code postal doit être un code postal français valide (ex: 75001)');
-        return false;
-    }
-
-    // Google Maps link validation (optional but if present must be valid)
-    const googleMapsLink = formData.get('googleMapsLink');
-    if (googleMapsLink && googleMapsLink.trim() !== '') {
-        const googleMapsRegex = /^https:\/\/(maps\.google\.(com|fr)|maps\.app\.goo\.gl)\/.*/;
-        if (!googleMapsRegex.test(googleMapsLink)) {
-            toastSystem.error('Erreur de validation', 'Le lien doit être un lien Google Maps valide');
+    if (isOnline) {
+        // Online session validation
+        const zoomLink = formData.get('zoomLink');
+        if (!zoomLink || zoomLink.trim() === '') {
+            toastSystem.error('Erreur de validation', 'Le lien Zoom est obligatoire pour une session en ligne');
             return false;
+        }
+
+        const zoomRegex = /^https:\/\/(.*\.)?zoom\.(us|com)\/j\/\d+.*$/;
+        if (!zoomRegex.test(zoomLink)) {
+            toastSystem.error('Erreur de validation', 'Le lien doit être un lien Zoom valide');
+            return false;
+        }
+    } else {
+        // Irl session validation
+        const roomName = formData.get('roomName');
+        if (!roomName || roomName.trim().length === 0) {
+            toastSystem.error('Erreur de validation', 'Le nom de la salle/lieu est obligatoire');
+            return false;
+        }
+
+        const postalCode = formData.get('postalCode');
+        const postalCodeRegex = /^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$/;
+        if (!postalCode || !postalCodeRegex.test(postalCode)) {
+            toastSystem.error('Erreur de validation', 'Le code postal doit être un code postal français valide (ex: 75001)');
+            return false;
+        }
+
+        // Google Maps link validation (optional but if present must be valid)
+        const googleMapsLink = formData.get('googleMapsLink');
+        if (googleMapsLink && googleMapsLink.trim() !== '') {
+            const googleMapsRegex = /^https:\/\/(maps\.google\.(com|fr)|maps\.app\.goo\.gl)\/.*/;
+            if (!googleMapsRegex.test(googleMapsLink)) {
+                toastSystem.error('Erreur de validation', 'Le lien doit être un lien Google Maps valide');
+                return false;
+            }
         }
     }
 
@@ -254,4 +273,60 @@ function validateSessionUpdateForm() {
     const form = document.getElementById('sessionUpdateForm');
     const formData = new FormData(form);
     return validateSessionCommonFields(formData);
+}
+
+// ========================================
+// SESSION TYPE MANAGEMENT
+// ========================================
+
+function initializeSessionTypeHandlers() {
+    const sessionTypeRadios = document.querySelectorAll('input[name="sessionType"]');
+    const isOnlineHidden = document.getElementById('sessionIsOnline');
+
+    sessionTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const isOnline = this.value === 'true';
+            isOnlineHidden.value = isOnline;
+            toggleSessionFields(isOnline);
+        });
+    });
+}
+
+function toggleSessionFields(isOnline) {
+    const irlFields = document.getElementById('irlFields');
+    const onlineFields = document.getElementById('onlineFields');
+    const materialCompleteSection  = document.getElementById('materialCompleteSection');
+    const locationTitle = document.getElementById('locationSectionTitle');
+
+    const roomNameInput = document.getElementById('sessionRoomName');
+    const postalCodeInput = document.getElementById('sessionPostalCode');
+    const zoomLinkInput = document.getElementById('sessionZoomLink');
+
+    if (isOnline) {
+        irlFields.style.display = 'none';
+        onlineFields.style.display = 'block';
+        materialCompleteSection.style.display = 'none';
+        locationTitle.textContent = 'Paramètres de la session en ligne';
+
+        roomNameInput.removeAttribute('required');
+        postalCodeInput.removeAttribute('required');
+        zoomLinkInput.setAttribute('required', 'required');
+
+        roomNameInput.value = '';
+        postalCodeInput.value = '';
+        document.getElementById('sessionGoogleMapsLink').value = '';
+        document.getElementById('sessionBringYourMattress').checked = false;
+
+    } else {
+        irlFields.style.display = 'block';
+        onlineFields.style.display = 'none';
+        materialCompleteSection.style.display = 'block';
+        locationTitle.textContent = 'Lieu de la séance';
+
+        roomNameInput.setAttribute('required', 'required');
+        postalCodeInput.setAttribute('required', 'required');
+        zoomLinkInput.removeAttribute('required');
+
+        zoomLinkInput.value = '';
+    }
 }

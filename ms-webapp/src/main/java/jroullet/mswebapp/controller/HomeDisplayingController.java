@@ -2,8 +2,8 @@ package jroullet.mswebapp.controller;
 
 import jroullet.mswebapp.auth.SessionService;
 import jroullet.mswebapp.clients.IdentityFeignClient;
-import jroullet.mswebapp.dto.session.AdminSessionDTO;
-import jroullet.mswebapp.dto.session.SessionDTO;
+import jroullet.mswebapp.dto.session.SessionNoParticipantsDTO;
+import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
 import jroullet.mswebapp.dto.user.UserDTO;
 import jroullet.mswebapp.service.SessionManagementService;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +31,9 @@ public class HomeDisplayingController {
     public ModelAndView showClientHome(Model model) {
         logger.info("Fetching client home");
         UserDTO userDTO = sessionService.getCurrentUser();
-        List<UserDTO> allUsers = identityFeignClient.getAllUsers();
+        List<SessionNoParticipantsDTO> sessions = sessionManagementService.getAvailableSessionsForClient();
         model.addAttribute("user", userDTO);
-        model.addAttribute("users", allUsers);
+        model.addAttribute("sessions", sessions);
 
         return new ModelAndView("home-client");
     }
@@ -43,7 +43,7 @@ public class HomeDisplayingController {
         logger.info("Fetching admin home");
         UserDTO userDTO = sessionService.getCurrentUser();
         List<UserDTO> allUsers = identityFeignClient.getAllUsers();
-        List<AdminSessionDTO> sessions = sessionManagementService.getAllSessionsForAdmin();
+        List<SessionWithParticipantsDTO> sessions = sessionManagementService.getAllSessionsForAdmin();
 
         model.addAttribute("user", userDTO);
         model.addAttribute("users", allUsers);
@@ -61,7 +61,7 @@ public class HomeDisplayingController {
             model.addAttribute("user", userDTO);
 
             // Loading upcoming sessions
-            List<SessionDTO> upcomingSessions = sessionManagementService
+            List<SessionWithParticipantsDTO> upcomingSessions = sessionManagementService
                     .getUpcomingSessionsForCurrentTeacher(userDTO.getId());
             model.addAttribute("sessions", upcomingSessions);
 

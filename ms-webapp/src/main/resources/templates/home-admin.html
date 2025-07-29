@@ -191,6 +191,7 @@
                             <th>Prénom</th>
                             <th>Nom</th>
                             <th>Email</th>
+                            <th>Telephone</th>
                             <th>Statut</th>
                             <th>Crédits</th>
                             <th>Créé le</th>
@@ -202,6 +203,7 @@
                             <td th:text="${user.firstName}">John</td>
                             <td th:text="${user.lastName}">Doe</td>
                             <td><span class="admin-email" th:text="${user.email}">john@example.com</span></td>
+                            <td><span class="admin-email" th:text="${user.phoneNumber}">0102030405</span></td>
                             <td>
                                 <span th:class="${user.status} ? 'admin-status admin-status-active' : 'admin-status admin-status-inactive'">
                                     <span th:text="${user.status} ? 'Actif' : 'Inactif'">Actif</span>
@@ -257,30 +259,33 @@
                         </thead>
                         <tbody>
                         <tr th:each="sessionItem : ${sessions}" th:if="${sessions != null}" class="admin-table-row session-row">
-                            <td th:text="${sessionItem.session.startDateTime}">01/01/2025 14:00</td>
+                            <td th:text="${sessionItem.startDateTime}">01/01/2025 14:00</td>
                             <td>
-                                <div th:text="${sessionItem.session.roomName}">Studio Yoga</div>
-                                <small class="text-muted" th:text="${sessionItem.session.postalCode}">75001</small>
+                                <div th:if="${sessionItem.isOnline}">En ligne</div>
+                                <div th:unless="${sessionItem.isOnline}">
+                                    <div th:text="${sessionItem.roomName}">Studio Yoga</div>
+                                    <small class="text-muted" th:text="${sessionItem.postalCode}">75001</small>
+                                </div>
                             </td>
                             <td>
                                 <span th:text="${sessionItem.teacherFirstName + ' ' + sessionItem.teacherLastName}" class="teacher-name">Marie Martin</span>
                             </td>
-                            <td th:text="${sessionItem.session.subject}">YOGA</td>
+                            <td th:text="${sessionItem.subject}">YOGA</td>
                             <td>
-                                <span th:if="${sessionItem.session.status.name() == 'SCHEDULED'}" class="admin-status admin-status-active">
+                                <span th:if="${sessionItem.status.name() == 'SCHEDULED'}" class="admin-status admin-status-active">
                                     Programmée
                                 </span>
-                                <span th:if="${sessionItem.session.status.name() == 'CANCELLED'}" class="admin-status admin-status-inactive">
+                                <span th:if="${sessionItem.status.name() == 'CANCELLED'}" class="admin-status admin-status-inactive">
                                     Annulée
                                 </span>
-                                <span th:if="${sessionItem.session.status.name() == 'COMPLETED'}" class="admin-status admin-status-completed">
+                                <span th:if="${sessionItem.status.name() == 'COMPLETED'}" class="admin-status admin-status-completed">
                                     Terminée
                                 </span>
                             </td>
                             <td>
-                                <span th:text="${sessionItem.session.registeredParticipants ?: 0}">5</span> participants
+                                <span th:text="${sessionItem.registeredParticipants ?: 0}">5</span> participants
                                 <button class="btn btn-sm btn-outline-info ms-2"
-                                        th:onclick="|showParticipants(${sessionItem.session.id})|"
+                                        th:onclick="|showParticipants(${sessionItem.id})|"
                                         title="Voir les participants">
                                     👥
                                 </button>
@@ -288,16 +293,16 @@
 
                             <td class="text-center admin-actions">
                                 <div class="admin-action-buttons">
-                                    <button th:if="${sessionItem.session.status.name() == 'SCHEDULED'}"
+                                    <button th:if="${sessionItem.status.name() == 'SCHEDULED'}"
                                             class="btn btn-admin-edit"
-                                            th:onclick="|openEditSessionModal(${sessionItem.session.id})|"
+                                            th:onclick="|openEditSessionModal(${sessionItem.id})|"
                                             title="Modifier">
                                         Modifier
                                     </button>
 
-                                    <button th:if="${sessionItem.session.status.name() != 'SCHEDULED'}"
+                                    <button th:if="${sessionItem.status.name() != 'SCHEDULED'}"
                                             class="btn btn-outline-secondary btn-sm"
-                                            th:onclick="|openEditSessionModal(${sessionItem.session.id})|"
+                                            th:onclick="|openEditSessionModal(${sessionItem.id})|"
                                             title="Consulter">Voir
                                     </button>
                                 </div>
@@ -634,9 +639,6 @@
                 </div>
                 <div class="modal-footer">
                     <div class="me-auto">
-                        <button type="button" class="btn btn-outline-info" id="userUpdateCreditsBtn">
-                            Gérer crédits
-                        </button>
                         <button type="button" class="btn btn-danger" id="userUpdateDeleteBtn">
                             Supprimer ce client
                         </button>
