@@ -65,7 +65,7 @@ public class SessionJobManagement {
     }
 
     /**
-     * Session Update Methods
+     * Session Update Method
      */
 
     public SessionWithParticipantsDTO updateSessionCommon(SessionWithParticipantsDTO sessionWithParticipantsDTO, SessionUpdateDTO dto) {
@@ -91,6 +91,7 @@ public class SessionJobManagement {
 
         // Mapping to entity and modifying it
         sessionMapper.updateSessionFromDto(dto, session);
+        cleanConflictingSessionFields(session);
 
         // session object now contains sessionDTO data
         // Save changes in entity
@@ -98,7 +99,7 @@ public class SessionJobManagement {
         return sessionMapper.toDTO(savedSession);
     }
 
-    public void validateTimeConflicts(Long teacherId, LocalDateTime startDateTime, Integer durationMinutes, Long excludeSessionId) {
+    private void validateTimeConflicts(Long teacherId, LocalDateTime startDateTime, Integer durationMinutes, Long excludeSessionId) {
         LocalDateTime endDateTime = startDateTime.plusMinutes(durationMinutes);
 
         List<Session> conflictingSessions = sessionRepository
@@ -110,6 +111,19 @@ public class SessionJobManagement {
 
         if (!conflictingSessions.isEmpty()) {
             throw new BusinessException("Teacher has overlapping sessions at this time");
+        }
+    }
+
+
+    private void cleanConflictingSessionFields(Session session) {
+        // Clean fields that are not applicable based on session type
+        if (session.getIsOnline()) {
+            session.setRoomName(null);
+            session.setPostalCode(null);
+            session.setGoogleMapsLink(null);
+            session.setBringYourMattress(null);
+        } else {
+            session.setZoomLink(null);
         }
     }
 }

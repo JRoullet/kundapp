@@ -81,7 +81,9 @@
                                 <td th:text="${#temporals.format(sessionItem.startDateTime, 'HH:mm')}">14:00</td>
                                 <td th:text="${sessionItem.subject}">YOGA</td>
                                 <td>
-                                    <span th:if="${sessionItem.isOnline}">En ligne</span>
+                                    <div th:if="${sessionItem.isOnline}" class="session-online-indicator">
+                                        <i class="fas fa-laptop me-1"></i>En ligne
+                                    </div>
                                     <span th:unless="${sessionItem.isOnline}" th:text="${sessionItem.roomName}">Studio Yoga</span>
                                 </td>
                                 <td th:text="${sessionItem.registeredParticipants != null ? sessionItem.registeredParticipants : 0}">0</td>
@@ -167,10 +169,10 @@
 
                     <!-- Informations de lieu -->
                     <hr>
-                    <h6 class="mb-3" id="locationSectionTitle">Lieu de la séance</h6>
+                    <h6 class="mb-3" id="sessionLocationTitle">Lieu de la séance</h6>
 
                     <!-- Champs pour session IRL -->
-                    <div id="irlFields">
+                    <div id="sessionIrlFields">
                         <div class="row">
                             <div class="col-md-8 mb-3">
                                 <label for="sessionRoomName" class="form-label">Nom de la salle/lieu *</label>
@@ -193,7 +195,7 @@
                     </div>
 
                     <!-- Champs pour session en ligne -->
-                    <div id="onlineFields" style="display: none;">
+                    <div id="sessionOnlineFields" style="display: none;">
                         <div class="mb-3">
                             <label for="sessionZoomLink" class="form-label">Lien Zoom *</label>
                             <input type="url" class="form-control" id="sessionZoomLink" name="zoomLink"
@@ -247,7 +249,7 @@
                     </div>
 
                     <!-- Matériel -->
-                    <div id="materialCompleteSection">
+                    <div id="sessionMaterialSection">
                         <hr>
                         <h6 class="mb-3">Matériel</h6>
                         <div class="mb-3">
@@ -303,29 +305,64 @@
                         <textarea class="form-control" id="sessionUpdateDescription" name="description"
                                   rows="3" placeholder="Décrivez cette séance en détail..." required></textarea>
                     </div>
-
-                    <!-- Informations de lieu -->
+                    <!-- Type de session avec possibilité de changer -->
                     <hr>
-                    <h6 class="mb-3">Lieu de la séance</h6>
-                    <div class="row">
-                        <div class="col-md-8 mb-3">
-                            <label for="sessionUpdateRoomName" class="form-label">Nom de la salle/lieu *</label>
-                            <input type="text" class="form-control" id="sessionUpdateRoomName" name="roomName" required
-                                   placeholder="Ex: Studio Yoga Paris, Salle A, Parc des Buttes Chaumont...">
+                    <h6 class="mb-3">Type de session</h6>
+                    <div class="mb-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sessionUpdateType" id="sessionUpdateTypeIrl" value="false">
+                            <label class="form-check-label" for="sessionUpdateTypeIrl">
+                                <i class="fas fa-map-marker-alt me-1"></i>En présentiel
+                            </label>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="sessionUpdatePostalCode" class="form-label">Code postal *</label>
-                            <input type="text" class="form-control" id="sessionUpdatePostalCode" name="postalCode"
-                                   pattern="^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$" required
-                                   placeholder="75001" maxlength="5">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sessionUpdateType" id="sessionUpdateTypeOnline" value="true">
+                            <label class="form-check-label" for="sessionUpdateTypeOnline">
+                                <i class="fas fa-video me-1"></i>En ligne
+                            </label>
+                        </div>
+                        <input type="hidden" id="sessionUpdateIsOnline" name="isOnline" value="false">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Vous pouvez changer le type de session. Les champs spécifiques à l'ancien type seront effacés.
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="sessionUpdateGoogleMapsLink" class="form-label">Lien Google Maps</label>
-                        <input type="url" class="form-control" id="sessionUpdateGoogleMapsLink" name="googleMapsLink"
-                               placeholder="https://maps.app.goo.gl/...">
-                        <div class="form-text">Optionnel - Ajoutez un lien Google Maps pour faciliter l'accès</div>
+                    <!-- Informations de lieu -->
+                    <hr>
+                    <h6 class="mb-3" id="sessionUpdateLocationTitle">Lieu de la séance</h6>
+
+                    <!-- Champs pour session IRL -->
+                    <div id="sessionUpdateIrlFields">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="sessionUpdateRoomName" class="form-label">Nom de la salle/lieu *</label>
+                                <input type="text" class="form-control" id="sessionUpdateRoomName" name="roomName"
+                                       placeholder="Ex: Studio Yoga Paris, Salle A, Parc des Buttes Chaumont...">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="sessionUpdatePostalCode" class="form-label">Code postal *</label>
+                                <input type="text" class="form-control" id="sessionUpdatePostalCode" name="postalCode"
+                                       pattern="^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$"
+                                       placeholder="75001" maxlength="5">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sessionUpdateGoogleMapsLink" class="form-label">Lien Google Maps</label>
+                            <input type="url" class="form-control" id="sessionUpdateGoogleMapsLink" name="googleMapsLink"
+                                   placeholder="https://maps.app.goo.gl/...">
+                            <div class="form-text">Optionnel - Ajoutez un lien Google Maps pour faciliter l'accès</div>
+                        </div>
+                    </div>
+
+                    <!-- Champs pour session en ligne -->
+                    <div id="sessionUpdateOnlineFields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="sessionUpdateZoomLink" class="form-label">Lien Zoom *</label>
+                            <input type="url" class="form-control" id="sessionUpdateZoomLink" name="zoomLink"
+                                   placeholder="https://zoom.us/j/123456789">
+                            <div class="form-text">Lien de la réunion Zoom pour la session en ligne</div>
+                        </div>
                     </div>
 
                     <!-- Date et heure -->
@@ -372,20 +409,21 @@
                         </div>
                     </div>
 
-                    <!-- Matériel -->
-                    <hr>
-                    <h6 class="mb-3">Matériel</h6>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="sessionUpdateBringYourMattress"
-                                   name="bringYourMattress" value="true">
-                            <label class="form-check-label" for="sessionUpdateBringYourMattress">
-                                <strong>Les participants doivent apporter leur tapis</strong>
-                            </label>
-                            <div class="form-text">Cochez si les participants doivent venir avec leur propre équipement</div>
+                    <!-- Matériel (uniquement pour sessions IRL) -->
+                    <div id="sessionUpdateMaterialSection">
+                        <hr>
+                        <h6 class="mb-3">Matériel</h6>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sessionUpdateBringYourMattress"
+                                       name="bringYourMattress" value="true">
+                                <label class="form-check-label" for="sessionUpdateBringYourMattress">
+                                    <strong>Les participants doivent apporter leur tapis</strong>
+                                </label>
+                                <div class="form-text">Cochez si les participants doivent venir avec leur propre équipement</div>
+                            </div>
+                            <input type="hidden" name="bringYourMattress" value="false">
                         </div>
-                        <!-- Hidden input pour gérer le cas où la checkbox n'est pas cochée -->
-                        <input type="hidden" name="bringYourMattress" value="false">
                     </div>
 
                     <!-- Participants info (info only) -->

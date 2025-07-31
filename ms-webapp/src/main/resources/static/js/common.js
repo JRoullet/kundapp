@@ -319,3 +319,277 @@ function submitActionWithParams(actionUrl, params = {}) {
 // Initialize global instances
 const apiClient = new ApiClient();
 const messageHandler = new ThymeleafMessageHandler();
+
+// ========================================
+// SESSION MANAGEMENT - SHARED FUNCTIONS
+// ========================================
+
+// Session form contexts configuration
+const SESSION_CONTEXTS = {
+    CREATE: {
+        prefix: '',
+        radioName: 'sessionType',
+        hiddenFieldId: 'sessionIsOnline',
+        formId: 'sessionForm'
+    },
+    UPDATE_TEACHER: {
+        prefix: 'Update',
+        radioName: 'sessionUpdateType',
+        hiddenFieldId: 'sessionUpdateIsOnline',
+        formId: 'sessionUpdateForm'
+    },
+    UPDATE_ADMIN: {
+        prefix: 'Update',
+        radioName: 'sessionUpdateType',
+        hiddenFieldId: 'sessionUpdateIsOnline',
+        formId: 'sessionUpdateForm'
+    }
+};
+
+// Initialize session type handlers for any context
+function initializeSessionTypeHandlers(context) {
+    const sessionTypeRadios = document.querySelectorAll(`input[name="${context.radioName}"]`);
+    const isOnlineHidden = document.getElementById(context.hiddenFieldId);
+
+    sessionTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const isOnline = this.value === 'true';
+            isOnlineHidden.value = isOnline;
+            toggleSessionFields(isOnline, context);
+
+            // Clear conflicting fields when switching types (only for update forms)
+            if (context !== SESSION_CONTEXTS.CREATE) {
+                clearConflictingFields(isOnline, context);
+            }
+        });
+    });
+}
+
+// Toggle session fields visibility based on online/IRL
+function toggleSessionFields(isOnline, context) {
+    const elements = getSessionFieldElements(context);
+
+    if (!elements.isValid) {
+        console.error(`Missing elements for session fields toggle with context:`, context);
+        return;
+    }
+
+    if (isOnline) {
+        // Show online fields, hide IRL fields
+        elements.irlFields.style.display = 'none';
+        elements.onlineFields.style.display = 'block';
+        if (elements.materialSection) elements.materialSection.style.display = 'none';
+        if (elements.locationTitle) elements.locationTitle.textContent = 'Paramètres de la session en ligne';
+
+        // Update field requirements
+        elements.roomNameInput.removeAttribute('required');
+        elements.postalCodeInput.removeAttribute('required');
+        elements.zoomLinkInput.setAttribute('required', 'required');
+
+        // Clear IRL fields for CREATE form only
+        if (context === SESSION_CONTEXTS.CREATE) {
+            clearIrlFields(context);
+        }
+
+    } else {
+        // Show IRL fields, hide online fields
+        elements.irlFields.style.display = 'block';
+        elements.onlineFields.style.display = 'none';
+        if (elements.materialSection) elements.materialSection.style.display = 'block';
+        if (elements.locationTitle) elements.locationTitle.textContent = 'Lieu de la séance';
+
+        // Update field requirements
+        elements.roomNameInput.setAttribute('required', 'required');
+        elements.postalCodeInput.setAttribute('required', 'required');
+        elements.zoomLinkInput.removeAttribute('required');
+
+        // Clear online fields for CREATE form only
+        if (context === SESSION_CONTEXTS.CREATE) {
+            clearOnlineFields(context);
+        }
+    }
+}
+
+// Get session field elements based on context
+function getSessionFieldElements(context) {
+    const prefix = context.prefix;
+
+    // Build element IDs based on context
+    const irlFieldsId = prefix ? `session${prefix}IrlFields` : 'sessionIrlFields';
+    const onlineFieldsId = prefix ? `session${prefix}OnlineFields` : 'sessionOnlineFields';
+    const materialSectionId = prefix ? `session${prefix}MaterialSection` : 'sessionMaterialSection';
+    const locationTitleId = prefix ? `session${prefix}LocationTitle` : 'sessionLocationTitle';
+
+    const roomNameId = prefix ? `session${prefix}RoomName` : 'sessionRoomName';
+    const postalCodeId = prefix ? `session${prefix}PostalCode` : 'sessionPostalCode';
+    const zoomLinkId = prefix ? `session${prefix}ZoomLink` : 'sessionZoomLink';
+
+    const elements = {
+        irlFields: document.getElementById(irlFieldsId),
+        onlineFields: document.getElementById(onlineFieldsId),
+        materialSection: document.getElementById(materialSectionId),
+        locationTitle: document.getElementById(locationTitleId),
+        roomNameInput: document.getElementById(roomNameId),
+        postalCodeInput: document.getElementById(postalCodeId),
+        zoomLinkInput: document.getElementById(zoomLinkId)
+    };
+
+    // Validate required elements exist
+    elements.isValid = !!(elements.irlFields && elements.onlineFields &&
+        elements.roomNameInput && elements.postalCodeInput &&
+        elements.zoomLinkInput);
+
+    return elements;
+}
+
+// Clear conflicting fields when switching session types
+function clearConflictingFields(isOnline, context) {
+    if (isOnline) {
+        clearIrlFields(context);
+    } else {
+        clearOnlineFields(context);
+    }
+}
+
+// Clear IRL specific fields
+function clearIrlFields(context) {
+    const prefix = context.prefix;
+    const roomNameId = prefix ? `session${prefix}RoomName` : 'sessionRoomName';
+    const postalCodeId = prefix ? `session${prefix}PostalCode` : 'sessionPostalCode';
+    const googleMapsId = prefix ? `session${prefix}GoogleMapsLink` : 'sessionGoogleMapsLink';
+    const mattressId = prefix ? `session${prefix}BringYourMattress` : 'sessionBringYourMattress';
+
+    const elements = {
+        roomName: document.getElementById(roomNameId),
+        postalCode: document.getElementById(postalCodeId),
+        googleMaps: document.getElementById(googleMapsId),
+        mattress: document.getElementById(mattressId)
+    };
+
+    if (elements.roomName) elements.roomName.value = '';
+    if (elements.postalCode) elements.postalCode.value = '';
+    if (elements.googleMaps) elements.googleMaps.value = '';
+    if (elements.mattress) elements.mattress.checked = false;
+}
+
+// Clear online specific fields
+function clearOnlineFields(context) {
+    const prefix = context.prefix;
+    const zoomLinkId = prefix ? `session${prefix}ZoomLink` : 'sessionZoomLink';
+
+    const zoomElement = document.getElementById(zoomLinkId);
+    if (zoomElement) zoomElement.value = '';
+}
+
+// Populate session type fields with existing data
+function populateSessionTypeFields(isOnline, session, context) {
+    const prefix = context.prefix;
+    const sessionTypeOnlineId = prefix ? `session${prefix}TypeOnline` : 'sessionTypeOnline';
+    const sessionTypeIrlId = prefix ? `session${prefix}TypeIrl` : 'sessionTypeIrl';
+    const hiddenFieldId = context.hiddenFieldId;
+
+    const sessionTypeOnline = document.getElementById(sessionTypeOnlineId);
+    const sessionTypeIrl = document.getElementById(sessionTypeIrlId);
+    const sessionIsOnlineHidden = document.getElementById(hiddenFieldId);
+
+    if (isOnline) {
+        if (sessionTypeOnline) sessionTypeOnline.checked = true;
+        if (sessionIsOnlineHidden) sessionIsOnlineHidden.value = 'true';
+
+        // Populate online fields
+        const zoomLinkId = prefix ? `session${prefix}ZoomLink` : 'sessionZoomLink';
+        const zoomElement = document.getElementById(zoomLinkId);
+        if (zoomElement) zoomElement.value = session.zoomLink || '';
+
+    } else {
+        if (sessionTypeIrl) sessionTypeIrl.checked = true;
+        if (sessionIsOnlineHidden) sessionIsOnlineHidden.value = 'false';
+
+        // Populate IRL fields
+        const irlFields = {
+            roomName: prefix ? `session${prefix}RoomName` : 'sessionRoomName',
+            postalCode: prefix ? `session${prefix}PostalCode` : 'sessionPostalCode',
+            googleMapsLink: prefix ? `session${prefix}GoogleMapsLink` : 'sessionGoogleMapsLink',
+            bringYourMattress: prefix ? `session${prefix}BringYourMattress` : 'sessionBringYourMattress'
+        };
+
+        Object.entries(irlFields).forEach(([field, id]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                if (field === 'bringYourMattress') {
+                    element.checked = session.bringYourMattress || false;
+                } else {
+                    element.value = session[field] || '';
+                }
+            }
+        });
+    }
+
+    // Apply field visibility
+    toggleSessionFields(isOnline, context);
+}
+
+// Validate session fields based on type
+function validateSessionTypeFields(formData) {
+    const isOnline = formData.get('isOnline') === 'true';
+
+    if (isOnline) {
+        // Online session validation
+        const zoomLink = formData.get('zoomLink');
+        if (!zoomLink || zoomLink.trim() === '') {
+            toastSystem.error('Erreur de validation', 'Le lien Zoom est obligatoire pour une session en ligne');
+            return false;
+        }
+
+        const zoomRegex = /^https:\/\/(.*\.)?zoom\.(us|com)\/j\/\d+.*$/;
+        if (!zoomRegex.test(zoomLink)) {
+            toastSystem.error('Erreur de validation', 'Le lien doit être un lien Zoom valide');
+            return false;
+        }
+    } else {
+        // IRL session validation
+        const roomName = formData.get('roomName');
+        if (!roomName || roomName.trim().length === 0) {
+            toastSystem.error('Erreur de validation', 'Le nom de la salle/lieu est obligatoire');
+            return false;
+        }
+
+        const postalCode = formData.get('postalCode');
+        const postalCodeRegex = /^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$/;
+        if (!postalCode || !postalCodeRegex.test(postalCode)) {
+            toastSystem.error('Erreur de validation', 'Le code postal doit être un code postal français valide (ex: 75001)');
+            return false;
+        }
+
+        // Google Maps link validation (optional but if present must be valid)
+        const googleMapsLink = formData.get('googleMapsLink');
+        if (googleMapsLink && googleMapsLink.trim() !== '') {
+            const googleMapsRegex = /^https:\/\/(maps\.google\.(com|fr)|maps\.app\.goo\.gl)\/.*/;
+            if (!googleMapsRegex.test(googleMapsLink)) {
+                toastSystem.error('Erreur de validation', 'Le lien doit être un lien Google Maps valide');
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+// ========================================
+// MODAL ACCESSIBILITY
+// ========================================
+
+// Fix for MDBootstrap modal accessibility issue
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle modal focus issues when closing modals
+    document.querySelectorAll('.modal').forEach(modal => {
+        // MDBootstrap uses 'hidden.mdb.modal' not 'hidden.bs.modal'
+        modal.addEventListener('hidden.mdb.modal', function() {
+            // Remove focus from any element inside the modal
+            const focusedElement = this.querySelector(':focus');
+            if (focusedElement) {
+                focusedElement.blur();
+            }
+        });
+    });
+});

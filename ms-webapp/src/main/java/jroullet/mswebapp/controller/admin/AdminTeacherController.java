@@ -17,7 +17,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/admin")
+@RequestMapping("/admin/teachers")
 @RequiredArgsConstructor
 public class AdminTeacherController {
 
@@ -28,7 +28,7 @@ public class AdminTeacherController {
     /**
      * Create a new teacher
      */
-    @PostMapping("/teachers")
+    @PostMapping
     public ModelAndView createTeacher (@ModelAttribute TeacherRegistrationDTO teacherRegistrationDTO,
                                        RedirectAttributes redirectAttributes) {
         try {
@@ -53,7 +53,7 @@ public class AdminTeacherController {
     /**
      * GET - get teacher to prefill modal
      */
-    @GetMapping("/teachers/{id}")
+    @GetMapping("/{id}")
     @ResponseBody
     public ResponseEntity<TeacherDTO> getTeacher(@PathVariable Long id) {
         try {
@@ -67,7 +67,7 @@ public class AdminTeacherController {
         }
     }
 
-    @PostMapping("/teachers/{id}/update")
+    @PostMapping("/{id}/update")
     public ModelAndView updateTeacher(@PathVariable Long id,
                                       @ModelAttribute TeacherUpdateDTO teacherUpdateDTO,
                                       RedirectAttributes redirectAttributes) {
@@ -88,7 +88,7 @@ public class AdminTeacherController {
         return new ModelAndView("redirect:/admin");
     }
 
-    @PostMapping("/teachers/{id}/disable")
+    @PostMapping("/{id}/disable")
     public ModelAndView disableTeacher(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             UserStatusResponseDTO response = identityFeignClient.disableTeacher(id);
@@ -105,7 +105,7 @@ public class AdminTeacherController {
         return new ModelAndView("redirect:/admin");
     }
 
-    @PostMapping("/teachers/{id}/enable")
+    @PostMapping("/{id}/enable")
     public ModelAndView enableTeacher(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             UserStatusResponseDTO response = identityFeignClient.enableTeacher(id);
@@ -120,7 +120,7 @@ public class AdminTeacherController {
         return new ModelAndView("redirect:/admin");
     }
 
-    @PostMapping("/teachers/{id}/delete")
+    @PostMapping("/{id}/delete")
     public ModelAndView deleteTeacher(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             identityFeignClient.deleteTeacher(id);

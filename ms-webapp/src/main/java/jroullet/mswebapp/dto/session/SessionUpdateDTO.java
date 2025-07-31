@@ -2,28 +2,30 @@ package jroullet.mswebapp.dto.session;
 
 import jakarta.validation.constraints.*;
 import jroullet.mswebapp.model.Subject;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jroullet.mswebapp.validator.ValidSessionType;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
-@Builder
-@NoArgsConstructor
+@ValidSessionType
+@Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class SessionUpdateDTO {
+
     @NotNull(message = "Le type de séance est obligatoire")
     private Subject subject;
 
     @NotBlank(message = "La description est obligatoire")
     private String description;
 
-    @NotBlank(message = "Le nom de la salle est obligatoire")
+    @NotNull(message = "Le type de session est obligatoire")
+    private Boolean isOnline;
+
     private String roomName;
 
-    @NotBlank(message = "Le code postal est obligatoire")
     @Pattern(regexp = "^(0[1-9]|[1-8][0-9]|9[0-8])\\d{3}$",
             message = "Le code postal doit contenir 5 chiffres")
     private String postalCode;
@@ -31,6 +33,8 @@ public class SessionUpdateDTO {
     @Pattern(regexp = "^https://(maps\\.google\\.(com|fr)|maps\\.app\\.goo\\.gl)/.*",
             message = "Le lien doit être un lien Google Maps valide")
     private String googleMapsLink;
+
+    private String zoomLink;
 
     @NotNull(message = "Le nombre de places est obligatoire")
     @Min(value = 1, message = "Il doit y avoir au moins 1 place disponible")
@@ -47,5 +51,4 @@ public class SessionUpdateDTO {
 
     private Integer creditsRequired;
     private Boolean bringYourMattress;
-
 }

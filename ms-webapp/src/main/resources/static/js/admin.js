@@ -5,6 +5,20 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin page loaded');
 
+    // Initialize session type handlers for admin
+    initializeSessionTypeHandlers(SESSION_CONTEXTS.UPDATE_ADMIN);
+
+    // Initialize form validation for session update
+    const sessionUpdateForm = document.getElementById('sessionUpdateForm');
+    if (sessionUpdateForm) {
+        sessionUpdateForm.addEventListener('submit', function(e) {
+            if (!validateSessionUpdateForm()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
+
     // Manage tabs based on URL parameter
     const urlParams = new URLSearchParams(window.location.search);
     const activeTab = urlParams.get('tab');
@@ -246,7 +260,11 @@ function showParticipants(sessionId) {
 }
 
 function openEditSessionModal(sessionId) {
-    // Récupérer les données de la session via ton endpoint existant
+    // Configure form
+    document.getElementById('sessionUpdateForm').action = '/admin/sessions/' + sessionId + '/update';
+    document.getElementById('sessionUpdateId').value = sessionId;
+
+    // Fetch session data
     fetch('/admin/sessions/' + sessionId + '/details')
         .then(response => {
             if (!response.ok) {
@@ -255,72 +273,8 @@ function openEditSessionModal(sessionId) {
             return response.json();
         })
         .then(session => {
-            // Configure form seulement si la session est modifiable
-            if (session.status === 'SCHEDULED') {
-                document.getElementById('sessionEditForm').action = '/admin/sessions/' + sessionId + '/update';
-                document.getElementById('sessionEditId').value = sessionId;
-            }
-
-            // Remplir les champs (pré-rempli dans tous les cas)
-            document.getElementById('sessionEditSubject').value = session.subject || '';
-            document.getElementById('sessionEditDescription').value = session.description || '';
-            document.getElementById('sessionEditRoomName').value = session.roomName || '';
-            document.getElementById('sessionEditPostalCode').value = session.postalCode || '';
-            document.getElementById('sessionEditGoogleMapsLink').value = session.googleMapsLink || '';
-            document.getElementById('sessionEditAvailableSpots').value = session.availableSpots || '';
-            document.getElementById('sessionEditCreditsRequired').value = session.creditsRequired || 1;
-            document.getElementById('sessionEditDurationMinutes').value = session.durationMinutes || '';
-
-            // Checkbox matelas
-            document.getElementById('sessionEditBringYourMattress').checked = session.bringYourMattress || false;
-
-            // Date et heure (conversion de LocalDateTime)
-            if (session.startDateTime) {
-                document.getElementById('sessionEditStartDateTime').value = session.startDateTime.slice(0, 16);
-            }
-
-            // Participants info
-            const participantsCount = session.registeredParticipants || 0;
-            document.getElementById('sessionEditParticipantsCount').textContent =
-                `${participantsCount} participant(s) inscrit(s)`;
-
-            // Bouton voir participants
-            const viewParticipantsBtn = document.getElementById('sessionEditViewParticipants');
-            viewParticipantsBtn.onclick = () => showParticipants(sessionId);
-            viewParticipantsBtn.disabled = participantsCount === 0;
-
-            // Gestion des boutons selon le statut
-            const saveBtn = document.querySelector('#sessionEditModal .btn-primary');
-            const cancelBtn = document.getElementById('sessionEditCancelBtn');
-            const formElements = document.querySelectorAll('#sessionEditForm input, #sessionEditForm select, #sessionEditForm textarea');
-
-            if (session.status === 'SCHEDULED') {
-                // Session modifiable
-                saveBtn.style.display = 'inline-block';
-                saveBtn.disabled = false;
-                cancelBtn.style.display = 'inline-block';
-                cancelBtn.onclick = () => confirmCancelSessionFromModal(sessionId);
-
-                // Activer tous les champs
-                formElements.forEach(el => el.disabled = false);
-
-                // Changer le titre de la modale
-                document.querySelector('#sessionEditModal .modal-title').textContent = 'Modifier la session';
-            } else {
-                // Session non modifiable (CANCELLED ou COMPLETED)
-                saveBtn.style.display = 'none';
-                cancelBtn.style.display = 'none';
-
-                // Désactiver tous les champs (lecture seule)
-                formElements.forEach(el => el.disabled = true);
-
-                // Changer le titre de la modale
-                const statusText = session.status === 'CANCELLED' ? 'annulée' : 'terminée';
-                document.querySelector('#sessionEditModal .modal-title').textContent = `Consultation session ${statusText}`;
-            }
-
-            // Show modal
-            const modal = new mdb.Modal(document.getElementById('sessionEditModal'));
+            populateAdminUpdateForm(session, sessionId);
+            const modal = new mdb.Modal(document.getElementById('sessionUpdateModal'));
             modal.show();
         })
         .catch(error => {
@@ -329,16 +283,66 @@ function openEditSessionModal(sessionId) {
         });
 }
 
-function confirmCancelSessionFromModal(sessionId) {
+function populateAdminUpdateForm(session, sessionId) {
+    // Configure form based on session status
+    const isEditable = session.status === 'SCHEDULED';
+
+    // Populate basic fields
+    const fieldMapping = {
+        'Subject': 'subject',
+        'Description': 'description',
+        'AvailableSpots': 'availableSpots',
+        'CreditsRequired': 'creditsRequired',
+        'DurationMinutes': 'durationMinutes'
+    };
+
+    Object.entries(fieldMapping).forEach(([fieldId, sessionProperty]) => {
+        const element = document.getElementById(`sessionUpdate${fieldId}`);
+        if (element && session[sessionProperty] !== undefined) {
+            element.value = session[sessionProperty];
+        }
+    });
+
+    // Handle datetime
+    if (session.startDateTime) {
+        document.getElementById('sessionUpdateStartDateTime').value = session.startDateTime.slice(0, 16);
+    }
+
+    // Handle session type using common function
+    const isOnline = session.isOnline || false;
+    populateSessionTypeFields(isOnline, session, SESSION_CONTEXTS.UPDATE_ADMIN);
+
+    // Update participants count
+    const participantsCount = session.registeredParticipants || 0;
+    document.getElementById('sessionUpdateParticipantsCount').textContent = `${participantsCount} participant(s) inscrit(s)`;
+
+    // Configure buttons based on status
+    const saveBtn = document.querySelector('#sessionUpdateModal .btn-primary');
+    const cancelBtn = document.getElementById('sessionUpdateCancelBtn');
+    const formElements = document.querySelectorAll('#sessionUpdateForm input, #sessionUpdateForm select, #sessionUpdateForm textarea');
+
+    if (isEditable) {
+        saveBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'inline-block';
+        cancelBtn.onclick = () => confirmCancelSessionFromUpdateModal(sessionId);
+        formElements.forEach(el => el.disabled = false);
+        document.querySelector('#sessionUpdateModal .modal-title').textContent = 'Modifier la session';
+    } else {
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+        formElements.forEach(el => el.disabled = true);
+        const statusText = session.status === 'CANCELLED' ? 'annulée' : 'terminée';
+        document.querySelector('#sessionUpdateModal .modal-title').textContent = `Consultation session ${statusText}`;
+    }
+}
+
+function confirmCancelSessionFromUpdateModal(sessionId) {
     showConfirmation(
         'Annuler la Session',
         'Êtes-vous sûr de vouloir annuler cette session ? Les participants seront notifiés.',
         function() {
-            // Fermer la modale d'édition d'abord
-            const editModal = mdb.Modal.getInstance(document.getElementById('sessionEditModal'));
+            const editModal = mdb.Modal.getInstance(document.getElementById('sessionUpdateModal'));
             editModal.hide();
-
-            // Puis envoyer la requête d'annulation
             submitActionWithParams('/admin/sessions/cancel', {sessionId: sessionId});
         }
     );
@@ -352,6 +356,65 @@ function confirmCancelAdminSession(sessionId) {
             submitAction('/admin/sessions/' + sessionId + '/cancel');
         }
     );
+}
+
+// ========================================
+// SESSION FORM VALIDATION
+// ========================================
+
+function validateSessionUpdateForm() {
+    const form = document.getElementById('sessionUpdateForm');
+    const formData = new FormData(form);
+    return validateSessionCommonFields(formData);
+}
+
+function validateSessionCommonFields(formData) {
+    // Subject validation
+    const subject = formData.get('subject');
+    if (!subject) {
+        toastSystem.error('Erreur de validation', 'Le type de cours est obligatoire');
+        return false;
+    }
+
+    // Description validation
+    const description = formData.get('description');
+    if (!description || description.trim().length === 0) {
+        toastSystem.error('Erreur de validation', 'La description est obligatoire');
+        return false;
+    }
+
+    // Session type validation using common function
+    if (!validateSessionTypeFields(formData)) {
+        return false;
+    }
+
+    // Date validation
+    const startDateTime = formData.get('startDateTime');
+    if (!startDateTime) {
+        toastSystem.error('Erreur de validation', 'La date et l\'heure sont obligatoires');
+        return false;
+    }
+
+    // Other validations (spots, duration, credits)
+    const availableSpots = parseInt(formData.get('availableSpots'));
+    if (!availableSpots || availableSpots < 1 || availableSpots > 50) {
+        toastSystem.error('Erreur de validation', 'Le nombre de places doit être entre 1 et 50');
+        return false;
+    }
+
+    const duration = parseInt(formData.get('durationMinutes'));
+    if (!duration || duration < 15 || duration > 300) {
+        toastSystem.error('Erreur de validation', 'La durée doit être entre 15 et 300 minutes');
+        return false;
+    }
+
+    const creditsRequired = parseInt(formData.get('creditsRequired'));
+    if (!creditsRequired || creditsRequired < 1 || creditsRequired > 10) {
+        toastSystem.error('Erreur de validation', 'Le nombre de crédits requis doit être entre 1 et 10');
+        return false;
+    }
+
+    return true;
 }
 
 // ========================================

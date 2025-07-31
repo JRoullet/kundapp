@@ -129,7 +129,7 @@ public class SessionManagementService {
             courseFeignClient.cancelSessionByAdmin(sessionId);
             log.info("Session {} canceled successfully", sessionId);
         } catch (FeignException e) {
-            log.error("Error canceling session {} : {}", sessionId, e.getMessage());
+            log.error("Error canceling session  {} by admin : {}", sessionId, e.getMessage());
             throw e;
         }
     }

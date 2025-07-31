@@ -17,15 +17,15 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/admin")
+@RequestMapping("/admin/users")
 @RequiredArgsConstructor
 public class AdminUserController {
 
     private final IdentityFeignClient identityFeignClient;
-    private final Logger logger = LoggerFactory.getLogger(AdminTeacherController.class);
+    private final Logger logger = LoggerFactory.getLogger(AdminUserController.class);
 
     // User Section
-    @GetMapping("/users/{id}")
+    @GetMapping("/{id}")
     @ResponseBody
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         try {
@@ -39,7 +39,7 @@ public class AdminUserController {
         }
     }
 
-    @PostMapping("/users")
+    @PostMapping
     public ModelAndView createUser (@ModelAttribute UserCreationDTO userCreationDTO,
                                     RedirectAttributes redirectAttributes) {
         try {
@@ -62,7 +62,7 @@ public class AdminUserController {
         return new ModelAndView("redirect:/admin?tab=users");
     }
 
-    @PostMapping("/users/{id}/update")
+    @PostMapping("/{id}/update")
     public ModelAndView updateUser(@PathVariable Long id, @ModelAttribute UserUpdateDTO dto,
                                    RedirectAttributes redirectAttributes) {
         try {
@@ -83,7 +83,7 @@ public class AdminUserController {
     /**
      * POST - Disable a user
      */
-    @PostMapping("/users/{id}/disable")
+    @PostMapping("/{id}/disable")
     public ModelAndView disableUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             UserStatusResponseDTO response = identityFeignClient.disableUser(id);
@@ -100,7 +100,7 @@ public class AdminUserController {
         return new ModelAndView("redirect:/admin?tab=users");
     }
 
-    @PostMapping("/users/{id}/enable")
+    @PostMapping("/{id}/enable")
     public ModelAndView enableUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             UserStatusResponseDTO response = identityFeignClient.enableUser(id);
@@ -115,7 +115,7 @@ public class AdminUserController {
         return new ModelAndView("redirect:/admin?tab=users");
     }
 
-    @PostMapping("/users/{id}/delete")
+    @PostMapping("/{id}/delete")
     public ModelAndView deleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             identityFeignClient.deleteUser(id);
@@ -129,7 +129,7 @@ public class AdminUserController {
         return new ModelAndView("redirect:/admin?tab=users");
     }
 
-    @PostMapping("/users/{id}/credits/add")
+    @PostMapping("/{id}/credits/add")
     public ModelAndView addUserCredits(@PathVariable Long id,
                                        @RequestParam Integer credits,
                                        RedirectAttributes redirectAttributes) {

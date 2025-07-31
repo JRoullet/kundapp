@@ -52,11 +52,11 @@
             <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
                     <button class="btn btn-sm btn-outline-secondary me-2" id="toggleSearchBtn" onclick="toggleSearchSection()">
-                        <span id="searchIcon">▼</span>
+                        <span id="searchIcon">▶</span>
                     </button>
                     <h6 class="card-title mb-0">Recherche</h6>
                 </div>
-                <div class="row" id="searchFields">
+                <div class="row" id="searchFields" style="display: none;">
                     <div class="col-md-4">
                         <label class="form-label">Prénom</label>
                         <input type="text" class="form-control" id="globalFirstNameSearch"
@@ -261,7 +261,9 @@
                         <tr th:each="sessionItem : ${sessions}" th:if="${sessions != null}" class="admin-table-row session-row">
                             <td th:text="${sessionItem.startDateTime}">01/01/2025 14:00</td>
                             <td>
-                                <div th:if="${sessionItem.isOnline}">En ligne</div>
+                                <div th:if="${sessionItem.isOnline}">
+                                    <i class="fas fa-video me-1"></i>En ligne
+                                </div>
                                 <div th:unless="${sessionItem.isOnline}">
                                     <div th:text="${sessionItem.roomName}">Studio Yoga</div>
                                     <small class="text-muted" th:text="${sessionItem.postalCode}">75001</small>
@@ -474,14 +476,17 @@
                 </div>
                 <div class="modal-footer">
                     <div class="me-auto">
-                        <button type="button" class="btn btn-danger" id="teacherUpdateDeleteBtn">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="teacherUpdateDeleteBtn">
                             Supprimer ce teacher
                         </button>
-                        <button type="button" class="btn btn-warning" id="teacherUpdateToggleStatusBtn"></button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="teacherUpdateToggleStatusBtn">
+                        </button>
                     </div>
                     <div>
                         <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                        <button type="submit" class="btn btn-admin-primary">
+                            Mettre à jour
+                        </button>
                     </div>
                 </div>
             </form>
@@ -637,39 +642,42 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <div class="me-auto">
-                        <button type="button" class="btn btn-danger" id="userUpdateDeleteBtn">
-                            Supprimer ce client
-                        </button>
-                        <button type="button" class="btn btn-warning" id="userUpdateToggleStatusBtn"></button>
-                    </div>
-                    <div>
-                        <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary">Mettre à jour</button>
-                    </div>
+                <<div class="modal-footer">
+                <div class="me-auto">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="userUpdateDeleteBtn">
+                        Supprimer ce client
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="userUpdateToggleStatusBtn">
+                    </button>
                 </div>
+                <div>
+                    <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-admin-primary">
+                        Mettre à jour
+                    </button>
+                </div>
+            </div>
             </form>
         </div>
     </div>
 </div>
-<!-- Session Edit Modal -->
-<div class="modal fade" id="sessionEditModal" tabindex="-1">
+<!-- Session Update Modal -->
+<div class="modal fade" id="sessionUpdateModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Modifier la session</h5>
                 <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
             </div>
-            <form id="sessionEditForm" method="post">
+            <form id="sessionUpdateForm" method="post">
                 <div class="modal-body">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <input type="hidden" id="sessionEditId" name="id">
+                    <input type="hidden" id="sessionUpdateId" name="id">
 
                     <!-- Sujet (obligatoire) -->
                     <div class="mb-3">
-                        <label for="sessionEditSubject" class="form-label">Type de cours *</label>
-                        <select class="form-select" id="sessionEditSubject" name="subject" required>
+                        <label for="sessionUpdateSubject" class="form-label">Type de cours *</label>
+                        <select class="form-select" id="sessionUpdateSubject" name="subject" required>
                             <option value="">Choisissez un type de cours...</option>
                             <option value="YOGA">Yoga</option>
                             <option value="KUNDALINI">Kundalini</option>
@@ -681,33 +689,69 @@
 
                     <!-- Description (obligatoire) -->
                     <div class="mb-3">
-                        <label for="sessionEditDescription" class="form-label">Description *</label>
-                        <textarea class="form-control" id="sessionEditDescription" name="description"
+                        <label for="sessionUpdateDescription" class="form-label">Description *</label>
+                        <textarea class="form-control" id="sessionUpdateDescription" name="description"
                                   rows="3" placeholder="Décrivez cette séance en détail..." required></textarea>
+                    </div>
+
+                    <!-- Type de session - AJOUTÉ MANQUANT -->
+                    <hr>
+                    <h6 class="mb-3">Type de session</h6>
+                    <div class="mb-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sessionUpdateType" id="sessionUpdateTypeIrl" value="false">
+                            <label class="form-check-label" for="sessionUpdateTypeIrl">
+                                <i class="fas fa-map-marker-alt me-1"></i>En présentiel
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sessionUpdateType" id="sessionUpdateTypeOnline" value="true">
+                            <label class="form-check-label" for="sessionUpdateTypeOnline">
+                                <i class="fas fa-video me-1"></i>En ligne
+                            </label>
+                        </div>
+                        <input type="hidden" id="sessionUpdateIsOnline" name="isOnline" value="false">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Vous pouvez changer le type de session. Les champs spécifiques à l'ancien type seront effacés.
+                        </div>
                     </div>
 
                     <!-- Informations de lieu -->
                     <hr>
-                    <h6 class="mb-3">Lieu de la séance</h6>
-                    <div class="row">
-                        <div class="col-md-8 mb-3">
-                            <label for="sessionEditRoomName" class="form-label">Nom de la salle/lieu *</label>
-                            <input type="text" class="form-control" id="sessionEditRoomName" name="roomName" required
-                                   placeholder="Ex: Studio Yoga Paris, Salle A, Parc des Buttes Chaumont...">
+                    <h6 class="mb-3" id="sessionUpdateLocationTitle">Lieu de la séance</h6>
+
+                    <!-- Champs pour session IRL - AJOUTÉ DIV AVEC ID -->
+                    <div id="sessionUpdateIrlFields">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="sessionUpdateRoomName" class="form-label">Nom de la salle/lieu *</label>
+                                <input type="text" class="form-control" id="sessionUpdateRoomName" name="roomName"
+                                       placeholder="Ex: Studio Yoga Paris, Salle A, Parc des Buttes Chaumont...">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="sessionUpdatePostalCode" class="form-label">Code postal *</label>
+                                <input type="text" class="form-control" id="sessionUpdatePostalCode" name="postalCode"
+                                       pattern="^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$"
+                                       placeholder="75001" maxlength="5">
+                            </div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="sessionEditPostalCode" class="form-label">Code postal *</label>
-                            <input type="text" class="form-control" id="sessionEditPostalCode" name="postalCode"
-                                   pattern="^(0[1-9]|[1-8][0-9]|9[0-8])\d{3}$" required
-                                   placeholder="75001" maxlength="5">
+                        <div class="mb-3">
+                            <label for="sessionUpdateGoogleMapsLink" class="form-label">Lien Google Maps</label>
+                            <input type="url" class="form-control" id="sessionUpdateGoogleMapsLink" name="googleMapsLink"
+                                   placeholder="https://maps.app.goo.gl/...">
+                            <div class="form-text">Optionnel - Ajoutez un lien Google Maps pour faciliter l'accès</div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="sessionEditGoogleMapsLink" class="form-label">Lien Google Maps</label>
-                        <input type="url" class="form-control" id="sessionEditGoogleMapsLink" name="googleMapsLink"
-                               placeholder="https://maps.app.goo.gl/...">
-                        <div class="form-text">Optionnel - Ajoutez un lien Google Maps pour faciliter l'accès</div>
+                    <!-- Champs pour session en ligne - AJOUTÉ MANQUANT -->
+                    <div id="sessionUpdateOnlineFields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="sessionUpdateZoomLink" class="form-label">Lien Zoom *</label>
+                            <input type="url" class="form-control" id="sessionUpdateZoomLink" name="zoomLink"
+                                   placeholder="https://zoom.us/j/123456789">
+                            <div class="form-text">Lien de la réunion Zoom pour la session en ligne</div>
+                        </div>
                     </div>
 
                     <!-- Date et heure -->
@@ -715,12 +759,12 @@
                     <h6 class="mb-3">Date et horaires</h6>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="sessionEditStartDateTime" class="form-label">Date et heure de début *</label>
-                            <input type="datetime-local" class="form-control" id="sessionEditStartDateTime" name="startDateTime" required>
+                            <label for="sessionUpdateStartDateTime" class="form-label">Date et heure de début *</label>
+                            <input type="datetime-local" class="form-control" id="sessionUpdateStartDateTime" name="startDateTime" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="sessionEditDurationMinutes" class="form-label">Durée (minutes) *</label>
-                            <select class="form-select" id="sessionEditDurationMinutes" name="durationMinutes" required>
+                            <label for="sessionUpdateDurationMinutes" class="form-label">Durée (minutes) *</label>
+                            <select class="form-select" id="sessionUpdateDurationMinutes" name="durationMinutes" required>
                                 <option value="">Choisir...</option>
                                 <option value="15">15 min</option>
                                 <option value="30">30 min</option>
@@ -741,42 +785,44 @@
                     <h6 class="mb-3">👥 Participants et crédits</h6>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="sessionEditAvailableSpots" class="form-label">Nombre de places *</label>
-                            <input type="number" class="form-control" id="sessionEditAvailableSpots"
+                            <label for="sessionUpdateAvailableSpots" class="form-label">Nombre de places *</label>
+                            <input type="number" class="form-control" id="sessionUpdateAvailableSpots"
                                    name="availableSpots" min="1" max="50" required>
                             <div class="form-text">Entre 1 et 50 participants</div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="sessionEditCreditsRequired" class="form-label">Crédits requis *</label>
-                            <input type="number" class="form-control" id="sessionEditCreditsRequired"
+                            <label for="sessionUpdateCreditsRequired" class="form-label">Crédits requis *</label>
+                            <input type="number" class="form-control" id="sessionUpdateCreditsRequired"
                                    name="creditsRequired" min="1" max="10" required>
                             <div class="form-text">Nombre de crédits nécessaires pour participer</div>
                         </div>
                     </div>
 
-                    <!-- Matériel -->
-                    <hr>
-                    <h6 class="mb-3">Matériel</h6>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="sessionEditBringYourMattress"
-                                   name="bringYourMattress" value="true">
-                            <label class="form-check-label" for="sessionEditBringYourMattress">
-                                <strong>Les participants doivent apporter leur tapis</strong>
-                            </label>
-                            <div class="form-text">Cochez si les participants doivent venir avec leur propre équipement</div>
+                    <!-- Matériel - AJOUTÉ DIV AVEC ID -->
+                    <div id="sessionUpdateMaterialSection">
+                        <hr>
+                        <h6 class="mb-3">Matériel</h6>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sessionUpdateBringYourMattress"
+                                       name="bringYourMattress" value="true">
+                                <label class="form-check-label" for="sessionUpdateBringYourMattress">
+                                    <strong>Les participants doivent apporter leur tapis</strong>
+                                </label>
+                                <div class="form-text">Cochez si les participants doivent venir avec leur propre équipement</div>
+                            </div>
+                            <!-- Hidden input pour gérer le cas où la checkbox n'est pas cochée -->
+                            <input type="hidden" name="bringYourMattress" value="false">
                         </div>
-                        <!-- Hidden input pour gérer le cas où la checkbox n'est pas cochée -->
-                        <input type="hidden" name="bringYourMattress" value="false">
                     </div>
 
                     <!-- Section participants inscrits (info only) -->
                     <hr>
                     <h6 class="mb-3">📋 Participants inscrits</h6>
-                    <div class="alert alert-info" id="sessionEditParticipantsInfo">
+                    <div class="alert alert-info" id="sessionUpdateParticipantsInfo">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span id="sessionEditParticipantsCount">0 participant(s) inscrit(s)</span>
-                            <button type="button" class="btn btn-sm btn-outline-info" id="sessionEditViewParticipants">
+                            <span id="sessionUpdateParticipantsCount">0 participant(s) inscrit(s)</span>
+                            <button type="button" class="btn btn-sm btn-outline-info" id="sessionUpdateViewParticipants">
                                 Voir la liste
                             </button>
                         </div>
@@ -784,14 +830,12 @@
                 </div>
                 <div class="modal-footer">
                     <div class="me-auto">
-                        <!-- Bouton Annuler la session (rouge, à gauche) -->
-                        <button type="button" class="btn btn-danger" id="sessionEditCancelBtn">
+                        <button type="button" class="btn btn-outline-secondary btn-sm session-cancel-btn" id="sessionUpdateCancelBtn">
                             <i class="fas fa-ban me-1"></i>
                             Annuler cette session
                         </button>
                     </div>
                     <div>
-                        <!-- Boutons standards (à droite) -->
                         <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Fermer</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save me-1"></i>

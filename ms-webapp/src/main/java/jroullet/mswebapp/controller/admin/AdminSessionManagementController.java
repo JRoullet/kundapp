@@ -20,7 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin")
+@RequestMapping("/admin/sessions")
 @RequiredArgsConstructor
 public class AdminSessionManagementController {
 
@@ -29,7 +29,7 @@ public class AdminSessionManagementController {
     private final Logger logger = LoggerFactory.getLogger(AdminTeacherController.class);
 
     //Admin get session details
-    @GetMapping("/sessions/{sessionId}/details")
+    @GetMapping("/{sessionId}/details")
     @ResponseBody
     public ResponseEntity<SessionWithParticipantsDTO> getSessionDetails(@PathVariable Long sessionId) {
         try {
@@ -42,7 +42,7 @@ public class AdminSessionManagementController {
     }
 
     //Admin update session endpoint
-    @PostMapping("/sessions/{sessionId}/update")
+    @PostMapping("/{sessionId}/update")
     public ModelAndView updateSession(@PathVariable Long sessionId,
                                       @ModelAttribute @Valid SessionUpdateDTO sessionUpdateDTO,
                                       BindingResult result,
@@ -63,7 +63,7 @@ public class AdminSessionManagementController {
         }
     }
 
-    @PostMapping("/sessions/cancel")
+    @PostMapping("/cancel")
     public ModelAndView cancelSession(@RequestParam Long sessionId, RedirectAttributes redirectAttributes) {
         try {
             sessionManagementService.cancelSessionByAdmin(sessionId);
@@ -74,7 +74,7 @@ public class AdminSessionManagementController {
         return new ModelAndView("redirect:/admin?tab=sessions");
     }
 
-    @GetMapping("/sessions/{sessionId}/participants")
+    @GetMapping("/{sessionId}/participants")
     @ResponseBody
     public List<UserParticipantDTO> getSessionParticipants(@PathVariable Long sessionId) {
         logger.info("Fetching session participants for session: {}", sessionId);

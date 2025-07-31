@@ -6,7 +6,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,10 +19,11 @@ public class SessionUpdateDTO {
     @NotBlank(message = "La description est obligatoire")
     private String description;
 
-    @NotBlank(message = "Le nom de la salle est obligatoire")
+    @NotNull(message = "Le type de session est obligatoire")
+    private Boolean isOnline;
+
     private String roomName;
 
-    @NotBlank(message = "Le code postal est obligatoire")
     @Pattern(regexp = "^(0[1-9]|[1-8][0-9]|9[0-8])\\d{3}$",
             message = "Le code postal doit contenir 5 chiffres")
     private String postalCode;
@@ -31,6 +31,8 @@ public class SessionUpdateDTO {
     @Pattern(regexp = "^https://(maps\\.google\\.(com|fr)|maps\\.app\\.goo\\.gl)/.*",
             message = "Le lien doit être un lien Google Maps valide")
     private String googleMapsLink;
+
+    private String zoomLink;
 
     @NotNull(message = "Le nombre de places est obligatoire")
     @Min(value = 1, message = "Il doit y avoir au moins 1 place disponible")

@@ -584,6 +584,14 @@ body.signin-form {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.admin-table tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+}
+
+.admin-table tbody tr:nth-child(odd) {
+    background-color: white;
+}
+
 .admin-table-container {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
