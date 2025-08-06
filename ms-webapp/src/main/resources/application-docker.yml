@@ -1,6 +1,10 @@
 server:
   port: 8080
 spring:
+  web:
+    locale: fr_FR
+  thymeleaf:
+    encoding: UTF-8
   application:
     name: "ms-webapp"
   config:

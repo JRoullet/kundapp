@@ -105,7 +105,7 @@ function openEditTeacherModal(teacherId) {
 
             if (teacher.status) {
                 toggleStatusBtn.textContent = 'Désactiver ce teacher';
-                toggleStatusBtn.className = 'btn btn-warning';
+                toggleStatusBtn.className = 'btn btn-outline-secondary btn-sm';
                 toggleStatusBtn.onclick = () => confirmDisableTeacherFromModal(teacherId);
             } else {
                 toggleStatusBtn.textContent = 'Activer ce teacher';
@@ -173,7 +173,7 @@ function openEditUserModal(userId) {
 
             if (user.status) {
                 toggleStatusBtn.textContent = 'Désactiver ce client';
-                toggleStatusBtn.className = 'btn btn-warning';
+                toggleStatusBtn.className = 'btn btn-outline-secondary btn-sm';
                 toggleStatusBtn.onclick = () => confirmDisableUserFromModal(userId);
             } else {
                 toggleStatusBtn.textContent = 'Activer ce client';
@@ -317,7 +317,7 @@ function populateAdminUpdateForm(session, sessionId) {
     document.getElementById('sessionUpdateParticipantsCount').textContent = `${participantsCount} participant(s) inscrit(s)`;
 
     // Configure buttons based on status
-    const saveBtn = document.querySelector('#sessionUpdateModal .btn-primary');
+    const saveBtn = document.querySelector('#sessionUpdateModal .btn-admin-primary');
     const cancelBtn = document.getElementById('sessionUpdateCancelBtn');
     const formElements = document.querySelectorAll('#sessionUpdateForm input, #sessionUpdateForm select, #sessionUpdateForm textarea');
 
