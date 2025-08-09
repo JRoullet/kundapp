@@ -1,7 +1,7 @@
 package jroullet.msidentity.service;
 
-import jroullet.msidentity.dto.*;
-import jroullet.msidentity.dto.user.UserParticipantDTO;
+import jroullet.msidentity.dto.teacher.TeacherDTO;
+import jroullet.msidentity.dto.user.*;
 
 import java.util.List;
 

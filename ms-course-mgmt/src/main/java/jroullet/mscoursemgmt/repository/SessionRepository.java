@@ -1,15 +1,13 @@
 package jroullet.mscoursemgmt.repository;
 
-import jroullet.mscoursemgmt.model.Session;
-import jroullet.mscoursemgmt.model.SessionStatus;
-import org.hibernate.annotations.processing.SQL;
+import jroullet.mscoursemgmt.model.session.Session;
+import jroullet.mscoursemgmt.model.session.SessionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
 @Repository

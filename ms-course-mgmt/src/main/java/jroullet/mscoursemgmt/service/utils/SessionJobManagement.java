@@ -1,15 +1,12 @@
 package jroullet.mscoursemgmt.service.utils;
 
-import jakarta.persistence.EntityNotFoundException;
-import jroullet.mscoursemgmt.dto.SessionCreationWithTeacherDTO;
-import jroullet.mscoursemgmt.dto.SessionWithParticipantsDTO;
-import jroullet.mscoursemgmt.dto.SessionUpdateDTO;
-import jroullet.mscoursemgmt.exception.BusinessException;
-import jroullet.mscoursemgmt.exception.SessionOverlappingTimeException;
-import jroullet.mscoursemgmt.exception.SessionStartingTimeException;
+import jroullet.mscoursemgmt.dto.session.SessionCreationWithTeacherDTO;
+import jroullet.mscoursemgmt.dto.session.SessionWithParticipantsDTO;
+import jroullet.mscoursemgmt.dto.session.SessionUpdateDTO;
+import jroullet.mscoursemgmt.exception.*;
 import jroullet.mscoursemgmt.mapper.SessionMapper;
-import jroullet.mscoursemgmt.model.Session;
-import jroullet.mscoursemgmt.model.SessionStatus;
+import jroullet.mscoursemgmt.model.session.Session;
+import jroullet.mscoursemgmt.model.session.SessionStatus;
 import jroullet.mscoursemgmt.repository.SessionRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -53,14 +50,14 @@ public class SessionJobManagement {
 
         //Verify session is set on a possible day
         if(sessionStart.isBefore(now)) {
-            throw new SessionStartingTimeException("La session ne peut pas être dans le passé");
+            throw new SessionStartingTimeException("Session start time cannot be in the past");
         }
         //Verify session is not overlapping another session
         List<Session> conflictingSessions = sessionRepository
                 .findByTeacherIdAndStartDateTimeBetween(dto.getTeacherId(), sessionStart, sessionEnd);
 
         if (!conflictingSessions.isEmpty()) {
-            throw new SessionOverlappingTimeException("Vous avez déjà une session programmée à ces horaires");
+            throw new SessionOverlappingTimeException("A session already exists at this time for the teacher");
         }
     }
 
@@ -71,11 +68,11 @@ public class SessionJobManagement {
     public SessionWithParticipantsDTO updateSessionCommon(SessionWithParticipantsDTO sessionWithParticipantsDTO, SessionUpdateDTO dto) {
 
         if (sessionWithParticipantsDTO.getStatus() != SessionStatus.SCHEDULED) {
-            throw new BusinessException("Only scheduled sessions can be updated");
+            throw new InvalidSessionStateException("Only scheduled sessions can be updated");
         }
         //Verify session starts in future
         if (dto.getStartDateTime().isBefore(LocalDateTime.now())) {
-            throw new BusinessException("Session start time cannot be in the past");
+            throw new SessionStartingTimeException("Session start time cannot be in the past");
         }
 
         //Verify time conflicts with other sessions
@@ -83,11 +80,11 @@ public class SessionJobManagement {
 
         //Verify spots are not reduced below registered participants
         if (dto.getAvailableSpots() < (sessionWithParticipantsDTO.getRegisteredParticipants() != null ? sessionWithParticipantsDTO.getRegisteredParticipants() : 0)) {
-            throw new BusinessException("Cannot reduce spots below registered participants count");
+            throw new InsufficientSpotsException("Cannot reduce spots below registered participants count");
         }
 
         Session session = sessionRepository.findById(sessionWithParticipantsDTO.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Session not found"));
+                .orElseThrow(() -> new SessionNotFoundException("Session not found"));
 
         // Mapping to entity and modifying it
         sessionMapper.updateSessionFromDto(dto, session);
@@ -110,7 +107,7 @@ public class SessionJobManagement {
                 .toList();
 
         if (!conflictingSessions.isEmpty()) {
-            throw new BusinessException("Teacher has overlapping sessions at this time");
+            throw new SessionOverlappingTimeException("Teacher has overlapping sessions at this time");
         }
     }
 

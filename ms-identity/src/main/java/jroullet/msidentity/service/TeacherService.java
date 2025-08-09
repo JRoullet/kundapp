@@ -1,9 +1,11 @@
 package jroullet.msidentity.service;
 
-import jakarta.validation.Valid;
-import jroullet.msidentity.dto.*;
+import jroullet.msidentity.dto.teacher.TeacherDTO;
+import jroullet.msidentity.dto.teacher.TeacherRegistrationDTO;
+import jroullet.msidentity.dto.teacher.TeacherUpdateDTO;
+import jroullet.msidentity.dto.user.UserStatusResponseDTO;
 import org.springframework.stereotype.Service;
-@Service
+
 public interface TeacherService {
 
    TeacherDTO registerTeacher(TeacherRegistrationDTO dto);

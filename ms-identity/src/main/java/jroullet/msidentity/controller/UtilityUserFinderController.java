@@ -1,7 +1,7 @@
 package jroullet.msidentity.controller;
 
-import jroullet.msidentity.dto.TeacherDTO;
-import jroullet.msidentity.dto.UserDTO;
+import jroullet.msidentity.dto.teacher.TeacherDTO;
+import jroullet.msidentity.dto.user.UserDTO;
 import jroullet.msidentity.exception.UserNotFoundException;
 import jroullet.msidentity.service.TeacherService;
 import jroullet.msidentity.service.impl.UserServiceImpl;

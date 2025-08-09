@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import jroullet.mswebapp.dto.session.*;
 import jroullet.mswebapp.dto.session.create.SessionCreationResponseDTO;
 import jroullet.mswebapp.dto.session.create.SessionCreationWithTeacherDTO;
+import jroullet.mswebapp.dto.session.participant.AddParticipantRequest;
+import jroullet.mswebapp.dto.session.participant.ParticipantOperationResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,4 +63,14 @@ public interface CourseManagementFeignClient {
 
     @GetMapping("/client/past/{participantId}")
     List<SessionNoParticipantsDTO> getPastSessionsForClient(@PathVariable("participantId") Long participantId);
+
+    @PostMapping("/client/{sessionId}/participants")
+    ParticipantOperationResponse addParticipantToSession(
+            @PathVariable Long sessionId,
+            @RequestBody AddParticipantRequest request);
+
+    @DeleteMapping("/client/{sessionId}/participants/{userId}")
+    ParticipantOperationResponse removeParticipantFromSession(
+            @PathVariable Long sessionId,
+            @PathVariable Long userId);
 }

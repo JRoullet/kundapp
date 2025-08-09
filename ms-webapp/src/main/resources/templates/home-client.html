@@ -138,9 +138,10 @@
                         <button class="btn btn-outline-secondary btn-sm description-btn-floating"
                                 th:data-session-title="${sessionItem.subject}"
                                 th:data-session-description="${sessionItem.description}"
-                                title="Voir la description">
+                                th:data-teacher-name="${sessionItem.teacherFirstName + ' ' + sessionItem.teacherLastName}">
                             ℹ️
                         </button>
+
                         <div class="row g-0 align-items-center">
                             <!-- Colonne 1 - Gauche -->
                             <div class="col-4 session-col-left">
@@ -162,9 +163,9 @@
                             <!-- Colonne 2 - Milieu -->
                             <div class="col-4 session-col-center">
                                 <div class="session-teacher-line">
-                                        <span class="fw-bold teacher-name">
-                                            Prof. <span th:text="${sessionItem.teacherFirstName + ' ' + sessionItem.teacherLastName}">Jojo jojo</span>
-                                        </span>
+                                <span class="fw-bold teacher-name">
+                                    Prof. <span th:text="${sessionItem.teacherFirstName + ' ' + sessionItem.teacherLastName}">Jojo jojo</span>
+                                </span>
                                 </div>
                                 <div class="session-room-line">
                                     <small>
@@ -198,7 +199,10 @@
                                             <button class="btn btn-secondary btn-sm disabled" disabled>COMPLET</button>
                                         </th:block>
                                         <th:block th:unless="${sessionItem.availableSpots <= sessionItem.registeredParticipants}">
-                                            <button class="btn btn-primary btn-sm register-btn" th:data-session-id="${sessionItem.id}">S'INSCRIRE</button>
+                                            <button class="btn btn-primary btn-sm register-btn"
+                                                    th:data-session-id="${sessionItem.id}">
+                                                S'INSCRIRE
+                                            </button>
                                         </th:block>
                                     </th:block>
                                 </div>
@@ -209,99 +213,70 @@
             </div>
         </div>
 
-        <!-- Upcoming Sessions Tab -->
+        <!-- SESSIONS À VENIR -->
         <div class="tab-pane fade" id="upcoming" role="tabpanel">
             <div class="row">
-                <div th:each="session : ${upcomingSessions}"
-                     class="col-12 mb-3"
-                     data-session-card
-                     th:data-subject="${session.subject}"
-                     th:data-online="${session.isOnline}"
-                     th:data-teacher="${session.teacherFirstName + ' ' + session.teacherLastName}">
-                    <div class="card session-card border-0 shadow-sm" th:data-session-id="${session.id}">
-                        <div class="card-body">
-                            <div class="session-card-content">
-                                <!-- Left - Date/Time/Location -->
-                                <div class="session-info-left">
-                                    <h5 class="session-title mb-2 fw-bold" th:text="${session.subject}">Yoga</h5>
-                                    <p class="mb-1">
-                                        <i class="fas fa-calendar me-2 text-muted"></i>
-                                        <small th:text="${#temporals.format(sessionItem.startDateTime, 'EEEE d MMMM yyyy', T(java.util.Locale).FRANCE)}">Lundi 15 janvier 2025</small>
-                                    </p>
-                                    <p class="mb-1">
-                                        <i class="fas fa-clock me-2 text-muted"></i>
-                                        <small>
-                                            <span th:text="${#temporals.format(session.startDateTime, 'HH:mm')}">14:00</span>
-                                            -
-                                            <span th:text="${#temporals.format(session.endDateTime, 'HH:mm')}">15:00</span>
-                                        </small>
-                                    </p>
-                                    <p class="mb-0">
+                <div th:each="session : ${upcomingSessions}" class="col-12 mb-3">
+                    <div class="session-card-content">
+                        <!-- Info Button -->
+                        <button class="btn btn-outline-secondary btn-sm description-btn-floating"
+                                th:data-session-title="${session.subject}"
+                                th:data-session-description="${session.description}"
+                                th:data-teacher-name="${session.teacherFirstName + ' ' + session.teacherLastName}">
+                            ℹ️
+                        </button>
+
+                        <div class="row g-0 align-items-center">
+                            <!-- Colonne 1 - Gauche -->
+                            <div class="col-4 session-col-left">
+                                <div class="session-title-line">
+                                    <h5 class="session-title mb-0 fw-bold" th:text="${session.subject}">YOGA</h5>
+                                </div>
+                                <div class="session-date-line">
+                                    <small th:text="${#temporals.format(session.startDateTime, 'EEEE d MMMM yyyy')}">lundi 15 janvier 2025</small>
+                                </div>
+                                <div class="session-time-line">
+                                    <small>
+                                        <span th:text="${#temporals.format(session.startDateTime, 'HH:mm')}">14:00</span>
+                                        -
+                                        <span th:text="${#temporals.format(session.startDateTime.plusMinutes(session.durationMinutes), 'HH:mm')}">15:00</span>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Colonne 2 - Milieu -->
+                            <div class="col-4 session-col-center">
+                                <div class="session-teacher-line">
+                                <span class="fw-bold teacher-name">
+                                    Prof. <span th:text="${session.teacherFirstName + ' ' + session.teacherLastName}">Marie Dupont</span>
+                                </span>
+                                </div>
+                                <div class="session-room-line">
+                                    <small>
                                         <th:block th:if="${session.isOnline}">
-                                            <small>💻 En ligne</small>
+                                            <span class="session-online-badge">💻 En ligne</span>
                                         </th:block>
                                         <th:block th:unless="${session.isOnline}">
-                                            <i class="fas fa-map-marker-alt me-2 text-muted"></i>
-                                            <small th:text="${session.roomName ?: 'Lieu non défini'}">Salle A</small>
+                                            <span th:text="${session.roomName ?: 'Lieu non défini'}">Salle A</span>
                                         </th:block>
-                                    </p>
+                                    </small>
                                 </div>
-
-                                <!-- Center - Teacher/Room/Participants -->
-                                <div class="session-info-center">
-                                    <p class="mb-2 fw-bold teacher-name">
-                                        Prof. <span th:text="${session.teacherFirstName + ' ' + session.teacherLastName}">Marie Dupont</span>
-                                    </p>
-                                    <p class="mb-1">
-                                        <i class="fas fa-door-open me-2 text-muted"></i>
-                                        <small th:text="${session.roomName ?: 'Salle non définie'}">Salle A</small>
-                                    </p>
-                                    <p class="mb-0">
-                                        <i class="fas fa-users me-2 text-muted"></i>
-                                        <small>
-                                            <span th:text="${session.registeredParticipants}">5</span> participants
-                                            (<span th:text="${session.availableSpots - session.registeredParticipants}">3</span> places)
-                                        </small>
-                                    </p>
+                                <div class="session-participants-line">
+                                    <small>
+                                        <span th:text="${session.registeredParticipants}">5</span> participants
+                                        (<span th:text="${session.availableSpots - session.registeredParticipants}">3</span> places)
+                                    </small>
                                 </div>
+                            </div>
 
-                                <!-- Right - Action Buttons -->
-                                <div class="session-action-right">
-                                    <div class="d-flex flex-column gap-2 align-items-center">
-                                        <!-- Registration Status Badge -->
-                                        <div th:if="${sessionItem.isUserRegistered}">
-                                            <span class="badge bg-success mb-2">Inscrit ✓</span>
-                                        </div>
-
-                                        <!-- Action Button (centered) -->
-                                        <div class="action-button-container">
-                                            <th:block th:if="${sessionItem.isUserRegistered}">
-                                                <button class="btn btn-outline-danger btn-sm"
-                                                        th:onclick="'unregisterFromSession(' + ${sessionItem.id} + ')'">
-                                                    <i class="fas fa-times me-1"></i>Se désinscrire
-                                                </button>
-                                            </th:block>
-                                            <th:block th:unless="${sessionItem.isUserRegistered}">
-                                                <!-- Session complète -->
-                                                <th:block th:if="${sessionItem.availableSpots <= sessionItem.registeredParticipants}">
-                                                    <button class="btn btn-secondary btn-sm disabled" disabled>
-                                                        <i class="fas fa-calendar-plus me-1"></i>Complet
-                                                    </button>
-                                                </th:block>
-                                                <!-- Session disponible -->
-                                                <th:block th:unless="${sessionItem.availableSpots <= sessionItem.registeredParticipants}">
-                                                    <button class="btn btn-primary btn-sm"
-                                                            th:onclick="'registerForSession(' + ${sessionItem.id} + ')'">
-                                                        <i class="fas fa-calendar-plus me-1"></i>S'inscrire
-                                                    </button>
-                                                </th:block>
-                                            </th:block>
-                                        </div>
-
-                                        <!-- Description Button -->
-                                        <button class="btn btn-outline-secondary btn-sm"
-                                                th:onclick="'showDescription(\'' + ${sessionItem.subject} + '\', \'' + ${sessionItem.description} + '\')'">
-                                            <i class="fas fa-info-circle me-1"></i>Description
+                            <!-- Colonne 3 - Droite -->
+                            <div class="col-4 session-col-right">
+                                <div class="session-register-line">
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        <span class="badge bg-success mb-1">Inscrit ✓</span>
+                                        <button class="btn btn-outline-danger btn-sm unregister-btn"
+                                                th:data-session-id="${session.id}">
+                                            SE DÉSINSCRIRE
                                         </button>
                                     </div>
                                 </div>
@@ -313,62 +288,65 @@
             <!-- Message si aucune session -->
             <div class="text-center py-5" th:if="${#lists.isEmpty(upcomingSessions)}">
                 <div class="text-muted">
-                    <i class="fas fa-calendar-check fa-3x mb-3"></i>
                     <h5>Aucune session à venir</h5>
                     <p>Vous n'avez pas encore de réservations.</p>
                 </div>
             </div>
         </div>
 
-        <!-- History Tab -->
+        <!-- HISTORIQUE -->
         <div class="tab-pane fade" id="history" role="tabpanel">
             <div class="row">
                 <div th:each="session : ${historySessions}" class="col-12 mb-3">
-                    <div class="card session-card border-0 shadow-sm">
-                        <div class="card-body">
-                            <div class="session-card-content">
-                                <!-- Left - Date/Time/Location -->
-                                <div class="session-info-left">
-                                    <h5 class="session-title mb-2 fw-bold" th:text="${session.subject}">Yoga</h5>
-                                    <p class="mb-1">
-                                        <i class="fas fa-calendar me-2 text-muted"></i>
-                                        <small th:text="${#temporals.format(session.startDateTime, 'EEEE d MMMM yyyy', 'fr')}">Lundi 15 janvier 2025</small>
-                                    </p>
-                                    <p class="mb-1">
-                                        <i class="fas fa-clock me-2 text-muted"></i>
-                                        <small th:text="${#temporals.format(session.startDateTime, 'HH:mm')}">14:00</small>
-                                    </p>
-                                    <p class="mb-0">
+                    <div class="session-card-content">
+                        <!-- Info Button -->
+                        <button class="btn btn-outline-secondary btn-sm description-btn-floating"
+                                th:data-session-title="${session.subject}"
+                                th:data-session-description="${session.description}"
+                                th:data-teacher-name="${session.teacherFirstName + ' ' + session.teacherLastName}">
+                            ℹ️
+                        </button>
+
+                        <div class="row g-0 align-items-center">
+                            <!-- Colonne 1 - Gauche -->
+                            <div class="col-4 session-col-left">
+                                <div class="session-title-line">
+                                    <h5 class="session-title mb-0 fw-bold" th:text="${session.subject}">YOGA</h5>
+                                </div>
+                                <div class="session-date-line">
+                                    <small th:text="${#temporals.format(session.startDateTime, 'EEEE d MMMM yyyy')}">lundi 15 janvier 2025</small>
+                                </div>
+                                <div class="session-time-line">
+                                    <small th:text="${#temporals.format(session.startDateTime, 'HH:mm')}">14:00</small>
+                                </div>
+                            </div>
+
+                            <!-- Colonne 2 - Milieu -->
+                            <div class="col-4 session-col-center">
+                                <div class="session-teacher-line">
+                                <span class="fw-bold teacher-name">
+                                    Prof. <span th:text="${session.teacherFirstName + ' ' + session.teacherLastName}">Marie Dupont</span>
+                                </span>
+                                </div>
+                                <div class="session-room-line">
+                                    <small>
                                         <th:block th:if="${session.isOnline}">
-                                            <i class="fas fa-video me-2 text-muted"></i><small>En ligne</small>
+                                            <span class="session-online-badge">💻 En ligne</span>
                                         </th:block>
                                         <th:block th:unless="${session.isOnline}">
-                                            <i class="fas fa-map-marker-alt me-2 text-muted"></i>
-                                            <small th:text="${session.roomName}">Salle A</small>
+                                            <span th:text="${session.roomName ?: 'Lieu non défini'}">Salle A</span>
                                         </th:block>
-                                    </p>
+                                    </small>
                                 </div>
-
-                                <!-- Center - Teacher/Room -->
-                                <div class="session-info-center">
-                                    <p class="mb-2 fw-bold teacher-name">
-                                        Prof. <span th:text="${session.teacherFirstName + ' ' + session.teacherLastName}">Marie Dupont</span>
-                                    </p>
-                                    <p class="mb-0">
-                                        <i class="fas fa-door-open me-2 text-muted"></i>
-                                        <small th:text="${session.roomName}">Salle A</small>
-                                    </p>
+                                <div class="session-participants-line">
+                                    <small>Session terminée</small>
                                 </div>
+                            </div>
 
-                                <!-- Right - Status -->
-                                <div class="session-action-right">
-                                    <div class="d-flex flex-column gap-2 align-items-center">
-                                        <span class="badge bg-success mb-2">Terminée</span>
-                                        <button class="btn btn-outline-secondary btn-sm"
-                                                th:onclick="'showDescription(\'' + ${session.subject} + '\', \'' + ${session.description} + '\')'">
-                                            <i class="fas fa-info-circle me-1"></i>Description
-                                        </button>
-                                    </div>
+                            <!-- Colonne 3 - Droite -->
+                            <div class="col-4 session-col-right">
+                                <div class="session-register-line">
+                                    <span class="badge bg-secondary">Terminée</span>
                                 </div>
                             </div>
                         </div>
@@ -378,13 +356,13 @@
             <!-- Message si aucune session -->
             <div class="text-center py-5" th:if="${#lists.isEmpty(historySessions)}">
                 <div class="text-muted">
-                    <i class="fas fa-history fa-3x mb-3"></i>
                     <h5>Aucun historique</h5>
                     <p>Vous n'avez pas encore participé à des sessions.</p>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Modal for Session Description -->
     <div class="modal fade" id="sessionDescriptionModal" tabindex="-1">

@@ -5,9 +5,7 @@ import jroullet.mswebapp.service.SessionManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -38,6 +36,24 @@ public class UserSessionManagementController {
     public ResponseEntity<List<SessionNoParticipantsDTO>> getHistorySessions() {
         List<SessionNoParticipantsDTO> sessions = sessionManagementService.getPastSessionsForClient();
         return ResponseEntity.ok(sessions);
+    }
+
+    /**
+     * Register current user to a session
+     */
+    @PostMapping("/{sessionId}/register")
+    public ResponseEntity<Void> registerToSession(@PathVariable Long sessionId) {
+        sessionManagementService.registerToSession(sessionId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Unregister current user from a session
+     */
+    @PostMapping("/{sessionId}/unregister")
+    public ResponseEntity<Void> unregisterFromSession(@PathVariable Long sessionId) {
+        sessionManagementService.unregisterFromSession(sessionId);
+        return ResponseEntity.ok().build();
     }
 
 }

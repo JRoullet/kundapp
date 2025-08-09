@@ -1,7 +1,7 @@
 package jroullet.msidentity.service.impl;
 
-import jroullet.msidentity.dto.*;
-import jroullet.msidentity.dto.user.UserParticipantDTO;
+import jroullet.msidentity.dto.teacher.TeacherDTO;
+import jroullet.msidentity.dto.user.*;
 import jroullet.msidentity.exception.EmailAlreadyExistsException;
 import jroullet.msidentity.exception.RoleNotAllowedException;
 import jroullet.msidentity.exception.UserNotFoundException;

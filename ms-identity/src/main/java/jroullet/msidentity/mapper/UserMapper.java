@@ -1,12 +1,11 @@
 package jroullet.msidentity.mapper;
 
-import jroullet.msidentity.dto.TeacherDTO;
-import jroullet.msidentity.dto.UserDTO;
-import jroullet.msidentity.dto.UserStatusResponseDTO;
+import jroullet.msidentity.dto.teacher.TeacherDTO;
+import jroullet.msidentity.dto.user.UserDTO;
+import jroullet.msidentity.dto.user.UserStatusResponseDTO;
 import jroullet.msidentity.dto.user.UserParticipantDTO;
 import jroullet.msidentity.model.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {

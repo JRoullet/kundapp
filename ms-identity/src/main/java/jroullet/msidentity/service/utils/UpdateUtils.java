@@ -1,6 +1,6 @@
 package jroullet.msidentity.service.utils;
-import jroullet.msidentity.dto.TeacherUpdateDTO;
-import jroullet.msidentity.dto.UserUpdateDTO;
+import jroullet.msidentity.dto.teacher.TeacherUpdateDTO;
+import jroullet.msidentity.dto.user.UserUpdateDTO;
 import jroullet.msidentity.model.Address;
 import jroullet.msidentity.model.User;
 import org.springframework.stereotype.Component;

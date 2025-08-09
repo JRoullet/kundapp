@@ -1,7 +1,10 @@
 package jroullet.mscoursemgmt.mapper;
 
-import jroullet.mscoursemgmt.dto.*;
-import jroullet.mscoursemgmt.model.Session;
+import jroullet.mscoursemgmt.dto.session.SessionCreationWithTeacherDTO;
+import jroullet.mscoursemgmt.dto.session.SessionNoParticipantsDTO;
+import jroullet.mscoursemgmt.dto.session.SessionUpdateDTO;
+import jroullet.mscoursemgmt.dto.session.SessionWithParticipantsDTO;
+import jroullet.mscoursemgmt.model.session.Session;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -14,7 +17,7 @@ public interface SessionMapper {
     @Mapping(target = "participantIds", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "status", expression = "java(jroullet.mscoursemgmt.model.SessionStatus.SCHEDULED)")
+    @Mapping(target = "status", expression = "java(jroullet.mscoursemgmt.model.session.SessionStatus.SCHEDULED)")
     Session toEntity(SessionCreationWithTeacherDTO dto);
 
 
@@ -22,7 +25,7 @@ public interface SessionMapper {
     @Mapping(target = "participantIds", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "status", expression = "java(jroullet.mscoursemgmt.model.SessionStatus.SCHEDULED)")
+    @Mapping(target = "status", expression = "java(jroullet.mscoursemgmt.model.session.SessionStatus.SCHEDULED)")
     Session toCreateEntity(SessionCreationWithTeacherDTO dto);
 
     @Mapping(target = "registeredParticipants", expression = "java(session.getParticipantIds().size())")

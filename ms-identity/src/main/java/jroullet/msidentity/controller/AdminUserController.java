@@ -1,8 +1,7 @@
 package jroullet.msidentity.controller;
 
 import jakarta.validation.Valid;
-import jroullet.msidentity.dto.*;
-import jroullet.msidentity.dto.user.UserParticipantDTO;
+import jroullet.msidentity.dto.user.*;
 import jroullet.msidentity.exception.EmailAlreadyExistsException;
 import jroullet.msidentity.exception.UserNotFoundException;
 import jroullet.msidentity.service.UserService;

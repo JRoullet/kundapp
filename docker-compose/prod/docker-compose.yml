@@ -101,6 +101,8 @@ services:
       service: microservice-discovery-config
     environment:
       SPRING_DATASOURCE_URL: ${DATABASE_URL}
+      APP_INTERNAL_SECRET: ${INTERNAL_SECRET}
+
 
   msidentity:
     image: jroullet/kundapp-ms-identity:latest
@@ -113,6 +115,8 @@ services:
       service: microservice-discovery-config
     environment:
       SPRING_DATASOURCE_URL: ${DATABASE_URL}
+      APP_INTERNAL_SECRET: ${INTERNAL_SECRET}
+
 
   mscoursemgmt:
     image: jroullet/kundapp-ms-course-mgmt:latest

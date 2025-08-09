@@ -32,3 +32,18 @@ CREATE TABLE session_participants (
               PRIMARY KEY (session_id, participant_id),
               FOREIGN KEY (session_id) REFERENCES session(id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE reservation (
+             id VARCHAR(36) PRIMARY KEY,
+             user_id BIGINT NOT NULL,
+             session_id BIGINT NOT NULL,
+             amount INTEGER NOT NULL,
+             status ENUM('RESERVED', 'CONFIRMED', 'CANCELLED', 'EXPIRED') DEFAULT 'RESERVED',
+             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+             expires_at TIMESTAMP NOT NULL,
+             confirmed_at TIMESTAMP NULL,
+
+             FOREIGN KEY (session_id) REFERENCES session(id) ON DELETE CASCADE,
+             INDEX idx_user_session (user_id, session_id),
+             INDEX idx_expires_at (expires_at, status)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

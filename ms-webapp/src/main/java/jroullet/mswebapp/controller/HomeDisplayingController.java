@@ -32,8 +32,13 @@ public class HomeDisplayingController {
         logger.info("Fetching client home");
         UserDTO userDTO = sessionService.getCurrentUser();
         List<SessionNoParticipantsDTO> sessions = sessionManagementService.getAvailableSessionsForClient();
+        List<SessionNoParticipantsDTO> upcomingSessions = sessionManagementService.getUpcomingSessionsForClient();
+        List<SessionNoParticipantsDTO> historySessions = sessionManagementService.getPastSessionsForClient();
+
         model.addAttribute("user", userDTO);
         model.addAttribute("sessions", sessions);
+        model.addAttribute("upcomingSessions", upcomingSessions);
+        model.addAttribute("historySessions", historySessions);
 
         return new ModelAndView("home-client");
     }

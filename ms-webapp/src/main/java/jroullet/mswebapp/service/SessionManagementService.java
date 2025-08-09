@@ -8,23 +8,40 @@ import jroullet.mswebapp.dto.session.*;
 import jroullet.mswebapp.dto.session.create.SessionCreationDTO;
 import jroullet.mswebapp.dto.session.create.SessionCreationResponseDTO;
 import jroullet.mswebapp.dto.session.create.SessionCreationWithTeacherDTO;
+import jroullet.mswebapp.dto.session.credits.CreditOperationResponse;
+import jroullet.mswebapp.dto.session.credits.SessionRegistrationDeductRequest;
+import jroullet.mswebapp.dto.session.credits.SessionRollbackRefundRequest;
+import jroullet.mswebapp.dto.session.participant.AddParticipantRequest;
+import jroullet.mswebapp.dto.session.participant.ParticipantOperationResponse;
 import jroullet.mswebapp.dto.user.UserDTO;
 import jroullet.mswebapp.dto.user.UserParticipantDTO;
-import lombok.RequiredArgsConstructor;
+import jroullet.mswebapp.exception.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class SessionManagementService {
 
     private final IdentityFeignClient identityFeignClient;
     private final CourseManagementFeignClient courseFeignClient;
     private final SessionService sessionService;
+    private final String internalSecret;
+
+    public SessionManagementService(IdentityFeignClient identityFeignClient,
+                                    CourseManagementFeignClient courseManagementFeignClient, SessionService sessionService,
+                                    @Value("${app.internal.secret}") String internalSecret) {
+        this.identityFeignClient = identityFeignClient;
+        this.sessionService = sessionService;
+        this.courseFeignClient = courseManagementFeignClient;
+        this.internalSecret = internalSecret;
+    }
+
 
     /**
      *      Common Methods
@@ -177,5 +194,142 @@ public class SessionManagementService {
         }
     }
 
+    @Transactional
+    public void registerToSession(Long sessionId) {
+        UserDTO user = sessionService.getCurrentUser();
+        Long userId = user.getId();
+
+        log.info("Starting session registration for user {} to session {}", userId, sessionId);
+
+        SessionWithParticipantsDTO session = getSessionDetails(sessionId);
+
+        // Validations
+        validateUserHasSufficientCredits(user, session.getCreditsRequired());
+        validateSessionAvailability(session);
+        validateUserNotAlreadyRegistered(session, userId);
+
+        log.info("All validations passed for user {} and session {}", userId, sessionId);
+
+        // Credit deduction
+        CreditOperationResponse creditResponse = deductUserCredits(userId, sessionId, session.getCreditsRequired());
+        log.info("Credits deducted successfully for user {}. Previous: {}, New: {}",
+                userId, creditResponse.previousCredits(), creditResponse.newCredits());
+
+        try {
+            // Participant registration
+            ParticipantOperationResponse participantResponse = addUserToSession(sessionId, userId);
+            log.info("User {} successfully registered to session {}. Participants: {}/{}",
+                    userId, sessionId, participantResponse.currentParticipantCount(),
+                    participantResponse.availableSpots());
+
+        } catch (Exception participantException) {
+            // Error handling
+            log.error("Unexpected failure adding participant despite validations. Rolling back credits for user {} and session {}",
+                    userId, sessionId, participantException);
+
+            try {
+                rollbackUserCredits(userId, sessionId, session.getCreditsRequired());
+                log.info("Credits successfully rolled back for user {} after unexpected failure", userId);
+            } catch (Exception rollbackException) {
+                throw new CreditRollbackFailedException(userId, sessionId, session.getCreditsRequired(), rollbackException);
+            }
+
+            throw new SessionRegistrationException("Unexpected failure during registration", participantException);
+        }
+    }
+
+    /**
+     * 🎯 SESSION UNREGISTRATION
+     */
+    @Transactional
+    public void unregisterFromSession(Long sessionId) {
+        Long userId = sessionService.getCurrentUser().getId();
+
+        log.info("Starting session unregistration for user {} from session {}", userId, sessionId);
+
+        // Step 1: Récupérer les détails de la session
+        SessionWithParticipantsDTO session = getSessionDetails(sessionId);
+
+        // Step 2: Retirer le participant (ms-course-mgmt valide les 48h)
+        ParticipantOperationResponse participantResponse = removeUserFromSession(sessionId, userId);
+        log.info("User {} successfully removed from session {}. Participants: {}/{}",
+                userId, sessionId, participantResponse.currentParticipantCount(),
+                participantResponse.availableSpots());
+
+        // Step 3: Rembourser les crédits
+        refundUserCreditsForCancellation(userId, sessionId, session.getCreditsRequired());
+        log.info("Credits refunded successfully for user {} after cancellation from session {}",
+                userId, sessionId);
+    }
+
+
+    private SessionWithParticipantsDTO getSessionDetails(Long sessionId) {
+        SessionWithParticipantsDTO sessionResponse = courseFeignClient.getSessionById(sessionId);
+        if (sessionResponse == null) {
+            throw new SessionNotFoundException(sessionId);
+        }
+        return sessionResponse;
+    }
+
+    private void validateSessionAvailability(SessionWithParticipantsDTO session) {
+        int currentParticipants = session.getParticipantIds() != null ? session.getParticipantIds().size() : 0;
+        int maxCapacity = session.getAvailableSpots();
+
+        if (currentParticipants >= maxCapacity) {
+            throw new SessionNotAvailableException(session.getId(), currentParticipants, maxCapacity);
+        }
+    }
+
+    private void validateUserHasSufficientCredits(UserDTO user, Integer creditsRequired) {
+        if (user.getCredits() < creditsRequired) {
+            log.warn("User {} has insufficient credits. Available: {}, Required: {}",
+                    user.getId(), user.getCredits(), creditsRequired);
+            throw new InsufficientCreditsException(user.getId(), user.getCredits(), creditsRequired);
+        }
+        log.debug("User {} has sufficient credits. Available: {}, Required: {}",
+                user.getId(), user.getCredits(), creditsRequired);
+    }
+
+    private void validateUserNotAlreadyRegistered(SessionWithParticipantsDTO session, Long userId) {
+        if (session.getParticipantIds() != null && session.getParticipantIds().contains(userId)) {
+            log.warn("User {} is already registered for session {}", userId, session.getId());
+            throw new UserAlreadyRegisteredException(userId, session.getId());
+        }
+        log.debug("User {} is not yet registered for session {}", userId, session.getId());
+    }
+
+    private CreditOperationResponse deductUserCredits(Long userId, Long sessionId, Integer creditsRequired) {
+        SessionRegistrationDeductRequest request = new SessionRegistrationDeductRequest(
+                userId, sessionId, creditsRequired, internalSecret);
+
+        return identityFeignClient.deductCreditsForSessionRegistration(request);
+        // ✅ Exceptions FeignException remontent (crédits insuffisants, utilisateur inexistant, etc.)
+    }
+
+    private void rollbackUserCredits(Long userId, Long sessionId, Integer creditsToRefund) {
+        SessionRollbackRefundRequest request = new SessionRollbackRefundRequest(
+                userId, sessionId, creditsToRefund, internalSecret);
+
+        identityFeignClient.refundCreditsForSessionRollback(request);
+
+    }
+
+    private void refundUserCreditsForCancellation(Long userId, Long sessionId, Integer creditsToRefund) {
+        SessionRollbackRefundRequest request = new SessionRollbackRefundRequest(
+                userId, sessionId, creditsToRefund, internalSecret);
+
+        identityFeignClient.refundCreditsForSessionRollback(request);
+
+    }
+
+    private ParticipantOperationResponse addUserToSession(Long sessionId, Long userId) {
+        AddParticipantRequest request = new AddParticipantRequest(userId);
+        return courseFeignClient.addParticipantToSession(sessionId, request);
+
+    }
+
+    private ParticipantOperationResponse removeUserFromSession(Long sessionId, Long userId) {
+        return courseFeignClient.removeParticipantFromSession(sessionId, userId);
+    }
 
 }

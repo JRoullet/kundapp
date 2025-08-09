@@ -1,12 +1,13 @@
 package jroullet.mscoursemgmt.service.impl;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import jroullet.mscoursemgmt.dto.*;
-import jroullet.mscoursemgmt.exception.BusinessException;
+import jroullet.mscoursemgmt.dto.session.*;
+import jroullet.mscoursemgmt.exception.SessionNotFoundException;
+import jroullet.mscoursemgmt.exception.InvalidSessionStateException;
+import jroullet.mscoursemgmt.exception.UnauthorizedSessionAccessException;
 import jroullet.mscoursemgmt.mapper.SessionMapper;
-import jroullet.mscoursemgmt.model.Session;
-import jroullet.mscoursemgmt.model.SessionStatus;
+import jroullet.mscoursemgmt.model.session.Session;
+import jroullet.mscoursemgmt.model.session.SessionStatus;
 import jroullet.mscoursemgmt.repository.SessionRepository;
 import jroullet.mscoursemgmt.service.SessionService;
 import jroullet.mscoursemgmt.service.utils.SessionJobManagement;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -34,8 +36,28 @@ public class SessionImplService implements SessionService {
     @Override
     public SessionWithParticipantsDTO getSessionById(Long sessionId) {
         Session session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new EntityNotFoundException("Session not found with ID: " + sessionId));
+                .orElseThrow(() -> new SessionNotFoundException("Session not found with ID: " + sessionId));
         return sessionMapper.toDTO(session);
+    }
+
+    /**
+     * Validate that session exists and can be reserved
+     */
+    @Override
+    public Session validateSession(Long sessionId) {
+        Optional<Session> sessionOpt = sessionRepository.findById(sessionId);
+
+        if (sessionOpt.isEmpty()) {
+            throw new SessionNotFoundException("Session not found with ID: " + sessionId);
+        }
+
+        Session session = sessionOpt.get();
+
+        if (session.getStatus() != SessionStatus.SCHEDULED) {
+            throw new InvalidSessionStateException("Cannot reserve session with status: " + session.getStatus());
+        }
+
+        return session;
     }
 
     @Override
@@ -64,7 +86,7 @@ public class SessionImplService implements SessionService {
         SessionWithParticipantsDTO sessionWithParticipantsDTO = getSessionById(sessionId);
         // Check if the session belongs to the requesting teacher
         if(!sessionWithParticipantsDTO.getTeacherId().equals(requestingUserId)) {
-            throw new SecurityException("You can only update your own sessions");
+            throw new UnauthorizedSessionAccessException("You can only update your own sessions");
         }
         return sessionJobManagement.updateSessionCommon(sessionWithParticipantsDTO,sessionUpdateDTO);
     }
@@ -98,23 +120,21 @@ public class SessionImplService implements SessionService {
     @Transactional
     public void cancelSessionByTeacher(SessionCancelDTO dto) {
         Session session = sessionRepository.findById(dto.getSessionId())
-                .orElseThrow(() -> new EntityNotFoundException("Session not found"));
+                .orElseThrow(() -> new SessionNotFoundException("Session not found with ID: " + dto.getSessionId()));
 
         // check ownership
         if (!session.getTeacherId().equals(dto.getTeacherId())) {
-            throw new SecurityException("You can only cancel your own sessions");
+            throw new UnauthorizedSessionAccessException("You can only cancel your own sessions");
         }
 
         // check session status
         if (session.getStatus() != SessionStatus.SCHEDULED) {
-            throw new BusinessException("Only scheduled sessions can be cancelled");
+            throw new InvalidSessionStateException("Only scheduled sessions can be cancelled");
         }
 
         session.setStatus(SessionStatus.CANCELLED);
         sessionRepository.save(session);
     }
-
-
 
     /**
      * Admin part
@@ -140,18 +160,16 @@ public class SessionImplService implements SessionService {
     @Override
     public void cancelSessionByAdmin(Long sessionId) {
         Session session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new EntityNotFoundException("Session not found with ID: " + sessionId));
+                .orElseThrow(() -> new SessionNotFoundException("Session not found with ID: " + sessionId));
 
         if (session.getStatus() != SessionStatus.SCHEDULED) {
-            throw new BusinessException("Only scheduled sessions can be cancelled");
+            throw new InvalidSessionStateException("Only scheduled sessions can be cancelled");
         }
 
         session.setStatus(SessionStatus.CANCELLED);
 
         sessionRepository.save(session);
     }
-
-
 
     /**
      * Client part

@@ -1,6 +1,7 @@
 package jroullet.mscoursemgmt.service;
 
-import jroullet.mscoursemgmt.dto.*;
+import jroullet.mscoursemgmt.dto.session.*;
+import jroullet.mscoursemgmt.model.session.Session;
 
 import java.util.List;
 
@@ -8,6 +9,7 @@ public interface SessionService {
 
     //Common methods
     SessionWithParticipantsDTO getSessionById(Long sessionId);
+    Session validateSession(Long sessionId);
 
      //Teacher methods
     SessionCreationResponseDTO createSession(SessionCreationWithTeacherDTO dto);

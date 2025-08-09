@@ -4,6 +4,9 @@ import jroullet.mswebapp.auth.AuthRequestDTO;
 import jroullet.mswebapp.auth.AuthResponseDTO;
 import jroullet.mswebapp.auth.RegisterRequestDTO;
 import jroullet.mswebapp.auth.RegisterResponseDTO;
+import jroullet.mswebapp.dto.session.credits.CreditOperationResponse;
+import jroullet.mswebapp.dto.session.credits.SessionRegistrationDeductRequest;
+import jroullet.mswebapp.dto.session.credits.SessionRollbackRefundRequest;
 import jroullet.mswebapp.dto.teacher.TeacherDTO;
 import jroullet.mswebapp.dto.teacher.TeacherRegistrationDTO;
 import jroullet.mswebapp.dto.teacher.TeacherUpdateDTO;
@@ -71,11 +74,20 @@ public interface IdentityFeignClient {
     @PostMapping("/admin/users/list")
     List<UserParticipantDTO> getUsersByIds(@RequestBody List<Long> userIds);
 
+    /**
+     *     CREDITS SECTION
+      */
+    @PostMapping("/internal/credits/session-registration-deduct")
+    CreditOperationResponse deductCreditsForSessionRegistration(
+            @RequestBody SessionRegistrationDeductRequest request);
+
+    @PostMapping("/internal/credits/session-rollback-refund")
+    CreditOperationResponse refundCreditsForSessionRollback(
+            @RequestBody SessionRollbackRefundRequest request);
 
     /**
      *     AUTHENTICATION SECTION
       */
-
     // Authentication request
     @PostMapping("/authenticate")
     ResponseEntity<AuthResponseDTO> authenticate(@RequestBody AuthRequestDTO authRequest);
