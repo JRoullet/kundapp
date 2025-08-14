@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -157,10 +159,16 @@ public class SessionManagementService {
      */
     public List<SessionNoParticipantsDTO> getAvailableSessionsForClient() {
         try {
+            UserDTO currentUser = sessionService.getCurrentUser();
             // Fetch available sessions from the course management service
             List<SessionNoParticipantsDTO> availableSessions = courseFeignClient.getAvailableSessionsForClient();
             log.info("Loaded {} available sessions for client", availableSessions.size());
-            return availableSessions;
+            List<SessionNoParticipantsDTO> userSessions = courseFeignClient.getUpcomingSessionsForClient(currentUser.getId());
+            Set<Long> userSessionIds = userSessions.stream()
+                    .map(SessionNoParticipantsDTO::getId)
+                    .collect(Collectors.toSet());
+            return availableSessions.stream().filter(session -> !userSessionIds.contains(session.getId()))
+                    .collect(Collectors.toList());
         } catch (FeignException e) {
             log.error("Error fetching available sessions: {}", e.getMessage());
             return Collections.emptyList();
@@ -195,7 +203,7 @@ public class SessionManagementService {
     }
 
     @Transactional
-    public void registerToSession(Long sessionId) {
+    public int registerToSession(Long sessionId) {
         UserDTO user = sessionService.getCurrentUser();
         Long userId = user.getId();
 
@@ -222,6 +230,9 @@ public class SessionManagementService {
                     userId, sessionId, participantResponse.currentParticipantCount(),
                     participantResponse.availableSpots());
 
+            //Returns the new credits after successful registration
+            return creditResponse.newCredits();
+
         } catch (Exception participantException) {
             // Error handling
             log.error("Unexpected failure adding participant despite validations. Rolling back credits for user {} and session {}",
@@ -242,24 +253,26 @@ public class SessionManagementService {
      * 🎯 SESSION UNREGISTRATION
      */
     @Transactional
-    public void unregisterFromSession(Long sessionId) {
+    public int unregisterFromSession(Long sessionId) {
         Long userId = sessionService.getCurrentUser().getId();
 
         log.info("Starting session unregistration for user {} from session {}", userId, sessionId);
 
-        // Step 1: Récupérer les détails de la session
         SessionWithParticipantsDTO session = getSessionDetails(sessionId);
 
-        // Step 2: Retirer le participant (ms-course-mgmt valide les 48h)
+        // remove participant from session
         ParticipantOperationResponse participantResponse = removeUserFromSession(sessionId, userId);
         log.info("User {} successfully removed from session {}. Participants: {}/{}",
                 userId, sessionId, participantResponse.currentParticipantCount(),
                 participantResponse.availableSpots());
 
-        // Step 3: Rembourser les crédits
-        refundUserCreditsForCancellation(userId, sessionId, session.getCreditsRequired());
+        // refund credits
+        CreditOperationResponse creditResponse = refundUserCreditsForCancellation(userId, sessionId, session.getCreditsRequired());
         log.info("Credits refunded successfully for user {} after cancellation from session {}",
                 userId, sessionId);
+
+        return creditResponse.newCredits();
+
     }
 
 
@@ -314,11 +327,11 @@ public class SessionManagementService {
 
     }
 
-    private void refundUserCreditsForCancellation(Long userId, Long sessionId, Integer creditsToRefund) {
+    private CreditOperationResponse refundUserCreditsForCancellation(Long userId, Long sessionId, Integer creditsToRefund) {
         SessionRollbackRefundRequest request = new SessionRollbackRefundRequest(
                 userId, sessionId, creditsToRefund, internalSecret);
 
-        identityFeignClient.refundCreditsForSessionRollback(request);
+        return identityFeignClient.refundCreditsForSessionRollback(request);
 
     }
 

@@ -64,7 +64,7 @@ public class SessionClientController {
     /**
      * Removes participant from a session (for cancellation)
      */
-    @DeleteMapping("/client/{sessionId}/participants/remove/{userId}")
+    @PostMapping("/client/{sessionId}/participants/remove/{userId}")
     public ResponseEntity<ParticipantOperationResponse> removeParticipant(
             @PathVariable Long sessionId,
             @PathVariable Long userId) {

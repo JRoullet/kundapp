@@ -69,7 +69,7 @@ public interface CourseManagementFeignClient {
             @PathVariable Long sessionId,
             @RequestBody AddParticipantRequest request);
 
-    @DeleteMapping("/client/{sessionId}/participants/{userId}")
+    @PostMapping("/client/{sessionId}/participants/remove/{userId}")
     ParticipantOperationResponse removeParticipantFromSession(
             @PathVariable Long sessionId,
             @PathVariable Long userId);

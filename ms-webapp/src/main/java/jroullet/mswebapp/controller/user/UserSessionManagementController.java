@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -42,18 +44,42 @@ public class UserSessionManagementController {
      * Register current user to a session
      */
     @PostMapping("/{sessionId}/register")
-    public ResponseEntity<Void> registerToSession(@PathVariable Long sessionId) {
-        sessionManagementService.registerToSession(sessionId);
-        return ResponseEntity.ok().build();
+    public ModelAndView registerToSession(@PathVariable Long sessionId,
+                                          RedirectAttributes redirectAttributes) {
+        try {
+            int newCredits = sessionManagementService.registerToSession(sessionId);
+            redirectAttributes.addFlashAttribute("success", "Inscription confirmée ! Votre place est réservée.");
+            redirectAttributes.addFlashAttribute("creditsOperation", "registration");
+            redirectAttributes.addFlashAttribute("newCredits", newCredits);
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Inscription impossible : " + e.getMessage());
+        }
+
+        return new ModelAndView("redirect:/client?tab=upcoming");
     }
 
     /**
-     * Unregister current user from a session
+     * Unregister current user from a session - Thymeleaf form POST
      */
     @PostMapping("/{sessionId}/unregister")
-    public ResponseEntity<Void> unregisterFromSession(@PathVariable Long sessionId) {
-        sessionManagementService.unregisterFromSession(sessionId);
-        return ResponseEntity.ok().build();
+    public ModelAndView unregisterFromSession(@PathVariable Long sessionId,
+                                              RedirectAttributes redirectAttributes) {
+        try {
+            int newCredits = sessionManagementService.unregisterFromSession(sessionId);
+            redirectAttributes.addFlashAttribute("success",
+                    "Désinscription confirmée ! Vos crédits ont été remboursés.");
+            redirectAttributes.addFlashAttribute("creditsOperation", "unregistration");
+            redirectAttributes.addFlashAttribute("newCredits", newCredits);
+
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Annulation impossible : " + e.getMessage());
+        }
+
+        return new ModelAndView("redirect:/client?tab=upcoming");
     }
 
 }

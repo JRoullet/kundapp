@@ -1,41 +1,142 @@
-// Client Sessions JavaScript - Modern Vanilla JS - No AJAX
-// Depends on common.js
+// Client Sessions JavaScript - Meta Tags Simple Version
+// Depends on common.js (which handles flash messages automatically)
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Client sessions page loaded');
     initializeFilters();
-    initializeSessionButtons();
+    initializeModals();
+    handleTabRedirection();
+    handleCreditsAnimation();
 });
 
 // ========================================
-// SESSION BUTTON HANDLERS
+// CREDITS ANIMATION - SIMPLE META TAG DETECTION
 // ========================================
 
-function initializeSessionButtons() {
-    // Register buttons
+function handleCreditsAnimation() {
+    const creditsOperationMeta = document.querySelector('meta[name="credits-operation"]');
+    const newCreditsMeta = document.querySelector('meta[name="new-credits"]');
+
+    if (creditsOperationMeta && creditsOperationMeta.content) {
+        const operation = creditsOperationMeta.content;
+        const newCredits = newCreditsMeta ? parseInt(newCreditsMeta.content) : null;
+
+        console.log(`Credits operation detected: ${operation}, newCredits: ${newCredits}`);
+
+        //Value
+        if (newCredits !== null) {
+            const creditsCountElement = document.getElementById('creditsCount');
+            if (creditsCountElement) {
+                creditsCountElement.textContent = newCredits;
+                console.log(`Credits value updated to: ${newCredits}`);
+            }
+        };
+    }
+}
+
+// ========================================
+// TAB REDIRECTION - MINIMAL JS
+// ========================================
+
+function handleTabRedirection() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+
+    if (tab === 'upcoming') {
+        document.getElementById('upcoming-tab').click();
+    }
+}
+
+// ========================================
+// MODAL HANDLERS
+// ========================================
+
+function initializeModals() {
     document.addEventListener('click', function(e) {
-        if (e.target.closest('.register-btn')) {
-            const sessionId = e.target.closest('.register-btn').dataset.sessionId;
-            registerForSession(sessionId);
-        }
-
-        if (e.target.closest('.unregister-btn')) {
-            const sessionId = e.target.closest('.unregister-btn').dataset.sessionId;
-            unregisterFromSession(sessionId);
-        }
-
+        // Info button
         if (e.target.classList.contains('description-btn-floating')) {
             const sessionTitle = e.target.getAttribute('data-session-title');
             const description = e.target.getAttribute('data-session-description');
             const teacherName = e.target.getAttribute('data-teacher-name');
             showSessionDetails(sessionTitle, description, teacherName);
         }
+
+        // Registration modal
+        if (e.target.classList.contains('register-modal-btn')) {
+            const button = e.target;
+            showRegistrationModal(
+                button.getAttribute('data-session-id'),
+                button.getAttribute('data-session-subject'),
+                button.getAttribute('data-session-date'),
+                button.getAttribute('data-session-time'),
+                button.getAttribute('data-session-end-time'),
+                button.getAttribute('data-session-teacher'),
+                button.getAttribute('data-session-type'),
+                button.getAttribute('data-session-credits')
+            );
+        }
+
+        // Unregistration modal
+        if (e.target.classList.contains('unregister-modal-btn')) {
+            const button = e.target;
+            showUnregistrationModal(
+                button.getAttribute('data-session-id'),
+                button.getAttribute('data-session-subject'),
+                button.getAttribute('data-session-date'),
+                button.getAttribute('data-session-time'),
+                button.getAttribute('data-session-teacher')
+            );
+        }
     });
 }
 
+function showSessionDetails(sessionTitle, description, teacherName) {
+    document.getElementById('sessionDescriptionTitle').textContent = teacherName ?
+        `${sessionTitle} avec ${teacherName}` :
+        sessionTitle;
+    document.getElementById('sessionDescriptionContent').textContent = description || 'Aucune description disponible.';
+
+    const modal = new mdb.Modal(document.getElementById('sessionDescriptionModal'));
+    modal.show();
+}
+
+function showRegistrationModal(sessionId, subject, date, time, endTime, teacher, type, credits) {
+    // Fill modal content
+    document.getElementById('regModalSubject').textContent = subject;
+    document.getElementById('regModalDate').textContent = date;
+    document.getElementById('regModalTime').textContent = `${time} - ${endTime}`;
+    document.getElementById('regModalTeacher').textContent = `Prof. ${teacher}`;
+    document.getElementById('regModalType').textContent = type;
+    document.getElementById('regModalCredits').textContent = credits;
+
+    // Configure form action for redirection to upcoming tab
+    const form = document.getElementById('regConfirmForm');
+    form.action = `/client/sessions/${sessionId}/register?tab=upcoming`;
+
+    // Show modal
+    const modal = new mdb.Modal(document.getElementById('registrationModal'));
+    modal.show();
+}
+
+function showUnregistrationModal(sessionId, subject, date, time, teacher) {
+    // Fill modal content
+    document.getElementById('unregModalSubject').textContent = subject;
+    document.getElementById('unregModalDate').textContent = date;
+    document.getElementById('unregModalTime').textContent = time;
+    document.getElementById('unregModalTeacher').textContent = teacher;
+
+    // Configure form action for redirection to upcoming tab
+    const form = document.getElementById('unregConfirmForm');
+    form.action = `/client/sessions/${sessionId}/unregister?tab=upcoming`;
+
+    // Show modal
+    const modal = new mdb.Modal(document.getElementById('unregistrationModal'));
+    modal.show();
+}
+
 // ========================================
-// FILTER FUNCTIONS
+// FILTER FUNCTIONS - KEEP AS IS
 // ========================================
 
 function initializeFilters() {
@@ -105,189 +206,4 @@ function toggleTeacherSearch() {
 function clearTeacherSearch() {
     document.getElementById('teacherSearch').value = '';
     applyFilters();
-}
-
-// ========================================
-// MODAL FUNCTIONS
-// ========================================
-
-function showSessionDetails(sessionTitle, description, teacherName) {
-    document.getElementById('sessionDescriptionTitle').textContent = teacherName ?
-        `${sessionTitle} avec ${teacherName}` :
-        sessionTitle;
-    document.getElementById('sessionDescriptionContent').textContent = description || 'Aucune description disponible.';
-
-    const modal = new mdb.Modal(document.getElementById('sessionDescriptionModal'));
-    modal.show();
-}
-
-// ========================================
-// SESSION ACTIONS - CORRIGÉ POUR NOUVEAU BACKEND
-// ========================================
-
-function registerForSession(sessionId, sessionName, buttonElement) {
-    console.log('Attempting to register for session:', sessionId);
-
-    if (!confirm(`Confirmer l'inscription à ${sessionName} ?`)) {
-        return;
-    }
-
-    // Show loading state
-    const originalText = buttonElement.innerHTML;
-    buttonElement.disabled = true;
-    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Inscription...';
-
-    // ✅ ENDPOINT CORRIGÉ - Correspond aux contrôleurs backend
-    fetch(`/client/sessions/${sessionId}/register`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': CommonUtils.getCsrfToken()
-        }
-    })
-        .then(response => {
-            console.log('Registration response status:', response.status);
-
-            if (response.ok) {
-                // ✅ 200 OK = succès
-                toastSystem.success('Inscription confirmée', `Votre place est réservée pour ${sessionName} !`);
-
-                // Update button state
-                updateButtonToUnregisterState(buttonElement, sessionId, sessionName);
-
-                // Refresh page after short delay to update session list
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-
-                return;
-            }
-
-            // ✅ GESTION D'ERREURS BASÉE SUR LES CODES HTTP DU GlobalExceptionHandler
-            return response.text().then(errorText => {
-                const errorMessage = getRegistrationErrorMessage(response.status);
-                toastSystem.error('Erreur d\'inscription', errorMessage);
-                resetRegisterButton(buttonElement, originalText);
-            });
-        })
-        .catch(error => {
-            console.error('Registration error:', error);
-            toastSystem.error('Erreur de connexion', 'Impossible de traiter votre inscription');
-            resetRegisterButton(buttonElement, originalText);
-        });
-}
-
-function unregisterFromSession(sessionId, sessionName, buttonElement) {
-    if (!confirm(`Êtes-vous sûr de vouloir vous désinscrire de ${sessionName} ?\n\nAttention: L'annulation n'est pas possible dans les 48h précédant la session.`)) {
-        return;
-    }
-
-    // Show loading state
-    const originalText = buttonElement.innerHTML;
-    buttonElement.disabled = true;
-    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Annulation...';
-
-    // ✅ ENDPOINT CORRIGÉ - Correspond aux contrôleurs backend
-    fetch(`/client/sessions/${sessionId}/unregister`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': CommonUtils.getCsrfToken()
-        }
-    })
-        .then(response => {
-            console.log('Unregistration response status:', response.status);
-
-            if (response.ok) {
-                // ✅ 200 OK = succès
-                toastSystem.success('Désinscription confirmée', `Vous avez été désinscrit de ${sessionName}. Vos crédits ont été remboursés.`);
-
-                // Update button state
-                updateButtonToRegisterState(buttonElement, sessionId, sessionName);
-
-                // Refresh page after short delay
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-
-                return;
-            }
-
-            // ✅ GESTION D'ERREURS BASÉE SUR LES CODES HTTP
-            return response.text().then(errorText => {
-                const errorMessage = getUnregistrationErrorMessage(response.status);
-                toastSystem.error('Erreur d\'annulation', errorMessage);
-                resetUnregisterButton(buttonElement, originalText);
-            });
-        })
-        .catch(error => {
-            console.error('Unregistration error:', error);
-            toastSystem.error('Erreur de connexion', 'Impossible de traiter votre désinscription');
-            resetUnregisterButton(buttonElement, originalText);
-        });
-}
-
-// ========================================
-// ✅ NOUVELLES FONCTIONS UTILITAIRES
-// ========================================
-
-function getRegistrationErrorMessage(status) {
-    switch(status) {
-        case 402: // PAYMENT_REQUIRED
-            return 'Crédits insuffisants pour cette session';
-        case 404: // NOT_FOUND
-            return 'Session non trouvée ou non disponible';
-        case 409: // CONFLICT
-            return 'Session complète ou vous êtes déjà inscrit';
-        case 500: // INTERNAL_SERVER_ERROR
-            return 'Erreur technique. L\'équipe support a été notifiée.';
-        default:
-            return 'Erreur lors de l\'inscription. Veuillez réessayer.';
-    }
-}
-
-function getUnregistrationErrorMessage(status) {
-    switch(status) {
-        case 403: // FORBIDDEN
-            return 'Annulation impossible: délai de 48h dépassé';
-        case 404: // NOT_FOUND
-            return 'Session non trouvée';
-        case 409: // CONFLICT
-            return 'Vous n\'êtes pas inscrit à cette session';
-        case 500: // INTERNAL_SERVER_ERROR
-            return 'Erreur technique. L\'équipe support a été notifiée.';
-        default:
-            return 'Erreur lors de l\'annulation. Veuillez réessayer.';
-    }
-}
-
-function updateButtonToUnregisterState(buttonElement, sessionId, sessionName) {
-    buttonElement.innerHTML = 'SE DÉSINSCRIRE';
-    buttonElement.className = 'btn btn-outline-danger btn-sm unregister-btn';
-    buttonElement.setAttribute('data-session-id', sessionId);
-    buttonElement.setAttribute('data-session-name', sessionName);
-    buttonElement.disabled = false;
-}
-
-function updateButtonToRegisterState(buttonElement, sessionId, sessionName) {
-    buttonElement.innerHTML = 'S\'INSCRIRE';
-    buttonElement.className = 'btn btn-primary btn-sm register-btn';
-    buttonElement.setAttribute('data-session-id', sessionId);
-    buttonElement.setAttribute('data-session-name', sessionName);
-    buttonElement.disabled = false;
-}
-
-function resetRegisterButton(buttonElement, originalText) {
-    if (buttonElement) {
-        buttonElement.disabled = false;
-        buttonElement.innerHTML = originalText || '<i class="fas fa-calendar-plus me-2"></i>S\'inscrire';
-    }
-}
-
-function resetUnregisterButton(buttonElement, originalText) {
-    if (buttonElement) {
-        buttonElement.disabled = false;
-        buttonElement.innerHTML = originalText || 'SE DÉSINSCRIRE';
-    }
-
 }

@@ -35,6 +35,8 @@ public class HomeDisplayingController {
         List<SessionNoParticipantsDTO> upcomingSessions = sessionManagementService.getUpcomingSessionsForClient();
         List<SessionNoParticipantsDTO> historySessions = sessionManagementService.getPastSessionsForClient();
 
+        logger.info("User credits loaded: {}", userDTO.getCredits());
+
         model.addAttribute("user", userDTO);
         model.addAttribute("sessions", sessions);
         model.addAttribute("upcomingSessions", upcomingSessions);

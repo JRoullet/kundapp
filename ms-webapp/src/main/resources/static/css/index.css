@@ -871,6 +871,16 @@ body.signin-form {
     padding: 8px 16px;
 }
 
+.session-unregister-line {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: auto;
+    min-width: 120px;
+    padding: 8px 16px;
+    margin-top: 16px;
+}
+
 .session-register-line .btn {
     min-width: 120px;
     padding: 8px 16px;
@@ -900,21 +910,64 @@ body.signin-form {
     justify-content: flex-end;
 }
 
-/* Ajout à votre CSS existant pour supprimer marge bottom inutile */
 .col-12:last-child .session-card-content {
     margin-bottom: 0 !important;
 }
 
-/* Amélioration du badge pour les sessions à venir */
 .session-register-line .badge {
     font-size: 0.75rem;
 }
 
-/* Centrage parfait des éléments dans la colonne droite */
 .session-col-right .session-register-line {
     justify-content: center;
 }
 
+.badge-inscrit-right {
+    position: absolute;
+    top: 8px;
+    right: 45px;
+    z-index: 5;
+    font-size: 0.75rem;
+    height: 28px;
+    vertical-align: center;
+}
+
+.btn-outline-danger.btn-sm {
+    padding: 8px 16px !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    border: 1px solid #dc3545 !important;
+    color: #dc3545 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.1) !important;
+    min-width: 120px !important;
+}
+
+.btn-outline-danger.btn-sm:hover {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
+.btn-primary.btn-sm {
+    padding: 8px 16px !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+    min-width: 120px !important;
+}
+
+.session-register-line .badge {
+    font-size: 0.875rem;
+    padding: 6px 12px;
+}
+
+.session-card-content {
+    position: relative;
+}
 
 /* ========================================
    RESPONSIVE

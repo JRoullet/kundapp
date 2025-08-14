@@ -52,7 +52,7 @@ INSERT INTO session (
              TRUE,
              'https://zoom.us/j/123456789?pwd=abcdef123456',
              15,
-             '2025-07-22 19:30:00',
+             '2025-08-22 19:30:00',
              60,
              1,
              FALSE

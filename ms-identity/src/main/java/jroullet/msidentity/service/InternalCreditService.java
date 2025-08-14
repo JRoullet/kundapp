@@ -7,7 +7,7 @@ import jroullet.msidentity.exception.UnauthorizedInternalAccessException;
 
 public interface InternalCreditService {
 
-    public CreditOperationResponse deductCreditsForSessionRegistration(SessionRegistrationDeductRequest request);
-    public CreditOperationResponse refundCreditsForSessionRollback(SessionRollbackRefundRequest request);
-    public void validateInternalSecret(String internalSecret) throws UnauthorizedInternalAccessException;
+    CreditOperationResponse deductCreditsForSessionRegistration(SessionRegistrationDeductRequest request);
+    CreditOperationResponse refundCreditsForSessionRollback(SessionRollbackRefundRequest request);
+    void validateInternalSecret(String internalSecret) throws UnauthorizedInternalAccessException;
 }

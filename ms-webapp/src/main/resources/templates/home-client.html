@@ -7,6 +7,8 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <meta name="app-success" th:content="${success}" th:if="${success}"/>
     <meta name="app-error" th:content="${error}" th:if="${error}"/>
+    <meta name="credits-operation" th:content="${creditsOperation}" th:if="${creditsOperation}"/>
+    <meta name="new-credits" th:content="${newCredits}" th:if="${newCredits}"/>
     <title>Sessions | KundApp</title>
     <link th:href="@{/css/mdb.min.css}" rel="stylesheet"/>
     <link th:href="@{/css/index.css}" rel="stylesheet"/>
@@ -24,7 +26,7 @@
         <div class="collapse navbar-collapse" id="navbarMain">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" href="/client/sessions">Sessions</a>
+                    <a class="nav-link active" href="/client">Sessions</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-mdb-toggle="dropdown">
@@ -37,9 +39,10 @@
             </ul>
             <div class="d-flex align-items-center">
                 <div class="credits-info me-3" th:if="${user != null}"
-                     th:data-user-credits="${user.credits ?: 0}">
+                     th:data-user-credits="${user.credits ?: 0}"
+                     id="userCreditsDisplay">
                     <i class="fas fa-coins me-1"></i>
-                    <span th:text="${user.credits ?: 0}">5</span> crédits
+                    <span id="creditsCount" th:text="${user.credits ?: 0}">5</span> crédits
                 </div>
                 <span class="me-3" th:if="${user != null}" th:text="${user.email}">client@kundapp.com</span>
                 <form th:action="@{/logout}" method="post" class="d-inline">
@@ -112,7 +115,7 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="upcoming-tab" data-mdb-toggle="tab" data-mdb-target="#upcoming" type="button" role="tab">
-                Mes sessions à venir
+                Mes prochaines séances
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -134,6 +137,7 @@
                      th:data-online="${sessionItem.isOnline}"
                      th:data-teacher="${sessionItem.teacherFirstName + ' ' + sessionItem.teacherLastName}">
                     <div class="session-card-content">
+
                         <!-- Info Button -->
                         <button class="btn btn-outline-secondary btn-sm description-btn-floating"
                                 th:data-session-title="${sessionItem.subject}"
@@ -188,19 +192,28 @@
                             <!-- Colonne 3 - Droite -->
                             <div class="col-4 session-col-right">
                                 <div class="session-register-line">
-                                    <th:block th:if="${sessionItem.isUserRegistered}">
-                                        <button class="btn btn-outline-danger btn-sm unregister-btn"
-                                                th:data-session-id="${sessionItem.id}">
-                                            SE DÉSINSCRIRE
-                                        </button>
+                                    <!-- PRIORITÉ 1: User déjà inscrit -->
+                                    <th:block th:if="${sessionItem.isUserRegistered != null && sessionItem.isUserRegistered}">
+                                        <span class="badge bg-success">INSCRIT</span>
                                     </th:block>
-                                    <th:block th:unless="${sessionItem.isUserRegistered}">
+
+                                    <!-- PRIORITÉ 2: Session complète (et user pas inscrit) -->
+                                    <th:block th:if="${sessionItem.isUserRegistered == null || !sessionItem.isUserRegistered}">
                                         <th:block th:if="${sessionItem.availableSpots <= sessionItem.registeredParticipants}">
-                                            <button class="btn btn-secondary btn-sm disabled" disabled>COMPLET</button>
+                                            <button class="btn btn-secondary btn-sm" disabled>COMPLET</button>
                                         </th:block>
+
+                                        <!-- PRIORITÉ 3: Session disponible pour inscription -->
                                         <th:block th:unless="${sessionItem.availableSpots <= sessionItem.registeredParticipants}">
-                                            <button class="btn btn-primary btn-sm register-btn"
-                                                    th:data-session-id="${sessionItem.id}">
+                                            <button type="button" class="btn btn-primary btn-sm register-modal-btn"
+                                                    th:data-session-id="${sessionItem.id}"
+                                                    th:data-session-subject="${sessionItem.subject}"
+                                                    th:data-session-date="${#temporals.format(sessionItem.startDateTime, 'EEEE d MMMM yyyy')}"
+                                                    th:data-session-time="${#temporals.format(sessionItem.startDateTime, 'HH:mm')}"
+                                                    th:data-session-end-time="${#temporals.format(sessionItem.startDateTime.plusMinutes(sessionItem.durationMinutes), 'HH:mm')}"
+                                                    th:data-session-teacher="${sessionItem.teacherFirstName + ' ' + sessionItem.teacherLastName}"
+                                                    th:data-session-type="${sessionItem.isOnline ? 'En ligne' : (sessionItem.roomName ?: 'Présentiel')}"
+                                                    th:data-session-credits="${sessionItem.creditsRequired}">
                                                 S'INSCRIRE
                                             </button>
                                         </th:block>
@@ -213,16 +226,25 @@
             </div>
         </div>
 
-        <!-- SESSIONS À VENIR -->
+        <!-- MES PROCHAINES SÉANCES -->
         <div class="tab-pane fade" id="upcoming" role="tabpanel">
             <div class="row">
-                <div th:each="session : ${upcomingSessions}" class="col-12 mb-3">
-                    <div class="session-card-content">
+                <div th:each="upcomingSession : ${upcomingSessions}"
+                     class="col-12 mb-3"
+                     data-session-card
+                     th:data-subject="${upcomingSession.subject}"
+                     th:data-online="${upcomingSession.isOnline}"
+                     th:data-teacher="${upcomingSession.teacherFirstName + ' ' + upcomingSession.teacherLastName}">                    <div class="session-card-content">
+                        <!-- Badge Inscrit en overlay -->
+                        <span class="badge bg-success badge-inscrit-right">
+                            Inscrit ✓
+                        </span>
+
                         <!-- Info Button -->
                         <button class="btn btn-outline-secondary btn-sm description-btn-floating"
-                                th:data-session-title="${session.subject}"
-                                th:data-session-description="${session.description}"
-                                th:data-teacher-name="${session.teacherFirstName + ' ' + session.teacherLastName}">
+                                th:data-session-title="${upcomingSession.subject}"
+                                th:data-session-description="${upcomingSession.description}"
+                                th:data-teacher-name="${upcomingSession.teacherFirstName + ' ' + upcomingSession.teacherLastName}">
                             ℹ️
                         </button>
 
@@ -230,16 +252,16 @@
                             <!-- Colonne 1 - Gauche -->
                             <div class="col-4 session-col-left">
                                 <div class="session-title-line">
-                                    <h5 class="session-title mb-0 fw-bold" th:text="${session.subject}">YOGA</h5>
+                                    <h5 class="session-title mb-0 fw-bold" th:text="${upcomingSession.subject}">YOGA</h5>
                                 </div>
                                 <div class="session-date-line">
-                                    <small th:text="${#temporals.format(session.startDateTime, 'EEEE d MMMM yyyy')}">lundi 15 janvier 2025</small>
+                                    <small th:text="${#temporals.format(upcomingSession.startDateTime, 'EEEE d MMMM yyyy')}">lundi 15 janvier 2025</small>
                                 </div>
                                 <div class="session-time-line">
                                     <small>
-                                        <span th:text="${#temporals.format(session.startDateTime, 'HH:mm')}">14:00</span>
+                                        <span th:text="${#temporals.format(upcomingSession.startDateTime, 'HH:mm')}">14:00</span>
                                         -
-                                        <span th:text="${#temporals.format(session.startDateTime.plusMinutes(session.durationMinutes), 'HH:mm')}">15:00</span>
+                                        <span th:text="${#temporals.format(upcomingSession.startDateTime.plusMinutes(upcomingSession.durationMinutes), 'HH:mm')}">15:00</span>
                                     </small>
                                 </div>
                             </div>
@@ -248,37 +270,38 @@
                             <div class="col-4 session-col-center">
                                 <div class="session-teacher-line">
                                 <span class="fw-bold teacher-name">
-                                    Prof. <span th:text="${session.teacherFirstName + ' ' + session.teacherLastName}">Marie Dupont</span>
+                                    Prof. <span th:text="${upcomingSession.teacherFirstName + ' ' + upcomingSession.teacherLastName}">Marie Dupont</span>
                                 </span>
                                 </div>
                                 <div class="session-room-line">
                                     <small>
-                                        <th:block th:if="${session.isOnline}">
+                                        <th:block th:if="${upcomingSession.isOnline}">
                                             <span class="session-online-badge">💻 En ligne</span>
                                         </th:block>
-                                        <th:block th:unless="${session.isOnline}">
-                                            <span th:text="${session.roomName ?: 'Lieu non défini'}">Salle A</span>
+                                        <th:block th:unless="${upcomingSession.isOnline}">
+                                            <span th:text="${upcomingSession.roomName ?: 'Lieu non défini'}">Salle A</span>
                                         </th:block>
                                     </small>
                                 </div>
                                 <div class="session-participants-line">
                                     <small>
-                                        <span th:text="${session.registeredParticipants}">5</span> participants
-                                        (<span th:text="${session.availableSpots - session.registeredParticipants}">3</span> places)
+                                        <span th:text="${upcomingSession.registeredParticipants}">5</span> participants
+                                        (<span th:text="${upcomingSession.availableSpots - upcomingSession.registeredParticipants}">3</span> places)
                                     </small>
                                 </div>
                             </div>
 
                             <!-- Colonne 3 - Droite -->
                             <div class="col-4 session-col-right">
-                                <div class="session-register-line">
-                                    <div class="d-flex flex-column align-items-center gap-1">
-                                        <span class="badge bg-success mb-1">Inscrit ✓</span>
-                                        <button class="btn btn-outline-danger btn-sm unregister-btn"
-                                                th:data-session-id="${session.id}">
-                                            SE DÉSINSCRIRE
-                                        </button>
-                                    </div>
+                                <div class="session-unregister-line">
+                                    <button type="button" class="btn btn-outline-danger btn-sm unregister-modal-btn"
+                                            th:data-session-id="${upcomingSession.id}"
+                                            th:data-session-subject="${upcomingSession.subject}"
+                                            th:data-session-date="${#temporals.format(upcomingSession.startDateTime, 'EEEE d MMMM yyyy')}"
+                                            th:data-session-time="${#temporals.format(upcomingSession.startDateTime, 'HH:mm')}"
+                                            th:data-session-teacher="${upcomingSession.teacherFirstName + ' ' + upcomingSession.teacherLastName}">
+                                        SE DÉSINSCRIRE
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -288,7 +311,7 @@
             <!-- Message si aucune session -->
             <div class="text-center py-5" th:if="${#lists.isEmpty(upcomingSessions)}">
                 <div class="text-muted">
-                    <h5>Aucune session à venir</h5>
+                    <h5>Aucune séance à venir</h5>
                     <p>Vous n'avez pas encore de réservations.</p>
                 </div>
             </div>
@@ -297,13 +320,17 @@
         <!-- HISTORIQUE -->
         <div class="tab-pane fade" id="history" role="tabpanel">
             <div class="row">
-                <div th:each="session : ${historySessions}" class="col-12 mb-3">
-                    <div class="session-card-content">
+                <div th:each="historySession : ${historySessions}"
+                     class="col-12 mb-3"
+                     data-session-card
+                     th:data-subject="${historySession.subject}"
+                     th:data-online="${historySession.isOnline}"
+                     th:data-teacher="${historySession.teacherFirstName + ' ' + historySession.teacherLastName}">                    <div class="session-card-content">
                         <!-- Info Button -->
                         <button class="btn btn-outline-secondary btn-sm description-btn-floating"
-                                th:data-session-title="${session.subject}"
-                                th:data-session-description="${session.description}"
-                                th:data-teacher-name="${session.teacherFirstName + ' ' + session.teacherLastName}">
+                                th:data-session-title="${historySession.subject}"
+                                th:data-session-description="${historySession.description}"
+                                th:data-teacher-name="${historySession.teacherFirstName + ' ' + historySession.teacherLastName}">
                             ℹ️
                         </button>
 
@@ -311,13 +338,13 @@
                             <!-- Colonne 1 - Gauche -->
                             <div class="col-4 session-col-left">
                                 <div class="session-title-line">
-                                    <h5 class="session-title mb-0 fw-bold" th:text="${session.subject}">YOGA</h5>
+                                    <h5 class="session-title mb-0 fw-bold" th:text="${historySession.subject}">YOGA</h5>
                                 </div>
                                 <div class="session-date-line">
-                                    <small th:text="${#temporals.format(session.startDateTime, 'EEEE d MMMM yyyy')}">lundi 15 janvier 2025</small>
+                                    <small th:text="${#temporals.format(historySession.startDateTime, 'EEEE d MMMM yyyy')}">lundi 15 janvier 2025</small>
                                 </div>
                                 <div class="session-time-line">
-                                    <small th:text="${#temporals.format(session.startDateTime, 'HH:mm')}">14:00</small>
+                                    <small th:text="${#temporals.format(historySession.startDateTime, 'HH:mm')}">14:00</small>
                                 </div>
                             </div>
 
@@ -325,16 +352,16 @@
                             <div class="col-4 session-col-center">
                                 <div class="session-teacher-line">
                                 <span class="fw-bold teacher-name">
-                                    Prof. <span th:text="${session.teacherFirstName + ' ' + session.teacherLastName}">Marie Dupont</span>
+                                    Prof. <span th:text="${historySession.teacherFirstName + ' ' + historySession.teacherLastName}">Marie Dupont</span>
                                 </span>
                                 </div>
                                 <div class="session-room-line">
                                     <small>
-                                        <th:block th:if="${session.isOnline}">
+                                        <th:block th:if="${historySession.isOnline}">
                                             <span class="session-online-badge">💻 En ligne</span>
                                         </th:block>
-                                        <th:block th:unless="${session.isOnline}">
-                                            <span th:text="${session.roomName ?: 'Lieu non défini'}">Salle A</span>
+                                        <th:block th:unless="${historySession.isOnline}">
+                                            <span th:text="${historySession.roomName ?: 'Lieu non défini'}">Salle A</span>
                                         </th:block>
                                     </small>
                                 </div>
@@ -363,7 +390,6 @@
         </div>
     </div>
 
-
     <!-- Modal for Session Description -->
     <div class="modal fade" id="sessionDescriptionModal" tabindex="-1">
         <div class="modal-dialog">
@@ -377,6 +403,111 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Registration Confirmation -->
+    <div class="modal fade" id="registrationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-calendar-check me-2"></i>Confirmer votre inscription
+                    </h5>
+                    <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0" id="regModalSubject">YOGA</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <i class="fas fa-calendar me-2 text-primary"></i>
+                                        <strong>Date :</strong><br>
+                                        <span id="regModalDate">Lundi 15 janvier 2025</span>
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-clock me-2 text-primary"></i>
+                                        <strong>Horaire :</strong><br>
+                                        <span id="regModalTime">14:00 - 15:00</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2">
+                                        <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>
+                                        <strong>Professeur :</strong><br>
+                                        <span id="regModalTeacher">Marie Dupont</span>
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                                        <strong>Type :</strong><br>
+                                        <span id="regModalType">En ligne</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info d-flex align-items-center">
+                                        <i class="fas fa-coins me-2"></i>
+                                        <strong>Coût : <span id="regModalCredits">1</span> crédit(s)</strong>
+                                    </div>
+                                    <div class="alert alert-warning">
+                                        <small><i class="fas fa-info-circle me-1"></i>Toute annulation doit avoir lieu 48h minimum avant le début de la séance.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Annuler
+                    </button>
+                    <form id="regConfirmForm" method="post" class="d-inline">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-1"></i>Confirmer mon inscription à la séance
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Unregistration Confirmation -->
+    <div class="modal fade" id="unregistrationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmer l'annulation
+                    </h5>
+                    <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Êtes-vous sûr de vouloir vous désinscrire de cette séance ?</strong></p>
+                    <div class="alert alert-info">
+                        <div><strong id="unregModalSubject">YOGA</strong></div>
+                        <div><span id="unregModalDate">Lundi 15 janvier 2025</span> à <span id="unregModalTime">14:00</span></div>
+                        <div>Prof. <span id="unregModalTeacher">Marie Dupont</span></div>
+                    </div>
+                    <div class="alert alert-warning">
+                        <small><i class="fas fa-info-circle me-1"></i>Vos crédits seront remboursés si l'annulation respecte le délai de 48h.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Garder mon inscription</button>
+                    <form id="unregConfirmForm" method="post" class="d-inline">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="fas fa-times me-1"></i>Confirmer l'annulation
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

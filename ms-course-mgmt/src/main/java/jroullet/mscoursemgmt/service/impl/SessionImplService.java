@@ -176,18 +176,32 @@ public class SessionImplService implements SessionService {
      */
     @Override
     public List<SessionNoParticipantsDTO> getAvailableSessionsForClient() {
-        List<Session> sessions = sessionRepository.findByStatusOrderByStartDateTimeAsc(SessionStatus.SCHEDULED);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Session> sessions = sessionRepository
+                .findByStatusOrderByStartDateTimeAsc(SessionStatus.SCHEDULED)
+                .stream()
+                .filter(session -> session.getStartDateTime().isAfter(now))
+                .toList();
+
         return sessions.stream()
                 .map(sessionMapper::toSessionGetClientResponseDTO)
-                .collect(toList());
+                .toList();
     }
 
     @Override
     public List<SessionNoParticipantsDTO> getUpcomingSessionsForClient(Long participantId) {
-        List<Session> sessions = sessionRepository.findByParticipantIdOrderByStartDateTimeAsc(participantId, SessionStatus.SCHEDULED);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<Session> sessions = sessionRepository
+                .findByParticipantIdOrderByStartDateTimeAsc(participantId, SessionStatus.SCHEDULED)
+                .stream()
+                .filter(session -> session.getStartDateTime().isAfter(now))
+                .toList();
+
         return sessions.stream()
                 .map(sessionMapper::toSessionGetClientResponseDTO)
-                .collect(toList());
+                .toList();
     }
 
     @Override
