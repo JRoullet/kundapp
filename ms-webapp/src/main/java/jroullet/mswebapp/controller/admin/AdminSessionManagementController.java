@@ -28,7 +28,9 @@ public class AdminSessionManagementController {
     private final SessionManagementService sessionManagementService;
     private final Logger logger = LoggerFactory.getLogger(AdminTeacherController.class);
 
-    //Admin get session details
+    /**
+     * ADMIN SESSION MANAGEMENT
+     */
     @GetMapping("/{sessionId}/details")
     @ResponseBody
     public ResponseEntity<SessionWithParticipantsDTO> getSessionDetails(@PathVariable Long sessionId) {
@@ -41,7 +43,6 @@ public class AdminSessionManagementController {
         }
     }
 
-    //Admin update session endpoint
     @PostMapping("/{sessionId}/update")
     public ModelAndView updateSession(@PathVariable Long sessionId,
                                       @ModelAttribute @Valid SessionUpdateDTO sessionUpdateDTO,

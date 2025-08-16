@@ -41,6 +41,7 @@ public class SessionClientController {
         return ResponseEntity.ok(sessions);
     }
 
+    // Displaying past and canceled sessions for client
     @GetMapping("/client/past/{participantId}")
     public ResponseEntity<List<SessionNoParticipantsDTO>> getPastSessionsForClient(@PathVariable("participantId") Long participantId){
         List<SessionNoParticipantsDTO> sessions = sessionService.getPastSessionsForClient(participantId);

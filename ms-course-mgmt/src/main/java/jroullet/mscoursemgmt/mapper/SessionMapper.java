@@ -47,6 +47,7 @@ public interface SessionMapper {
     // Used to display session information to the client
     @Mapping(target = "registeredParticipants", expression = "java(session.getParticipantIds() != null ? session.getParticipantIds().size() : 0)")
     @Mapping(target = "isUserRegistered", ignore = true)
+    @Mapping(target = "status", source = "session.status") // For history purpose
     SessionNoParticipantsDTO toSessionGetClientResponseDTO(Session session);
 
 }

@@ -1,5 +1,8 @@
 package jroullet.mswebapp.model;
 
+import lombok.Getter;
+
+@Getter
 public enum SessionStatus {
     SCHEDULED("À venir"),
     CANCELLED("Annulée"),
@@ -11,7 +14,4 @@ public enum SessionStatus {
         this.displayName = displayName;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
 }

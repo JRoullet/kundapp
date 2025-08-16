@@ -194,7 +194,7 @@ public class SessionImplService implements SessionService {
         LocalDateTime now = LocalDateTime.now();
 
         List<Session> sessions = sessionRepository
-                .findByParticipantIdOrderByStartDateTimeAsc(participantId, SessionStatus.SCHEDULED)
+                .findByParticipantIdOrderByStartDateTimeAsc(participantId)
                 .stream()
                 .filter(session -> session.getStartDateTime().isAfter(now))
                 .toList();
@@ -206,7 +206,7 @@ public class SessionImplService implements SessionService {
 
     @Override
     public List<SessionNoParticipantsDTO> getPastSessionsForClient(Long participantId) {
-        List<Session> sessions = sessionRepository.findByParticipantIdOrderByStartDateTimeDesc(participantId, SessionStatus.COMPLETED);
+        List<Session> sessions = sessionRepository.findByParticipantIdOrderByStartDateTimeDesc(participantId);
         return sessions.stream()
                 .map(sessionMapper::toSessionGetClientResponseDTO)
                 .collect(toList());

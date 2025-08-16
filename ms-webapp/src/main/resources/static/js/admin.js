@@ -39,6 +39,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ========================================
+// GLOBAL VARIABLES
+// ========================================
+
+let currentSessionIdForParticipants = null;
+
+
+// ========================================
 // SEARCH SECTION TOGGLE
 // ========================================
 
@@ -312,9 +319,20 @@ function populateAdminUpdateForm(session, sessionId) {
     const isOnline = session.isOnline || false;
     populateSessionTypeFields(isOnline, session, SESSION_CONTEXTS.UPDATE_ADMIN);
 
+    currentSessionIdForParticipants = sessionId;
+    console.log('Stored session ID for participants:', sessionId);
+
     // Update participants count
     const participantsCount = session.registeredParticipants || 0;
     document.getElementById('sessionUpdateParticipantsCount').textContent = `${participantsCount} participant(s) inscrit(s)`;
+
+    // enable/disable participants button
+    const viewParticipantsBtn = document.getElementById('sessionUpdateViewParticipants');
+    if (participantsCount > 0) {
+        viewParticipantsBtn.style.display = 'inline-block';
+    } else {
+        viewParticipantsBtn.style.display = 'none';
+    }
 
     // Configure buttons based on status
     const saveBtn = document.querySelector('#sessionUpdateModal .btn-admin-primary');
@@ -333,6 +351,12 @@ function populateAdminUpdateForm(session, sessionId) {
         formElements.forEach(el => el.disabled = true);
         const statusText = session.status === 'CANCELLED' ? 'annulée' : 'terminée';
         document.querySelector('#sessionUpdateModal .modal-title').textContent = `Consultation session ${statusText}`;
+    }
+}
+
+function showParticipantsFromModal() {
+    if (currentSessionIdForParticipants) {
+        showParticipants(currentSessionIdForParticipants);
     }
 }
 

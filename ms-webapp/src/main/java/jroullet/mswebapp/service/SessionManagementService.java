@@ -8,6 +8,7 @@ import jroullet.mswebapp.dto.session.*;
 import jroullet.mswebapp.dto.session.create.SessionCreationDTO;
 import jroullet.mswebapp.dto.session.create.SessionCreationResponseDTO;
 import jroullet.mswebapp.dto.session.create.SessionCreationWithTeacherDTO;
+import jroullet.mswebapp.dto.session.credits.BatchCreditOperationRequest;
 import jroullet.mswebapp.dto.session.credits.CreditOperationResponse;
 import jroullet.mswebapp.dto.session.credits.SessionRegistrationDeductRequest;
 import jroullet.mswebapp.dto.session.credits.SessionRollbackRefundRequest;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -117,18 +119,56 @@ public class SessionManagementService {
     }
 
     public void cancelSessionForCurrentTeacher(Long sessionId) {
-        try {
-            Long currentUserId = sessionService.getCurrentUser().getId();
-            SessionCancelDTO dto = SessionCancelDTO.builder()
-                    .sessionId(sessionId)
-                    .teacherId(currentUserId)
-                    .build();
+            Long currentTeacherId = sessionService.getCurrentUser().getId();
+            log.info("Teacher ID {} is attempting to cancel session {}", currentTeacherId, sessionId);
 
-            courseFeignClient.cancelSessionByTeacher(dto);
-            log.info("Session {} canceled successfully by teacher ID: {}", sessionId, currentUserId);
-        } catch (FeignException e) {
-            log.error("Error canceling session {} : {}", sessionId, e.getMessage());
+        try {
+            // step 1 : fetch session details
+            SessionWithParticipantsDTO session = getSessionDetails(sessionId);
+
+            List<Long> participantIds = session.getParticipantIds() != null?
+                    session.getParticipantIds() : new ArrayList<>();
+
+            if(participantIds.isEmpty()) {
+                log.info("No participants found for session {}, proceeding with direct cancellation", sessionId);
+                cancelSessionByTeacher(sessionId, currentTeacherId);
+                return;
+            }
+
+            log.info("Found {} participants for session {}, processing batch refund", participantIds.size(), sessionId);
+
+            // step 2 : batch refund participants (all or nothing)
+        try{
+            batchRefundParticipants(sessionId, participantIds, session.getCreditsRequired());
+            log.info("Successfully refunded {} participants for session {}", participantIds.size(), sessionId);
+
+        } catch (FeignException e){
+            log.error("Batch refund failed for session {}: {}", sessionId, e.getMessage());
+            throw new SessionCancellationException("Failed to refund participants: " + e.getMessage());
+        }
+
+            // step 3: cancel the session
+        try {
+            cancelSessionByTeacher(sessionId, currentTeacherId);
+            log.info("Session {} successfully canceled after refunding {} participants ", sessionId, participantIds.size());
+        } catch(FeignException e) {
+            log.error("Session cancellation failed AFTER successful refunds for session {}. Rolling back refunds.", sessionId);
+
+            try {
+                batchRollbackRefunds(sessionId, participantIds, session.getCreditsRequired());
+                log.info("Successfully rolled back all refunds for session {} ", sessionId);
+            } catch (FeignException rollbackException) {
+                log.error("CRITICAL: Failed to rollback refunds for session {}: {}", sessionId, rollbackException.getMessage());
+            }
+
+            throw new SessionCancellationException("Session cancellation failed, refunds rolled back");
+        }
+
+        } catch (SessionCancellationException e) {
             throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error during session {} cancellation: {}", sessionId, e.getMessage());
+            throw new SessionCancellationException("Unexpected error during session cancellation");
         }
     }
 
@@ -143,13 +183,58 @@ public class SessionManagementService {
         return sessions;
     }
 
+    /**
+     * Cancel session by admin with automatic participant refund
+     */
     public void cancelSessionByAdmin(Long sessionId) {
+        log.info("Admin is attempting to cancel session {}", sessionId);
+
         try {
-            courseFeignClient.cancelSessionByAdmin(sessionId);
-            log.info("Session {} canceled successfully", sessionId);
-        } catch (FeignException e) {
-            log.error("Error canceling session  {} by admin : {}", sessionId, e.getMessage());
+            // Step 1: Fetch session details
+            SessionWithParticipantsDTO session = getSessionDetails(sessionId);
+
+            List<Long> participantIds = session.getParticipantIds() != null ?
+                    session.getParticipantIds() : new ArrayList<>();
+
+            if (participantIds.isEmpty()) {
+                log.info("No participants found for session {}, proceeding with direct cancellation", sessionId);
+                cancelSessionByAdminDirect(sessionId);
+                return;
+            }
+
+            log.info("Found {} participants for session {}, processing batch refund", participantIds.size(), sessionId);
+
+            // Step 2: Batch refund participants (all or nothing)
+            try {
+                batchRefundParticipantsForAdmin(sessionId, participantIds, session.getCreditsRequired());
+                log.info("Successfully refunded {} participants for session {}", participantIds.size(), sessionId);
+            } catch (FeignException e) {
+                log.error("Batch refund failed for session {}: {}", sessionId, e.getMessage());
+                throw new SessionCancellationException("Failed to refund participants: " + e.getMessage());
+            }
+
+            // Step 3: Cancel the session
+            try {
+                cancelSessionByAdminDirect(sessionId);
+                log.info("Session {} successfully canceled by admin after refunding {} participants", sessionId, participantIds.size());
+            } catch (FeignException e) {
+                log.error("Session cancellation failed AFTER successful refunds for session {}. Rolling back refunds.", sessionId);
+
+                try {
+                    batchRollbackRefunds(sessionId, participantIds, session.getCreditsRequired());
+                    log.info("Successfully rolled back all refunds for session {}", sessionId);
+                } catch (FeignException rollbackException) {
+                    log.error("CRITICAL: Failed to rollback refunds for session {}: {}", sessionId, rollbackException.getMessage());
+                }
+
+                throw new SessionCancellationException("Session cancellation failed, refunds rolled back");
+            }
+
+        } catch (SessionCancellationException e) {
             throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error during admin session {} cancellation: {}", sessionId, e.getMessage());
+            throw new SessionCancellationException("Unexpected error during admin session cancellation");
         }
     }
 
@@ -276,6 +361,10 @@ public class SessionManagementService {
     }
 
 
+    /**
+     *      PRIVATE HELPER METHODS
+     */
+
     private SessionWithParticipantsDTO getSessionDetails(Long sessionId) {
         SessionWithParticipantsDTO sessionResponse = courseFeignClient.getSessionById(sessionId);
         if (sessionResponse == null) {
@@ -311,18 +400,28 @@ public class SessionManagementService {
         log.debug("User {} is not yet registered for session {}", userId, session.getId());
     }
 
+    private ParticipantOperationResponse addUserToSession(Long sessionId, Long userId) {
+        AddParticipantRequest request = new AddParticipantRequest(userId);
+        return courseFeignClient.addParticipantToSession(sessionId, request);
+
+    }
+
+    private ParticipantOperationResponse removeUserFromSession(Long sessionId, Long userId) {
+        return courseFeignClient.removeParticipantFromSession(sessionId, userId);
+    }
+
     private CreditOperationResponse deductUserCredits(Long userId, Long sessionId, Integer creditsRequired) {
         SessionRegistrationDeductRequest request = new SessionRegistrationDeductRequest(
                 userId, sessionId, creditsRequired, internalSecret);
 
         return identityFeignClient.deductCreditsForSessionRegistration(request);
-        // ✅ Exceptions FeignException remontent (crédits insuffisants, utilisateur inexistant, etc.)
     }
 
     private void rollbackUserCredits(Long userId, Long sessionId, Integer creditsToRefund) {
         SessionRollbackRefundRequest request = new SessionRollbackRefundRequest(
                 userId, sessionId, creditsToRefund, internalSecret);
-
+        log.info("Rolling back credits for user {} for session {} with {} credits",
+                userId, sessionId, creditsToRefund);
         identityFeignClient.refundCreditsForSessionRollback(request);
 
     }
@@ -335,14 +434,49 @@ public class SessionManagementService {
 
     }
 
-    private ParticipantOperationResponse addUserToSession(Long sessionId, Long userId) {
-        AddParticipantRequest request = new AddParticipantRequest(userId);
-        return courseFeignClient.addParticipantToSession(sessionId, request);
+    private void batchRefundParticipants(Long sessionId, List<Long> participantIds, Integer creditsToRefund) {
+        BatchCreditOperationRequest request = BatchCreditOperationRequest.builder()
+                .sessionId(sessionId)
+                .participantIds(participantIds)
+                .creditsPerParticipant(creditsToRefund)
+                .reason("SESSION_CANCELED_BY_TEACHER")
+                .internalSecret(internalSecret)
+                .build();
+        identityFeignClient.batchRefundCreditsForCancellation(request);
+    }
+
+    private void batchRefundParticipantsForAdmin(Long sessionId, List<Long> participantIds, Integer creditsToRefund) {
+        BatchCreditOperationRequest request = BatchCreditOperationRequest.builder()
+                .sessionId(sessionId)
+                .participantIds(participantIds)
+                .creditsPerParticipant(creditsToRefund)
+                .reason("SESSION_CANCELED_BY_ADMIN")
+                .internalSecret(internalSecret)
+                .build();
+        identityFeignClient.batchRefundCreditsForCancellation(request);
+    }
+
+    private void batchRollbackRefunds(Long sessionId, List<Long> participantIds, Integer creditsToRefund) {
+        BatchCreditOperationRequest request = BatchCreditOperationRequest.builder()
+                .sessionId(sessionId)
+                .participantIds(participantIds)
+                .creditsPerParticipant(creditsToRefund)
+                .reason("ROLLBACK_REFUND_AFTER_CANCELLATION_FAILURE")
+                .internalSecret(internalSecret)
+                .build();
+        identityFeignClient.batchDeductCreditsForRollback(request);
+    }
+
+    private void cancelSessionByTeacher(Long sessionId, Long teacherId) {
+        SessionCancelDTO request = SessionCancelDTO.builder()
+                .sessionId(sessionId)
+                .teacherId(teacherId)
+                .build();
+        courseFeignClient.cancelSessionByTeacher(request);
 
     }
 
-    private ParticipantOperationResponse removeUserFromSession(Long sessionId, Long userId) {
-        return courseFeignClient.removeParticipantFromSession(sessionId, userId);
+    private void cancelSessionByAdminDirect(Long sessionId) {
+        courseFeignClient.cancelSessionByAdmin(sessionId);
     }
-
 }

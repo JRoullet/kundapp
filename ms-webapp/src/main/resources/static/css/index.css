@@ -922,7 +922,7 @@ body.signin-form {
     justify-content: center;
 }
 
-.badge-inscrit-right {
+.badge-status-right {
     position: absolute;
     top: 8px;
     right: 45px;

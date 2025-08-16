@@ -4,6 +4,7 @@ import jroullet.mswebapp.auth.AuthRequestDTO;
 import jroullet.mswebapp.auth.AuthResponseDTO;
 import jroullet.mswebapp.auth.RegisterRequestDTO;
 import jroullet.mswebapp.auth.RegisterResponseDTO;
+import jroullet.mswebapp.dto.session.credits.BatchCreditOperationRequest;
 import jroullet.mswebapp.dto.session.credits.CreditOperationResponse;
 import jroullet.mswebapp.dto.session.credits.SessionRegistrationDeductRequest;
 import jroullet.mswebapp.dto.session.credits.SessionRollbackRefundRequest;
@@ -84,6 +85,13 @@ public interface IdentityFeignClient {
     @PostMapping("/internal/credits/session-rollback-refund")
     CreditOperationResponse refundCreditsForSessionRollback(
             @RequestBody SessionRollbackRefundRequest request);
+
+    @PostMapping("/internal/credits/batch-deduct")
+    void batchDeductCreditsForRollback(@RequestBody BatchCreditOperationRequest request);
+
+    @PostMapping("/internal/credits/batch-refund")
+    void batchRefundCreditsForCancellation(@RequestBody BatchCreditOperationRequest request);
+
 
     /**
      *     AUTHENTICATION SECTION

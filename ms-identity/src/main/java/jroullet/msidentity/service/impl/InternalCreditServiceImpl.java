@@ -1,8 +1,6 @@
 package jroullet.msidentity.service.impl;
 
-import jroullet.msidentity.dto.user.credits.CreditOperationResponse;
-import jroullet.msidentity.dto.user.credits.SessionRegistrationDeductRequest;
-import jroullet.msidentity.dto.user.credits.SessionRollbackRefundRequest;
+import jroullet.msidentity.dto.user.credits.*;
 import jroullet.msidentity.exception.InsufficientCreditsException;
 import jroullet.msidentity.exception.UnauthorizedInternalAccessException;
 import jroullet.msidentity.exception.UserNotFoundException;
@@ -13,6 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -93,6 +94,44 @@ public class InternalCreditServiceImpl implements InternalCreditService {
                 "SESSION_ROLLBACK_REFUND",
                 request.sessionId()
         );
+    }
+
+    @Transactional
+    public void batchDeductCreditsForRollback(BatchCreditOperationRequest request) {
+        log.info("Processing batch credit deduction for {} users and session {}",
+                request.participantIds().size(), request.sessionId());
+
+        validateInternalSecret(request.internalSecret());
+
+        List<Long> participantIds = request.participantIds();
+
+        for (Long participantId : participantIds) {
+            User user = userRepository.findById(participantId)
+                    .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + participantId));
+
+            user.setCredits(user.getCredits() - request.creditsPerParticipant());
+            userRepository.save(user);
+        }
+
+        log.info("Credits deducted successfully for {} users", participantIds.size());
+    }
+
+    @Transactional
+    public void batchRefundCreditsForCancellation(BatchCreditOperationRequest request) {
+        log.info("Processing batch credit refund for {} users and session {}",
+                request.participantIds().size(), request.sessionId());
+
+        validateInternalSecret(request.internalSecret());
+
+        for (Long participantId : request.participantIds()) {
+            User user = userRepository.findById(participantId)
+                    .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + participantId));
+
+            user.setCredits(user.getCredits() + request.creditsPerParticipant());
+            userRepository.save(user);
+        }
+
+        log.info("Credits refunded successfully for {} users", request.participantIds().size());
     }
 
     public void validateInternalSecret(String providedSecret) {

@@ -3,12 +3,9 @@ package jroullet.mscoursemgmt.controller.session;
 import jakarta.validation.Valid;
 import jroullet.mscoursemgmt.dto.session.SessionWithParticipantsDTO;
 import jroullet.mscoursemgmt.dto.session.SessionUpdateDTO;
-import jroullet.mscoursemgmt.exception.SessionNotFoundException;
-import jroullet.mscoursemgmt.exception.UnauthorizedSessionAccessException;
 import jroullet.mscoursemgmt.service.SessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,8 +35,8 @@ public class SessionAdminController {
         return ResponseEntity.ok(updatedSession);
     }
 
-    @DeleteMapping("/admin/{sessionId}")
-    public ResponseEntity<Void> cancelSessionByAdmin(@PathVariable Long sessionId) {
+    @PostMapping("/admin/cancel")
+    public ResponseEntity<Void> cancelSessionByAdmin(@RequestParam Long sessionId) {
         sessionService.cancelSessionByAdmin(sessionId);
         return ResponseEntity.noContent().build();
     }

@@ -1,6 +1,7 @@
 package jroullet.mscoursemgmt.dto.session;
 
 import jroullet.mscoursemgmt.model.Subject;
+import jroullet.mscoursemgmt.model.session.SessionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 public class SessionNoParticipantsDTO {
     private Long            id;
     private Subject         subject;
+    private SessionStatus   status;
     private String          description;
     private LocalDateTime   startDateTime;
     private Integer         durationMinutes;

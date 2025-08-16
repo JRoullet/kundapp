@@ -236,7 +236,7 @@
                      th:data-online="${upcomingSession.isOnline}"
                      th:data-teacher="${upcomingSession.teacherFirstName + ' ' + upcomingSession.teacherLastName}">                    <div class="session-card-content">
                         <!-- Badge Inscrit en overlay -->
-                        <span class="badge bg-success badge-inscrit-right">
+                        <span class="badge bg-success badge-status-right">
                             Inscrit ✓
                         </span>
 
@@ -323,9 +323,17 @@
                 <div th:each="historySession : ${historySessions}"
                      class="col-12 mb-3"
                      data-session-card
+                     th:data-status="${historySession.status}"
                      th:data-subject="${historySession.subject}"
                      th:data-online="${historySession.isOnline}"
-                     th:data-teacher="${historySession.teacherFirstName + ' ' + historySession.teacherLastName}">                    <div class="session-card-content">
+                     th:data-teacher="${historySession.teacherFirstName + ' ' + historySession.teacherLastName}">
+                    <div class="session-card-content">
+                        <!-- Badge Status en overlay (comme "upcoming") -->
+                        <span class="badge badge-status-right"
+                              th:classappend="${historySession.status?.name() == 'CANCELLED'} ? 'bg-warning' : 'bg-secondary'">
+                    <span th:text="${historySession.status?.name() == 'CANCELLED'} ? 'Annulée' : 'Terminée'">Terminée</span>
+                </span>
+
                         <!-- Info Button -->
                         <button class="btn btn-outline-secondary btn-sm description-btn-floating"
                                 th:data-session-title="${historySession.subject}"
@@ -344,16 +352,20 @@
                                     <small th:text="${#temporals.format(historySession.startDateTime, 'EEEE d MMMM yyyy')}">lundi 15 janvier 2025</small>
                                 </div>
                                 <div class="session-time-line">
-                                    <small th:text="${#temporals.format(historySession.startDateTime, 'HH:mm')}">14:00</small>
+                                    <small>
+                                        <span th:text="${#temporals.format(historySession.startDateTime, 'HH:mm')}">14:00</span>
+                                        -
+                                        <span th:text="${#temporals.format(historySession.startDateTime.plusMinutes(historySession.durationMinutes), 'HH:mm')}">15:00</span>
+                                    </small>
                                 </div>
                             </div>
 
                             <!-- Colonne 2 - Milieu -->
                             <div class="col-4 session-col-center">
                                 <div class="session-teacher-line">
-                                <span class="fw-bold teacher-name">
-                                    Prof. <span th:text="${historySession.teacherFirstName + ' ' + historySession.teacherLastName}">Marie Dupont</span>
-                                </span>
+                            <span class="fw-bold teacher-name">
+                                Prof. <span th:text="${historySession.teacherFirstName + ' ' + historySession.teacherLastName}">Marie Dupont</span>
+                            </span>
                                 </div>
                                 <div class="session-room-line">
                                     <small>
@@ -366,14 +378,17 @@
                                     </small>
                                 </div>
                                 <div class="session-participants-line">
-                                    <small>Session terminée</small>
+                                    <small>
+                                        <th:block th:if="${historySession.status?.name() == 'COMPLETED'}">Session terminée</th:block>
+                                        <th:block th:if="${historySession.status?.name() == 'CANCELLED'}">Session annulée</th:block>
+                                    </small>
                                 </div>
                             </div>
 
                             <!-- Colonne 3 - Droite -->
                             <div class="col-4 session-col-right">
                                 <div class="session-register-line">
-                                    <span class="badge bg-secondary">Terminée</span>
+                                    <!-- Zone vide pour cohérence ou informations additionnelles -->
                                 </div>
                             </div>
                         </div>

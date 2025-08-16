@@ -31,7 +31,7 @@ function handleCreditsAnimation() {
                 creditsCountElement.textContent = newCredits;
                 console.log(`Credits value updated to: ${newCredits}`);
             }
-        };
+        }
     }
 }
 
