@@ -9,6 +9,7 @@ import jroullet.mswebapp.dto.session.create.SessionCreationResponseDTO;
 import jroullet.mswebapp.dto.session.create.SessionCreationWithTeacherDTO;
 import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
 import jroullet.mswebapp.dto.session.SessionUpdateDTO;
+import jroullet.mswebapp.dto.user.UserParticipantDTO;
 import jroullet.mswebapp.exception.BusinessException;
 import jroullet.mswebapp.model.Subject;
 import jroullet.mswebapp.service.SessionManagementService;
@@ -24,6 +25,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Controller
 @RequestMapping("/teacher/sessions")
@@ -53,6 +55,23 @@ public class TeacherSessionManagementController {
         }
     }
 
+    @GetMapping("/{sessionId}/participants")
+    @ResponseBody
+    public List<UserParticipantDTO> getSessionParticipants(@PathVariable Long sessionId) {
+        try {
+            return sessionManagementService.getSessionParticipantsForTeacher(sessionId);
+        } catch (SecurityException e) {
+            logger.error("Security violation: Teacher tried to access unauthorized session {}", sessionId);
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error fetching participants for session {}: {}", sessionId, e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * TEACHER VIEWS
+     */
     @GetMapping("/new")
     public ModelAndView showCreateSessionForm() {
          return new ModelAndView("teacher/create-session")
@@ -110,7 +129,7 @@ public class TeacherSessionManagementController {
                                       RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("error", "Erreur de validation des données");
-            return new ModelAndView("redirect:/admin");
+            return new ModelAndView("redirect:/teacher");
         }
 
         try {
@@ -124,4 +143,6 @@ public class TeacherSessionManagementController {
             return new ModelAndView("redirect:/teacher");
         }
     }
+
+
 }

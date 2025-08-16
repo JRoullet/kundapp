@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ========================================
 
 let currentSessionIdForParticipants = null;
+let participantsLoaded = false;
+
 
 
 // ========================================
@@ -207,15 +209,83 @@ function openCreditsModal(userId) {
 }
 
 // ========================================
-// SESSION MANAGEMENT
+// SESSION PARTICIPANTS MANAGEMENT
 // ========================================
+
+function toggleParticipantsSection() {
+    const section = document.getElementById('participantsSection');
+    const icon = document.getElementById('toggleParticipantsIcon');
+    const countLine = document.getElementById('participantsCountLine');
+
+    if (section.style.display === 'none') {
+        section.style.display = 'block';
+        icon.textContent = '▼';
+        countLine.style.display = 'none';
+
+        if (!participantsLoaded && currentSessionIdForParticipants) {
+            loadParticipantsInModal();
+        }
+    } else {
+        // Masquer la section
+        section.style.display = 'none';
+        icon.textContent = '▶';
+        countLine.style.display = 'block';
+    }
+}
+
+function loadParticipantsInModal() {
+    // Show loading
+    document.getElementById('participantsLoading').style.display = 'block';
+    document.getElementById('participantsContent').style.display = 'none';
+    document.getElementById('participantsEmpty').style.display = 'none';
+
+    // Fetch participants
+    fetch(`/admin/sessions/${currentSessionIdForParticipants}/participants`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch participants');
+            }
+            return response.json();
+        })
+        .then(participants => {
+            document.getElementById('participantsLoading').style.display = 'none';
+            participantsLoaded = true;
+
+            if (participants && participants.length > 0) {
+                populateParticipantsTable(participants);
+                document.getElementById('participantsContent').style.display = 'block';
+            } else {
+                document.getElementById('participantsEmpty').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            document.getElementById('participantsLoading').style.display = 'none';
+            document.getElementById('participantsEmpty').style.display = 'block';
+        });
+}
+
+function populateParticipantsTable(participants) {
+    const tbody = document.getElementById('participantsTableBody');
+    tbody.innerHTML = '';
+
+    participants.forEach(participant => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${participant.firstName}</td>
+            <td>${participant.lastName}</td>
+            <td>${participant.email}</td>
+        `;
+    });
+}
+
 
 function showParticipants(sessionId) {
     const modal = new mdb.Modal(document.getElementById('participantsModal'));
-    const loadingDiv = document.getElementById('participantsLoading');
-    const contentDiv = document.getElementById('participantsContent');
-    const emptyDiv = document.getElementById('participantsEmpty');
-    const tableBody = document.getElementById('participantsTableBody');
+    const loadingDiv = document.getElementById('participantsModalLoading');
+    const contentDiv = document.getElementById('participantsModalContent');
+    const emptyDiv = document.getElementById('participantsModalEmpty');
+    const tableBody = document.getElementById('participantsModalTableBody');
 
     // Show loading state
     loadingDiv.style.display = 'block';
@@ -320,18 +390,24 @@ function populateAdminUpdateForm(session, sessionId) {
     populateSessionTypeFields(isOnline, session, SESSION_CONTEXTS.UPDATE_ADMIN);
 
     currentSessionIdForParticipants = sessionId;
+    participantsLoaded = false;
     console.log('Stored session ID for participants:', sessionId);
 
     // Update participants count
     const participantsCount = session.registeredParticipants || 0;
     document.getElementById('sessionUpdateParticipantsCount').textContent = `${participantsCount} participant(s) inscrit(s)`;
 
-    // enable/disable participants button
-    const viewParticipantsBtn = document.getElementById('sessionUpdateViewParticipants');
+    // Reset participants section
+    document.getElementById('participantsSection').style.display = 'none';
+    document.getElementById('participantsCountLine').style.display = 'block';
+    document.getElementById('toggleParticipantsIcon').textContent = '▶';
+
+    // Hide/show participants button
+    const toggleBtn = document.getElementById('toggleParticipantsBtn');
     if (participantsCount > 0) {
-        viewParticipantsBtn.style.display = 'inline-block';
+        toggleBtn.style.display = 'inline-block';
     } else {
-        viewParticipantsBtn.style.display = 'none';
+        toggleBtn.style.display = 'none';
     }
 
     // Configure buttons based on status
@@ -351,12 +427,6 @@ function populateAdminUpdateForm(session, sessionId) {
         formElements.forEach(el => el.disabled = true);
         const statusText = session.status === 'CANCELLED' ? 'annulée' : 'terminée';
         document.querySelector('#sessionUpdateModal .modal-title').textContent = `Consultation session ${statusText}`;
-    }
-}
-
-function showParticipantsFromModal() {
-    if (currentSessionIdForParticipants) {
-        showParticipants(currentSessionIdForParticipants);
     }
 }
 

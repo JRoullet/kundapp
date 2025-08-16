@@ -26,7 +26,7 @@ public class AdminSessionManagementController {
 
     private final CourseManagementFeignClient courseFeignClient;
     private final SessionManagementService sessionManagementService;
-    private final Logger logger = LoggerFactory.getLogger(AdminTeacherController.class);
+    private final Logger logger = LoggerFactory.getLogger(AdminSessionManagementController.class);
 
     /**
      * ADMIN SESSION MANAGEMENT

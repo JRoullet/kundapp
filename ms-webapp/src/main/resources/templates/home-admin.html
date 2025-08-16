@@ -821,14 +821,44 @@
 
                     <!-- Section participants inscrits (info only) -->
                     <hr>
-                    <h6 class="mb-3">📋 Participants inscrits</h6>
-                    <div class="alert alert-info" id="sessionUpdateParticipantsInfo">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span id="sessionUpdateParticipantsCount">0 participant(s) inscrit(s)</span>
-                            <button type="button" class="btn btn-sm btn-outline-info" id="sessionUpdateViewParticipants"
-                                    onclick="showParticipantsFromModal()">
-                                👥 Voir la liste
-                            </button>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">📋 Participants inscrits</h6>
+                        <button type="button" class="btn btn-sm p-1"
+                                id="toggleParticipantsBtn" onclick="toggleParticipantsSection()"
+                                style="border: none; background: none;">
+                            <span id="toggleParticipantsIcon" style="font-size: 14px;">▶</span>
+                        </button>
+                    </div>
+
+                    <div id="participantsCountLine" class="alert alert-info mb-3">
+                        <span id="sessionUpdateParticipantsCount">0 participant(s) inscrit(s)</span>
+                    </div>
+
+                    <!-- Section participants (cachée par défaut) -->
+                    <div id="participantsSection" style="display: none;">
+                        <div id="participantsLoading" class="text-center py-3" style="display: none;">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <span class="ms-2">Chargement...</span>
+                        </div>
+
+                        <div id="participantsContent">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th>Prénom</th>
+                                        <th>Nom</th>
+                                        <th>Email</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="participantsTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="participantsEmpty" class="text-center py-3" style="display: none;">
+                            <small class="text-muted">Aucun participant inscrit</small>
                         </div>
                     </div>
                 </div>
@@ -885,13 +915,13 @@
                 <button type="button" class="btn-close" data-mdb-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div id="participantsLoading" class="text-center py-3" style="display: none;">
+                <div id="participantsModalLoading" class="text-center py-3" style="display: none;">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Chargement...</span>
                     </div>
                     <p class="mt-2">Chargement des participants...</p>
                 </div>
-                <div id="participantsContent">
+                <div id="participantsModalContent">
                     <div class="table-responsive">
                         <table class="table table-row-hover">
                             <thead>
@@ -901,13 +931,12 @@
                                 <th>Email</th>
                             </tr>
                             </thead>
-                            <tbody id="participantsTableBody">
-                            <!-- Content will be populated by JavaScript -->
+                            <tbody id="participantsModalTableBody">
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <div id="participantsEmpty" class="text-center py-4" style="display: none;">
+                <div id="participantsModalEmpty" class="text-center py-4" style="display: none;">
                     <h6>Aucun participant inscrit</h6>
                     <p class="text-muted">Cette séance n'a pas encore de participants inscrits.</p>
                 </div>

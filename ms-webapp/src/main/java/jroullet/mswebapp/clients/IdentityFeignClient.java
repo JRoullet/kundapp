@@ -75,6 +75,11 @@ public interface IdentityFeignClient {
     @PostMapping("/admin/users/list")
     List<UserParticipantDTO> getUsersByIds(@RequestBody List<Long> userIds);
 
+    @PostMapping("/teacher/users/participants/list")
+    List<UserParticipantDTO> getParticipantsByIdsForTeacher(@RequestBody List<Long> userIds);
+
+
+
     /**
      *     CREDITS SECTION
       */

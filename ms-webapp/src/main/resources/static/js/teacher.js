@@ -49,6 +49,113 @@ function initializeFormValidation(formId, validationFunction) {
 }
 
 // ========================================
+// GLOBAL VARIABLES
+// ========================================
+let currentSessionIdForParticipants = null;
+let participantsLoaded = false;
+
+// ========================================
+// SESSION PARTICIPANTS MANAGEMENT
+// ========================================
+function loadParticipantsInModal() {
+    // Show loading
+    document.getElementById('participantsLoading').style.display = 'block';
+    document.getElementById('participantsContent').style.display = 'none';
+    document.getElementById('participantsEmpty').style.display = 'none';
+
+    // Fetch participants
+    fetch(`/teacher/sessions/${currentSessionIdForParticipants}/participants`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch participants');
+            }
+            return response.json();
+        })
+        .then(participants => {
+            document.getElementById('participantsLoading').style.display = 'none';
+            participantsLoaded = true;
+
+            if (participants && participants.length > 0) {
+                populateParticipantsTable(participants);
+                document.getElementById('participantsContent').style.display = 'block';
+            } else {
+                document.getElementById('participantsEmpty').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            document.getElementById('participantsLoading').style.display = 'none';
+            document.getElementById('participantsEmpty').style.display = 'block';
+        });
+}
+
+function populateParticipantsTable(participants) {
+    const tbody = document.getElementById('participantsTableBody');
+    tbody.innerHTML = '';
+
+    participants.forEach(participant => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${participant.firstName}</td>
+            <td>${participant.lastName}</td>
+            <td>${participant.email}</td>
+        `;
+    });
+}
+
+// Function for homepage participants modal
+function showParticipants(sessionId) {
+    console.log('showParticipants called with sessionId:', sessionId);
+    const modal = new mdb.Modal(document.getElementById('participantsModal'));
+
+    // Show loading state
+    document.getElementById('participantsModalLoading').style.display = 'block';
+    document.getElementById('participantsModalContent').style.display = 'none';
+    document.getElementById('participantsModalEmpty').style.display = 'none';
+
+    modal.show();
+
+    // Fetch participants
+    fetch(`/teacher/sessions/${sessionId}/participants`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch participants');
+            }
+            return response.json();
+        })
+        .then(participants => {
+            document.getElementById('participantsModalLoading').style.display = 'none';
+
+            if (participants && participants.length > 0) {
+                populateParticipantsModalTable(participants);
+                document.getElementById('participantsModalContent').style.display = 'block';
+            } else {
+                document.getElementById('participantsModalEmpty').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            document.getElementById('participantsModalLoading').style.display = 'none';
+            document.getElementById('participantsModalEmpty').style.display = 'block';
+            CommonUtils.showToast('error', 'Erreur', 'Impossible de charger la liste des participants');
+        });
+}
+
+function populateParticipantsModalTable(participants) {
+    const tbody = document.getElementById('participantsModalTableBody');
+    tbody.innerHTML = '';
+
+    participants.forEach(participant => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${participant.firstName}</td>
+            <td>${participant.lastName}</td>
+            <td>${participant.email}</td>
+        `;
+    });
+}
+
+// ========================================
 // SESSION MODAL MANAGEMENT
 // ========================================
 
@@ -103,7 +210,7 @@ function openEditSessionModal(sessionId) {
         })
         .then(session => {
             console.log('Session data loaded:', session);
-            populateUpdateForm(session);
+            populateUpdateForm(session, sessionId);
 
             const modal = new mdb.Modal(document.getElementById('sessionUpdateModal'));
             modal.show();
@@ -114,7 +221,7 @@ function openEditSessionModal(sessionId) {
         });
 }
 
-function populateUpdateForm(session) {
+function populateUpdateForm(session, sessionId) {
     // Populate basic fields
     const basicFields = {
         'sessionUpdateSubject': session.subject,
@@ -141,14 +248,59 @@ function populateUpdateForm(session) {
     const isOnline = session.isOnline || false;
     populateSessionTypeFields(isOnline, session, SESSION_CONTEXTS.UPDATE_TEACHER);
 
+    currentSessionIdForParticipants = sessionId;
+    participantsLoaded = false;
+    console.log('Stored session ID for participants:', sessionId);
+    console.log('Session data:', session);
+
+
     // Update participants count
     const participantsCount = session.registeredParticipants || 0;
+    console.log('Participants count:', participantsCount);
     document.getElementById('sessionUpdateParticipantsCount').textContent =
         `${participantsCount} participant(s) inscrit(s)`;
+
+    // Reset participants section
+    document.getElementById('participantsSection').style.display = 'none';
+    document.getElementById('participantsCountLine').style.display = 'block';
+    document.getElementById('toggleParticipantsIcon').textContent = '▶';
+
+
+    // Hide participants section
+    const toggleBtn = document.getElementById('toggleParticipantsBtn');
+    if (participantsCount > 0) {
+        toggleBtn.style.display = 'inline-block';
+    } else {
+        toggleBtn.style.display = 'none';
+    }
 
     // Configure cancel button
     const cancelBtn = document.getElementById('sessionUpdateCancelBtn');
     cancelBtn.onclick = () => confirmCancelSessionFromUpdateModal(session.id);
+}
+
+
+function toggleParticipantsSection() {
+    const section = document.getElementById('participantsSection');
+    const icon = document.getElementById('toggleParticipantsIcon');
+    const countLine = document.getElementById('participantsCountLine');
+
+    if (section.style.display === 'none') {
+        // Display section
+        section.style.display = 'block';
+        icon.textContent = '▼';
+        countLine.style.display = 'none';
+
+        // Load participants if not already loaded
+        if (!participantsLoaded && currentSessionIdForParticipants) {
+            loadParticipantsInModal();
+        }
+    } else {
+        // Hide section
+        section.style.display = 'none';
+        icon.textContent = '▶';
+        countLine.style.display = 'block';
+    }
 }
 
 function confirmCancelSessionFromUpdateModal(sessionId) {

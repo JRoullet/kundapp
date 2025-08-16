@@ -47,17 +47,6 @@ public class SessionManagementService {
     }
 
 
-    /**
-     *      Common Methods
-     */
-    public List<UserParticipantDTO> getSessionParticipants(Long sessionId) {
-        SessionWithParticipantsDTO session = courseFeignClient.getSessionById(sessionId);
-        if (session.getParticipantIds().isEmpty()) {
-            return Collections.emptyList();
-        }
-        return identityFeignClient.getUsersByIds(session.getParticipantIds());
-    }
-
 
     /**
      *     TEACHER METHODS
@@ -172,6 +161,24 @@ public class SessionManagementService {
         }
     }
 
+    public List<UserParticipantDTO> getSessionParticipantsForTeacher(Long sessionId) {
+
+        Long currentTeacherId = sessionService.getCurrentUser().getId();
+        log.info("Fetching participants for teacher's session {}", sessionId);
+
+        // verify session belongs to teacher
+        SessionWithParticipantsDTO session = courseFeignClient.getSessionById(sessionId);
+        if (!session.getTeacherId().equals(currentTeacherId)) {
+            throw new SecurityException("Teacher can only view participants of their own sessions");
+        }
+
+        if (session.getParticipantIds() == null || session.getParticipantIds().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return identityFeignClient.getParticipantsByIdsForTeacher(session.getParticipantIds());
+    }
+
 
     /**
      *     ADMIN METHODS
@@ -181,6 +188,14 @@ public class SessionManagementService {
         List<SessionWithParticipantsDTO> sessions = courseFeignClient.getAllSessionsForAdmin();
         log.info("Loaded {} sessions", sessions.size());
         return sessions;
+    }
+
+    public List<UserParticipantDTO> getSessionParticipants(Long sessionId) {
+        SessionWithParticipantsDTO session = courseFeignClient.getSessionById(sessionId);
+        if (session.getParticipantIds().isEmpty()) {
+            return Collections.emptyList();
+        }
+        return identityFeignClient.getUsersByIds(session.getParticipantIds());
     }
 
     /**
