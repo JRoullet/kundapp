@@ -576,6 +576,45 @@ function validateSessionTypeFields(formData) {
 }
 
 // ========================================
+// SESSION CREDITS CONSTRAINT MANAGEMENT
+// ========================================
+
+// ========================================
+// SESSION CREDITS CONSTRAINT MANAGEMENT
+// ========================================
+
+/**
+ * Apply credits field constraint based on participants count
+ * @param {number} participantsCount - Number of registered participants
+ */
+function applyCreditsConstraint(participantsCount) {
+    const creditsField = document.getElementById('sessionUpdateCreditsRequired');
+    const creditsHelpText = creditsField?.parentElement?.querySelector('.form-text');
+
+    if (!creditsField || !creditsHelpText) {
+        console.error('Credits field or help text not found');
+        return;
+    }
+
+    if (participantsCount > 0) {
+        // Apply constraint - field becomes read-only
+        creditsField.readOnly = true;
+        creditsField.style.backgroundColor = '#f8f9fa';
+        creditsField.style.cursor = 'not-allowed';
+
+        creditsHelpText.innerHTML = '<span class="text-warning">Impossible de modifier : des participants se sont déjà inscrits à la séance. Annulez cette session et créez en une autre pour modifier le nombre de crédits.</span>';
+        creditsHelpText.style.color = '#dc3545';
+    } else {
+        // Remove constraint - field becomes editable
+        creditsField.readOnly = false;
+        creditsField.style.backgroundColor = '';
+        creditsField.style.cursor = '';
+        creditsHelpText.innerHTML = 'Nombre de crédits nécessaires pour participer';
+        creditsHelpText.style.color = '';
+    }
+}
+
+// ========================================
 // MODAL ACCESSIBILITY
 // ========================================
 

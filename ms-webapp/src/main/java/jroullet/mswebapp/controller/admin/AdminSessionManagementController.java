@@ -1,5 +1,6 @@
 package jroullet.mswebapp.controller.admin;
 
+import feign.FeignException;
 import jakarta.validation.Valid;
 import jroullet.mswebapp.clients.CourseManagementFeignClient;
 import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
@@ -57,9 +58,32 @@ public class AdminSessionManagementController {
             courseFeignClient.updateSessionByAdmin(sessionId, sessionUpdateDTO);
             redirectAttributes.addFlashAttribute("success", "Session mise à jour avec succès");
             return new ModelAndView("redirect:/admin?tab=sessions");
+        } catch (FeignException e) {
+            logger.error("Feign error updating session {}: {}", sessionId, e.getMessage());
+
+            String errorMessage = switch (e.status()) {
+                case 400, 422 -> {
+                    if (e.getMessage().contains("Cannot modify credits")) {
+                        yield "Impossible de modifier les crédits : des participants sont inscrits";
+                    } else if (e.getMessage().contains("past")) {
+                        yield "Impossible de programmer une session dans le passé";
+                    } else if (e.getMessage().contains("time conflict")) {
+                        yield "Conflit d'horaire avec une autre session";
+                    } else if (e.getMessage().contains("spots")) {
+                        yield "Impossible de réduire les places en dessous du nombre d'inscrits";
+                    }
+                    yield "Données de session invalides";
+                }
+                case 404 -> "Session non trouvée";
+                default -> "Erreur lors de la mise à jour de la session";
+            };
+
+            redirectAttributes.addFlashAttribute("error", errorMessage);
+            return new ModelAndView("redirect:/admin?tab=sessions");
+
         } catch (Exception e) {
-            logger.error("Error updating session: {}", sessionId, e);
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de la mise à jour de la session");
+            logger.error("Unexpected error updating session {}: {}", sessionId, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur technique inattendue");
             return new ModelAndView("redirect:/admin?tab=sessions");
         }
     }

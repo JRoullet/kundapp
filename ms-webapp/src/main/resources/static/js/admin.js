@@ -397,6 +397,9 @@ function populateAdminUpdateForm(session, sessionId) {
     const participantsCount = session.registeredParticipants || 0;
     document.getElementById('sessionUpdateParticipantsCount').textContent = `${participantsCount} participant(s) inscrit(s)`;
 
+    // Update credits constraint
+    applyCreditsConstraint(participantsCount);
+
     // Reset participants section
     document.getElementById('participantsSection').style.display = 'none';
     document.getElementById('participantsCountLine').style.display = 'block';

@@ -24,7 +24,7 @@ public class SessionJobManagement {
     private final SessionMapper sessionMapper;
 
     /**
-     * Updates the status of sessions that have ended to COMPLETED.
+     * Updates the status of sessions that have ended to 'COMPLETED'.
      * This method should is called periodically (e.g., via a scheduled job).
      */
     public void updateCompletedSessions() {
@@ -82,6 +82,8 @@ public class SessionJobManagement {
         if (dto.getAvailableSpots() < (sessionWithParticipantsDTO.getRegisteredParticipants() != null ? sessionWithParticipantsDTO.getRegisteredParticipants() : 0)) {
             throw new InsufficientSpotsException("Cannot reduce spots below registered participants count");
         }
+        //Verify credits are not modified when participants are registered
+        validateCreditsModification(sessionWithParticipantsDTO, dto);
 
         Session session = sessionRepository.findById(sessionWithParticipantsDTO.getId())
                 .orElseThrow(() -> new SessionNotFoundException("Session not found"));
@@ -111,7 +113,6 @@ public class SessionJobManagement {
         }
     }
 
-
     private void cleanConflictingSessionFields(Session session) {
         // Clean fields that are not applicable based on session type
         if (session.getIsOnline()) {
@@ -121,6 +122,17 @@ public class SessionJobManagement {
             session.setBringYourMattress(null);
         } else {
             session.setZoomLink(null);
+        }
+    }
+
+    private void validateCreditsModification(SessionWithParticipantsDTO currentSession, SessionUpdateDTO sessionUpdateDTO) {
+        int participantsCount = currentSession.getParticipantIds() != null ?
+                currentSession.getParticipantIds().size() : 0;
+
+        if (participantsCount > 0 &&
+                !currentSession.getCreditsRequired().equals(sessionUpdateDTO.getCreditsRequired())) {
+            throw new InvalidSessionUpdateException(
+                    "Cannot modify credits when participants are registered. Cancel session to change credits.");
         }
     }
 }

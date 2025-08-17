@@ -57,6 +57,18 @@ public class GlobalExceptionHandler {
     }
 
     // 409 CONFLICT
+    @ExceptionHandler(InvalidSessionUpdateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidSessionUpdateException(InvalidSessionUpdateException e) {
+        log.error("Invalid session update: {}", e.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                e.getMessage(),
+                "INVALID_SESSION_UPDATE",
+                HttpStatus.CONFLICT
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    // 409 CONFLICT
     @ExceptionHandler(InsufficientSpotsException.class)
     public ResponseEntity<ErrorResponse> handleSessionAlreadyReservedSpotsException(InsufficientSpotsException e) {
         log.error("Session spots conflict: {}", e.getMessage());
@@ -188,4 +200,5 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+
 }

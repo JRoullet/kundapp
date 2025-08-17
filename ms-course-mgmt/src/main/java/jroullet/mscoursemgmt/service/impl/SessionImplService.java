@@ -84,10 +84,13 @@ public class SessionImplService implements SessionService {
     @Override
     public SessionWithParticipantsDTO updateSessionByTeacher(Long sessionId, Long requestingUserId, SessionUpdateDTO sessionUpdateDTO) {
         SessionWithParticipantsDTO sessionWithParticipantsDTO = getSessionById(sessionId);
+
         // Check if the session belongs to the requesting teacher
         if(!sessionWithParticipantsDTO.getTeacherId().equals(requestingUserId)) {
             throw new UnauthorizedSessionAccessException("You can only update your own sessions");
         }
+
+        //Update common method (teacher + admin) with validations
         return sessionJobManagement.updateSessionCommon(sessionWithParticipantsDTO,sessionUpdateDTO);
     }
 

@@ -74,8 +74,11 @@ services:
       file: common-config.yml
       service: microservice-db-config
 
-#  msmongodb:
-#    container_name: mongodb
+#  msnotificationmongodb:
+#    container_name: notificationmongodb
+#  networks:
+#    - kundapp-public
+#    - kundapp-internal
 #    ports:
 #      - "27018:27017"
 #    environment:
@@ -167,28 +170,13 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
 
 
-
-#  mscoursemgmt:
-#    image: jroullet/kundapp-ms-course-mgmt:latest
-#    container_name: course-mgmt-ms
-#    ports:
-#      - "9000:9000"
-#    depends_on:
-#      mscoursemgmtdb:
-#        condition: service_healthy
-#    extends:
-#      file: common-config.yml
-#      service: microservice-discovery-config
-#    environment:
-#      SPRING_DATASOURCE_URL: jdbc:mysql://mscoursemgmtdb:3306/coursemgmtdb
-
 #  msnotifications:
 #    image: jroullet/kundapp-ms-notifications:latest
 #    container_name: notifications-ms
 #    ports:
-#      - "9000:9000"
+#      - "9010:9010"
 #    depends_on:
-#      msmongodb:
+#      notificationmongodb:
 #        condition: service_healthy
 #    extends:
 #      file: common-config.yml

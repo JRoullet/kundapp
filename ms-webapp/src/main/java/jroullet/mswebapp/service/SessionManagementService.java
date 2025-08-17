@@ -161,6 +161,22 @@ public class SessionManagementService {
         }
     }
 
+    public void updateSessionForCurrentTeacher(Long sessionId, SessionUpdateDTO sessionUpdateDTO) {
+        Long currentTeacherId = sessionService.getCurrentUser().getId();
+        log.info("Teacher ID {} is attempting to update session {}", currentTeacherId, sessionId);
+
+        // Fetch session details
+        SessionWithParticipantsDTO session = getSessionDetails(sessionId);
+
+        // Verify ownership
+        if (!session.getTeacherId().equals(currentTeacherId)) {
+            throw new UnauthorizedSessionAccessException("You can only update your own sessions");
+        }
+
+        // Update session
+        courseFeignClient.updateSessionByTeacher(sessionId, currentTeacherId, sessionUpdateDTO);
+    }
+
     public List<UserParticipantDTO> getSessionParticipantsForTeacher(Long sessionId) {
 
         Long currentTeacherId = sessionService.getCurrentUser().getId();

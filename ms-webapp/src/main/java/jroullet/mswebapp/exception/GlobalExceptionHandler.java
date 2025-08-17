@@ -19,6 +19,14 @@ public class GlobalExceptionHandler {
             this(message, errorCode, LocalDateTime.now(), status.value());
         }
     }
+
+    @ExceptionHandler(UnauthorizedSessionAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedAccess(UnauthorizedSessionAccessException ex) {
+        log.error("Unauthorized access: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse("Unauthorized access to session", "UNAUTHORIZED_ACCESS", HttpStatus.FORBIDDEN);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(InsufficientCreditsException.class)
     public ResponseEntity<ErrorResponse> handleInsufficientCredits(InsufficientCreditsException ex) {
         log.error("Insufficient credits: {}", ex.getMessage());

@@ -11,6 +11,7 @@ import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
 import jroullet.mswebapp.dto.session.SessionUpdateDTO;
 import jroullet.mswebapp.dto.user.UserParticipantDTO;
 import jroullet.mswebapp.exception.BusinessException;
+import jroullet.mswebapp.exception.UnauthorizedSessionAccessException;
 import jroullet.mswebapp.model.Subject;
 import jroullet.mswebapp.service.SessionManagementService;
 import lombok.RequiredArgsConstructor;
@@ -133,15 +134,39 @@ public class TeacherSessionManagementController {
         }
 
         try {
-            Long teacherId = sessionService.getCurrentUser().getId();
-            courseFeignClient.updateSessionByTeacher(sessionId, teacherId, sessionUpdateDTO);
+            sessionManagementService.updateSessionForCurrentTeacher(sessionId, sessionUpdateDTO);
             redirectAttributes.addFlashAttribute("success", "Session mise à jour avec succès");
             return new ModelAndView("redirect:/teacher");
+        } catch (UnauthorizedSessionAccessException e) {
+            logger.error("Unauthorized access to session {}: {}", sessionId, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Accès non autorisé à cette session");
+            return new ModelAndView("redirect:/teacher");
+        } catch (FeignException e) {
+            logger.error("Error updating session {}: {}", sessionId, e.getMessage());
+            String errorMessage = switch (e.status()) {
+                case 400, 422 -> {
+                    if (e.getMessage().contains("Cannot modify credits")) {
+                        yield "Impossible de modifier les crédits : des participants sont déjà inscrits";
+                    }
+                    yield "Données de session invalides";
+                }
+                case 404 -> "Session non trouvée";
+                default -> "Erreur lors de la mise à jour de la session";
+            };
+
+            redirectAttributes.addFlashAttribute("error", errorMessage);
+            return new ModelAndView("redirect:/teacher");
+
         } catch (Exception e) {
-            logger.error("Error updating session: {}", sessionId, e);
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de la mise à jour de la session");
+            logger.error("Unexpected error updating session {}: {}", sessionId, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur technique inattendue");
             return new ModelAndView("redirect:/teacher");
         }
+
+
+
+
+
     }
 
 
