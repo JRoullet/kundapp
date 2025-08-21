@@ -13,6 +13,9 @@ public interface UserService {
     List<UserDTO> findAllUsers();
     List<UserParticipantDTO> findAllParticipants(List<Long> userIds);
 
+    UserParticipantDTO findBasicUserById(Long id);
+    List<UserParticipantDTO> findAllBasicInfoParticipants(List<Long> userIds);
+
     UserDTO findUserById(Long id);
     UserDTO createUser(UserCreationDTO dto);
     UserDTO updateUser(Long id, UserUpdateDTO dto);

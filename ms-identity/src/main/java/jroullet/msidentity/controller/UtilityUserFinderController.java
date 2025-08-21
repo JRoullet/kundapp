@@ -2,6 +2,7 @@ package jroullet.msidentity.controller;
 
 import jroullet.msidentity.dto.teacher.TeacherDTO;
 import jroullet.msidentity.dto.user.UserDTO;
+import jroullet.msidentity.dto.user.UserParticipantDTO;
 import jroullet.msidentity.exception.UserNotFoundException;
 import jroullet.msidentity.service.TeacherService;
 import jroullet.msidentity.service.impl.UserServiceImpl;
@@ -23,7 +24,6 @@ public class UtilityUserFinderController {
     private final UserServiceImpl userService;
     private final Logger logger = LoggerFactory.getLogger(UtilityUserFinderController.class);
     private final TeacherService teacherService;
-
 
     // Return UserDto (sessionUser)
     @GetMapping("/user")
@@ -71,7 +71,31 @@ public class UtilityUserFinderController {
         }
     }
 
+    //Public endpoints for user operations
+    @PostMapping("/users/basic-info")
+    ResponseEntity<List<UserParticipantDTO>> getUsersBasicInfo(@RequestBody List<Long> userIds){
+        logger.info("Fetching basic info for users with IDs: " + userIds);
+        try {
+            List<UserParticipantDTO> users = userService.findAllBasicInfoParticipants(userIds);
+            return ResponseEntity.ok(users);
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
 
-
+    @GetMapping("/users/{id}/basic-info")
+    ResponseEntity<UserParticipantDTO> getUserBasicInfo(@PathVariable Long id){
+        logger.info("Fetching user basic info by ID: " + id);
+        try {
+            UserParticipantDTO user = userService.findBasicUserById(id);
+            return ResponseEntity.ok(user);
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
 
 }

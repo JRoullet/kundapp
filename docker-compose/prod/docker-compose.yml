@@ -14,13 +14,14 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
-    extends:
-      file: common-config.yml
-      service: microservice-base-config
     secrets:
       - git_password
     environment:
       GIT_PASSWORD_FILE: /run/secrets/git_password
+    extends:
+      file: common-config.yml
+      service: microservice-base-config
+
 
   msdiscovery:
     image: jroullet/kundapp-ms-discovery:latest
@@ -52,6 +53,7 @@ services:
       - "3308:3306"
     environment:
       MYSQL_DATABASE: identitydb
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - ./docker/mysql-init:/docker-entrypoint-initdb.d
     extends:
@@ -74,19 +76,20 @@ services:
       file: common-config.yml
       service: microservice-db-config
 
-#  msnotificationmongodb:
-#    container_name: notificationmongodb
-#  networks:
-#    - kundapp-public
-#    - kundapp-internal
-#    ports:
-#      - "27018:27017"
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: root
-#      MONGO_INITDB_ROOT_PASSWORD: 123
-#    extends:
-#      file: common-config.yml
-#      service: microservice-mongo-config
+  msnotificationmongodb:
+    container_name: notificationmongodb
+    networks:
+      - kundapp-public
+      - kundapp-internal
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
+    extends:
+      file: common-config.yml
+      service: microservice-mongo-config
 
   mswebapp:
     image: jroullet/kundapp-ms-webapp:latest
@@ -99,12 +102,13 @@ services:
     depends_on:
       msidentitydb:
         condition: service_healthy
-    extends:
-      file: common-config.yml
-      service: microservice-discovery-config
     environment:
       SPRING_DATASOURCE_URL: ${DATABASE_URL}
       APP_INTERNAL_SECRET: ${INTERNAL_SECRET}
+    extends:
+      file: common-config.yml
+      service: microservice-discovery-config
+
 
 
   msidentity:
@@ -113,12 +117,13 @@ services:
     depends_on:
       msidentitydb:
         condition: service_healthy
-    extends:
-      file: common-config.yml
-      service: microservice-discovery-config
     environment:
       SPRING_DATASOURCE_URL: ${DATABASE_URL}
       APP_INTERNAL_SECRET: ${INTERNAL_SECRET}
+    extends:
+      file: common-config.yml
+      service: microservice-discovery-config
+
 
 
   mscoursemgmt:
@@ -127,11 +132,34 @@ services:
     depends_on:
       mscoursemgmtdb:
         condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: ${DATABASE_COURSE_URL}
+      APP_INTERNAL_SECRET: ${INTERNAL_SECRET} # Not used yet
     extends:
       file: common-config.yml
       service: microservice-discovery-config
+
+
+  msnotification:
+    image: jroullet/kundapp-ms-notification:latest
+    container_name: notification-ms
+    ports:
+      - "9010:9010"
+    depends_on:
+      msnotificationmongodb:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: ${DATABASE_COURSE_URL}
+      SPRING_PROFILES_ACTIVE: docker,mock
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      MONGODB_DATABASE: ${MONGODB_DATABASE}
+      MONGODB_URI: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@msnotificationmongodb:27017/${MONGODB_DATABASE}?authSource=admin
+
+      APP_INTERNAL_SECRET: ${INTERNAL_SECRET}
+    extends:
+      file: common-config.yml
+      service: microservice-discovery-config
+
 
   data-initializer:
     image: mysql:9.3
@@ -148,9 +176,6 @@ services:
     volumes:
       - ./docker/mysql-init/02-data.sql:/tmp/insert-identity-data.sql
       - ./docker/mysql-course-init/02-data.sql:/tmp/insert-course-data.sql
-    extends:
-      file: common-config.yml
-      service: microservice-base-config
     command: >
       sh -c "
         echo 'Waiting for services...' &&
@@ -168,19 +193,10 @@ services:
     restart: "no"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    extends:
+      file: common-config.yml
+      service: microservice-base-config
 
-
-#  msnotifications:
-#    image: jroullet/kundapp-ms-notifications:latest
-#    container_name: notifications-ms
-#    ports:
-#      - "9010:9010"
-#    depends_on:
-#      notificationmongodb:
-#        condition: service_healthy
-#    extends:
-#      file: common-config.yml
-#      service: microservice-discovery-config
 
 secrets:
   git_password:

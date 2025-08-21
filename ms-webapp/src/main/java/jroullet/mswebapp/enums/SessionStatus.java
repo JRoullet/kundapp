@@ -1,4 +1,4 @@
-package jroullet.mswebapp.model;
+package jroullet.mswebapp.enums;
 
 import lombok.Getter;
 

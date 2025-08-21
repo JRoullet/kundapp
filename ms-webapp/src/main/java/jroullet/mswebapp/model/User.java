@@ -3,6 +3,8 @@ package jroullet.mswebapp.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jroullet.mswebapp.enums.Role;
+import jroullet.mswebapp.enums.SubscriptionStatus;
 import lombok.Data;
 
 import java.time.LocalDate;

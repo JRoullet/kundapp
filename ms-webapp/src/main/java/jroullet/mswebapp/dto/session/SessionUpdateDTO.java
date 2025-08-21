@@ -1,7 +1,7 @@
 package jroullet.mswebapp.dto.session;
 
 import jakarta.validation.constraints.*;
-import jroullet.mswebapp.model.Subject;
+import jroullet.mswebapp.enums.Subject;
 import jroullet.mswebapp.validator.ValidSessionType;
 import lombok.*;
 

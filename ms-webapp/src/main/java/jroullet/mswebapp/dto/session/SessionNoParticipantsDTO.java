@@ -1,7 +1,7 @@
 package jroullet.mswebapp.dto.session;
 
-import jroullet.mswebapp.model.SessionStatus;
-import jroullet.mswebapp.model.Subject;
+import jroullet.mswebapp.enums.SessionStatus;
+import jroullet.mswebapp.enums.Subject;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

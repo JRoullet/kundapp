@@ -1,7 +1,7 @@
 package jroullet.mswebapp.dto.teacher;
 
 import jroullet.mswebapp.model.Address;
-import jroullet.mswebapp.model.Role;
+import jroullet.mswebapp.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

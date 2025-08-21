@@ -1,4 +1,4 @@
-package jroullet.mswebapp.model;
+package jroullet.mswebapp.enums;
 
 public enum Role {
     CLIENT,TEACHER,ADMIN;

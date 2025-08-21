@@ -1,0 +1,11 @@
+server:
+  port: 9010
+spring:
+  application:
+    name: ms-notification
+  config:
+    import: configserver:http://msconfigserver:8888/
+  datasource:
+    url: ${DATABASE_MONGODB_URL}
+    username: ${MONGODB_USERNAME}
+    password: ${MONGODB_PASSWORD}

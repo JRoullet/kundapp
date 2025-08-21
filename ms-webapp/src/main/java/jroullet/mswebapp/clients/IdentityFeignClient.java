@@ -47,6 +47,14 @@ public interface IdentityFeignClient {
      *     USER SECTION
       */
 
+    //Public endpoints for user operations
+    @PostMapping("/users/basic-info")
+    List<UserParticipantDTO> getUsersBasicInfo(@RequestBody List<Long> userIds);
+
+    @GetMapping("/users/{id}/basic-info")
+    UserParticipantDTO getUserBasicInfo(@PathVariable Long id);
+
+    //Admin endpoints for user management
     @GetMapping("/admin/users/{id}")
     UserDTO getUserById(@PathVariable("id") Long id);
 

@@ -24,7 +24,6 @@ INSERT INTO session (
              3,
              'Jenna',
              'Watkins',
-             -- FIN NOUVEAUX CHAMPS
              'KUNDALINI',
              'COMPLETED',
              'Session de Kundalini pour débutants. Découvrez l\'éveil de l\'énergie intérieure à travers des postures, la respiration et la méditation.',

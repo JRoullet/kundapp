@@ -23,4 +23,5 @@ public class UserDTO {
     private String biography;
     private SubscriptionStatus subscriptionStatus;
     private Integer credits;
+
 }

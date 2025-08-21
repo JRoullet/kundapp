@@ -27,7 +27,6 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UpdateUtils updateUtils;
 
-
     @Override
     public List<TeacherDTO> findAllTeachers() {
         return userRepository.findAll().stream()
@@ -59,6 +58,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<UserParticipantDTO> findAllBasicInfoParticipants(List<Long> userIds) {
+        return userRepository.findParticipantsByIds(userIds)
+                .stream()
+                .map(userMapper::toUserParticipantDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public UserDTO findUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
@@ -67,6 +74,17 @@ public class UserServiceImpl implements UserService {
             throw new RoleNotAllowedException("User with id " + id + " is not a client");
         }
         return userMapper.toUserDto(user);
+    }
+
+    //Works for both CLIENT and TEACHER roles
+    @Override
+    public UserParticipantDTO findBasicUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+        if (user.getRole() != Role.CLIENT && user.getRole() != Role.TEACHER) {
+            throw new RoleNotAllowedException("User with id " + id + " is not a client or teacher");
+        }
+        return userMapper.toUserParticipantDto(user);
     }
 
     @Override

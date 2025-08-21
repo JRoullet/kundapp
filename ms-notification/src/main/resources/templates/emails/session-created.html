@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Session créée - Confirmation</title>
+    <link rel="stylesheet" href="email-styles.css">
+</head>
+<body class="notification-created">
+<h2 class="icon-success">Session créée avec succès</h2>
+
+<p>Bonjour <span th:text="${firstName}">Professeur</span>,</p>
+
+<div class="status-box status-success">
+    <p>Votre session a été créée et est maintenant accessible par les utilisateurs.</p>
+</div>
+
+<div class="session-details">
+    <h3>Récapitulatif de votre session :</h3>
+
+    <p><span class="label">Sujet :</span> <span class="value" th:text="${sessionSubject}">Sujet</span></p>
+    <p><span class="label">Description :</span> <span class="value" th:text="${sessionDescription}">Description</span></p>
+    <p><span class="label">Date et heure :</span> <span class="value" th:text="${sessionDateTime}">Date et heure</span></p>
+    <p><span class="label">Durée :</span> <span class="value" th:text="${duration}">Durée</span></p>
+
+    <div th:if="${isOnline}">
+        <p><span class="label">Mode :</span> <span class="session-online icon-online">Session en ligne</span></p>
+        <p><span class="label">Lien Zoom :</span> <span class="value" th:text="${zoomLink}">Lien Zoom</span></p>
+    </div>
+
+    <div th:unless="${isOnline}">
+        <p><span class="label">Mode :</span> <span class="session-offline icon-offline">Session en présentiel</span></p>
+        <p><span class="label">Salle :</span> <span class="value" th:text="${roomName}">Nom de la salle</span></p>
+        <p th:if="${bringYourMattress}"><span class="label">Matériel :</span> <span class="icon-material">Tapis requis</span></p>
+    </div>
+</div>
+<p>
+    Vous pouvez maintenant partager les détails de cette session avec vos étudiants. Ils pourront y accéder via l'application.
+<p>
+    Cordialement,<br>
+    L'équipe <span th:text="${companyName}">KundApp</span>
+</p>
+
+<div class="email-footer">
+    <p>
+        Email envoyé le <span th:text="${notificationDate}">date</span> |
+        Support : <span th:text="${supportEmail}">support@kundapp.com</span>
+    </p>
+</div>
+</body>
+</html>

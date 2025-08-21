@@ -1,32 +1,30 @@
 package jroullet.msidentity.service.impl;
 
-import jroullet.msidentity.dto.user.credits.*;
+import jroullet.msidentity.dto.user.credits.BatchCreditOperationRequest;
+import jroullet.msidentity.dto.user.credits.CreditOperationResponse;
+import jroullet.msidentity.dto.user.credits.SessionRegistrationDeductRequest;
+import jroullet.msidentity.dto.user.credits.SessionRollbackRefundRequest;
 import jroullet.msidentity.exception.InsufficientCreditsException;
-import jroullet.msidentity.exception.UnauthorizedInternalAccessException;
 import jroullet.msidentity.exception.UserNotFoundException;
 import jroullet.msidentity.model.User;
 import jroullet.msidentity.repository.UserRepository;
+import jroullet.msidentity.security.SecurityValidator;
 import jroullet.msidentity.service.InternalCreditService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class InternalCreditServiceImpl implements InternalCreditService {
 
     private final UserRepository userRepository;
-    private final String internalSecret;
+    private final SecurityValidator securityValidator;
 
-    public InternalCreditServiceImpl(UserRepository userRepository,
-                                 @Value("${app.internal.secret}") String internalSecret) {
-        this.userRepository = userRepository;
-        this.internalSecret = internalSecret;
-    }
 
     /**
      * Deducts credits for session registration with security validation
@@ -36,7 +34,7 @@ public class InternalCreditServiceImpl implements InternalCreditService {
         log.info("Processing credit deduction for user {} and session {}",
                 request.userId(), request.sessionId());
 
-        validateInternalSecret(request.internalSecret());
+        securityValidator.validateInternalSecret(request.internalSecret());
 
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + request.userId()));
@@ -73,7 +71,7 @@ public class InternalCreditServiceImpl implements InternalCreditService {
         log.info("Processing credit rollback refund for user {} and session {}",
                 request.userId(), request.sessionId());
 
-        validateInternalSecret(request.internalSecret());
+        securityValidator.validateInternalSecret(request.internalSecret());
 
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + request.userId()));
@@ -101,7 +99,7 @@ public class InternalCreditServiceImpl implements InternalCreditService {
         log.info("Processing batch credit deduction for {} users and session {}",
                 request.participantIds().size(), request.sessionId());
 
-        validateInternalSecret(request.internalSecret());
+        securityValidator.validateInternalSecret(request.internalSecret());
 
         List<Long> participantIds = request.participantIds();
 
@@ -121,7 +119,7 @@ public class InternalCreditServiceImpl implements InternalCreditService {
         log.info("Processing batch credit refund for {} users and session {}",
                 request.participantIds().size(), request.sessionId());
 
-        validateInternalSecret(request.internalSecret());
+        securityValidator.validateInternalSecret(request.internalSecret());
 
         for (Long participantId : request.participantIds()) {
             User user = userRepository.findById(participantId)
@@ -134,11 +132,5 @@ public class InternalCreditServiceImpl implements InternalCreditService {
         log.info("Credits refunded successfully for {} users", request.participantIds().size());
     }
 
-    public void validateInternalSecret(String providedSecret) {
-        if (!internalSecret.equals(providedSecret)) {
-            log.warn("Invalid internal secret provided for credit operation");
-            throw new UnauthorizedInternalAccessException("Unauthorized internal access: Invalid secret provided");
-        }
-    }
 }
 

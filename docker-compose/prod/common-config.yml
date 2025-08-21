@@ -43,19 +43,18 @@ services:
       interval: 10s
       start_period: 10s
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
     volumes:
       - ./docker/mysql-config/my.cnf:/etc/mysql/conf.d/my.cnf
 
-#  microservice-mongo-config:
-#    extends:
-#      service: network-deploy-service
-#    image: mongo
-#    healthcheck:
-#      test: ["CMD", "mongosh", "admin", "--username=root", "--password=123", "--eval", "db.runCommand({ ping: 1 })"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 10
-#      start_period: 10s
+  microservice-mongo-config:
+    extends:
+      service: network-deploy-service
+    image: mongo
+    healthcheck:
+      test: ["CMD", "mongosh", "admin", "--username=${MONGODB_USERNAME}", "--password=${MONGODB_PASSWORD}", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s

@@ -12,7 +12,7 @@ import jroullet.mswebapp.dto.session.SessionUpdateDTO;
 import jroullet.mswebapp.dto.user.UserParticipantDTO;
 import jroullet.mswebapp.exception.BusinessException;
 import jroullet.mswebapp.exception.UnauthorizedSessionAccessException;
-import jroullet.mswebapp.model.Subject;
+import jroullet.mswebapp.enums.Subject;
 import jroullet.mswebapp.service.SessionManagementService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

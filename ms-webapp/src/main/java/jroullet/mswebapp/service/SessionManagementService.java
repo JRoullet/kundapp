@@ -3,22 +3,21 @@ package jroullet.mswebapp.service;
 import feign.FeignException;
 import jroullet.mswebapp.auth.SessionService;
 import jroullet.mswebapp.clients.CourseManagementFeignClient;
-import jroullet.mswebapp.clients.IdentityFeignClient;
-import jroullet.mswebapp.dto.session.*;
+import jroullet.mswebapp.dto.session.SessionCancelDTO;
+import jroullet.mswebapp.dto.session.SessionNoParticipantsDTO;
+import jroullet.mswebapp.dto.session.SessionUpdateDTO;
+import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
 import jroullet.mswebapp.dto.session.create.SessionCreationDTO;
 import jroullet.mswebapp.dto.session.create.SessionCreationResponseDTO;
 import jroullet.mswebapp.dto.session.create.SessionCreationWithTeacherDTO;
-import jroullet.mswebapp.dto.session.credits.BatchCreditOperationRequest;
 import jroullet.mswebapp.dto.session.credits.CreditOperationResponse;
-import jroullet.mswebapp.dto.session.credits.SessionRegistrationDeductRequest;
-import jroullet.mswebapp.dto.session.credits.SessionRollbackRefundRequest;
 import jroullet.mswebapp.dto.session.participant.AddParticipantRequest;
 import jroullet.mswebapp.dto.session.participant.ParticipantOperationResponse;
 import jroullet.mswebapp.dto.user.UserDTO;
 import jroullet.mswebapp.dto.user.UserParticipantDTO;
 import jroullet.mswebapp.exception.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,51 +29,20 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class SessionManagementService {
 
-    private final IdentityFeignClient identityFeignClient;
     private final CourseManagementFeignClient courseFeignClient;
     private final SessionService sessionService;
-    private final String internalSecret;
-
-    public SessionManagementService(IdentityFeignClient identityFeignClient,
-                                    CourseManagementFeignClient courseManagementFeignClient, SessionService sessionService,
-                                    @Value("${app.internal.secret}") String internalSecret) {
-        this.identityFeignClient = identityFeignClient;
-        this.sessionService = sessionService;
-        this.courseFeignClient = courseManagementFeignClient;
-        this.internalSecret = internalSecret;
-    }
-
+    private final CreditService creditService;
+    private final NotificationService notificationService;
+    private final ValidationService validationService;
+    private final UserService userService;
 
 
     /**
      *     TEACHER METHODS
       */
-
-    public List<SessionWithParticipantsDTO> getUpcomingSessionsForCurrentTeacher(Long teacherId) {
-        try {
-            List<SessionWithParticipantsDTO> upcomingSessions = courseFeignClient.getUpcomingSessionsByTeacher(teacherId);
-            log.info("Loaded {} upcoming sessions for teacher ID: {}", upcomingSessions.size(), teacherId);
-            return upcomingSessions;
-
-        } catch (FeignException e) {
-            log.error("Error fetching sessions from ms-course-mgmt for teacher {}: {}", teacherId, e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
-    public List<SessionWithParticipantsDTO> getPastSessionsForCurrentTeacher(Long teacherId) {
-        try {
-            List<SessionWithParticipantsDTO> pastSessions = courseFeignClient.getPastSessionsByTeacher(teacherId);
-            log.info("Loaded {} past sessions for teacher ID: {}", pastSessions.size(), teacherId);
-            return pastSessions;
-        } catch (FeignException e) {
-            log.error("Error fetching past sessions for teacher {}: {}", teacherId, e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
     public SessionCreationResponseDTO createSessionForCurrentTeacher(SessionCreationDTO dto) {
         try {
             UserDTO currentTeacher = sessionService.getCurrentUser();
@@ -100,13 +68,65 @@ public class SessionManagementService {
 
             SessionCreationResponseDTO response = courseFeignClient.createSession(enrichedDto);
             log.info("Session created successfully for teacher ID: {}", enrichedDto.getTeacherId());
+            // Notify the notification service about the new session creation
+            try {
+                SessionWithParticipantsDTO session = getSessionDetails(response.getSessionId());
+                notificationService.sendSessionCreatedNotification(currentTeacher.getId(),session);
+                log.debug("Session creation notification sent for session ID: {}", response.getSessionId());
+            } catch (Exception notificationException) {
+                log.warn("Failed to send session creation notification for session : {} :  {}", response.getSessionId(), notificationException.getMessage());
+            }
+
             return response;
         } catch (FeignException e) {
             log.error("Error creating session for teacher: {}", e.getMessage());
             throw e; // Re-throw pour que le controller gère l'erreur spécifique
         }
     }
+    public List<SessionWithParticipantsDTO> getUpcomingSessionsForCurrentTeacher(Long teacherId) {
+        try {
+            List<SessionWithParticipantsDTO> upcomingSessions = courseFeignClient.getUpcomingSessionsByTeacher(teacherId);
+            log.info("Loaded {} upcoming sessions for teacher ID: {}", upcomingSessions.size(), teacherId);
+            return upcomingSessions;
 
+        } catch (FeignException e) {
+            log.error("Error fetching sessions from ms-course-mgmt for teacher {}: {}", teacherId, e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+    public List<SessionWithParticipantsDTO> getPastSessionsForCurrentTeacher(Long teacherId) {
+        try {
+            List<SessionWithParticipantsDTO> pastSessions = courseFeignClient.getPastSessionsByTeacher(teacherId);
+            log.info("Loaded {} past sessions for teacher ID: {}", pastSessions.size(), teacherId);
+            return pastSessions;
+        } catch (FeignException e) {
+            log.error("Error fetching past sessions for teacher {}: {}", teacherId, e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+    public void updateSessionForCurrentTeacher(Long sessionId, SessionUpdateDTO sessionUpdateDTO) {
+        Long currentTeacherId = sessionService.getCurrentUser().getId();
+        log.info("Teacher ID {} is attempting to update session {}", currentTeacherId, sessionId);
+
+        // Fetch session details
+        SessionWithParticipantsDTO originalSession = getSessionDetails(sessionId);
+
+        // Verify ownership
+        validationService.validateSessionOwnership(originalSession, currentTeacherId);
+
+        // Update session
+        SessionWithParticipantsDTO updatedSession = courseFeignClient.updateSessionByTeacher(sessionId, currentTeacherId, sessionUpdateDTO);
+
+        // Notify the notification service about the session update
+        if (validationService.hasSignificantChanges(originalSession, updatedSession)) {
+            try {
+                notificationService.sendSessionModifiedNotifications(updatedSession);
+                log.info("Session modification notification sent to participants");
+            } catch (Exception notificationException) {
+                log.warn("Failed to send session modification notification for session {}: {}", sessionId, notificationException.getMessage());
+            }
+        }
+    }
     public void cancelSessionForCurrentTeacher(Long sessionId) {
             Long currentTeacherId = sessionService.getCurrentUser().getId();
             log.info("Teacher ID {} is attempting to cancel session {}", currentTeacherId, sessionId);
@@ -128,7 +148,7 @@ public class SessionManagementService {
 
             // step 2 : batch refund participants (all or nothing)
         try{
-            batchRefundParticipants(sessionId, participantIds, session.getCreditsRequired());
+            creditService.batchRefundCredits(sessionId, participantIds, session.getCreditsRequired(),"SESSION_CANCELED_BY_TEACHER");
             log.info("Successfully refunded {} participants for session {}", participantIds.size(), sessionId);
 
         } catch (FeignException e){
@@ -144,13 +164,21 @@ public class SessionManagementService {
             log.error("Session cancellation failed AFTER successful refunds for session {}. Rolling back refunds.", sessionId);
 
             try {
-                batchRollbackRefunds(sessionId, participantIds, session.getCreditsRequired());
+                creditService.batchRollbackCredits(sessionId, participantIds, session.getCreditsRequired());
                 log.info("Successfully rolled back all refunds for session {} ", sessionId);
             } catch (FeignException rollbackException) {
                 log.error("CRITICAL: Failed to rollback refunds for session {}: {}", sessionId, rollbackException.getMessage());
             }
 
             throw new SessionCancellationException("Session cancellation failed, refunds rolled back");
+        }
+
+            // step 4 : notify participants about cancellation
+        try{
+            notificationService.sendSessionCancelledNotifications(session);
+            log.info("Session cancellation notification sent to participants {} ", participantIds.size());
+        } catch (Exception notificationException) {
+            log.warn("Failed to send session cancellation notification for session {}: {}", sessionId, notificationException.getMessage());
         }
 
         } catch (SessionCancellationException e) {
@@ -160,23 +188,6 @@ public class SessionManagementService {
             throw new SessionCancellationException("Unexpected error during session cancellation");
         }
     }
-
-    public void updateSessionForCurrentTeacher(Long sessionId, SessionUpdateDTO sessionUpdateDTO) {
-        Long currentTeacherId = sessionService.getCurrentUser().getId();
-        log.info("Teacher ID {} is attempting to update session {}", currentTeacherId, sessionId);
-
-        // Fetch session details
-        SessionWithParticipantsDTO session = getSessionDetails(sessionId);
-
-        // Verify ownership
-        if (!session.getTeacherId().equals(currentTeacherId)) {
-            throw new UnauthorizedSessionAccessException("You can only update your own sessions");
-        }
-
-        // Update session
-        courseFeignClient.updateSessionByTeacher(sessionId, currentTeacherId, sessionUpdateDTO);
-    }
-
     public List<UserParticipantDTO> getSessionParticipantsForTeacher(Long sessionId) {
 
         Long currentTeacherId = sessionService.getCurrentUser().getId();
@@ -184,36 +195,31 @@ public class SessionManagementService {
 
         // verify session belongs to teacher
         SessionWithParticipantsDTO session = courseFeignClient.getSessionById(sessionId);
-        if (!session.getTeacherId().equals(currentTeacherId)) {
-            throw new SecurityException("Teacher can only view participants of their own sessions");
-        }
+        validationService.validateSessionOwnership(session, currentTeacherId);
 
         if (session.getParticipantIds() == null || session.getParticipantIds().isEmpty()) {
             return Collections.emptyList();
         }
 
-        return identityFeignClient.getParticipantsByIdsForTeacher(session.getParticipantIds());
+        return userService.getParticipantsByIdsForTeacher(session.getParticipantIds());
     }
 
 
     /**
      *     ADMIN METHODS
      */
-
     public List<SessionWithParticipantsDTO> getAllSessionsForAdmin() {
         List<SessionWithParticipantsDTO> sessions = courseFeignClient.getAllSessionsForAdmin();
         log.info("Loaded {} sessions", sessions.size());
         return sessions;
     }
-
     public List<UserParticipantDTO> getSessionParticipants(Long sessionId) {
         SessionWithParticipantsDTO session = courseFeignClient.getSessionById(sessionId);
         if (session.getParticipantIds().isEmpty()) {
             return Collections.emptyList();
         }
-        return identityFeignClient.getUsersByIds(session.getParticipantIds());
+        return userService.getUsersByIds(session.getParticipantIds());
     }
-
     /**
      * Cancel session by admin with automatic participant refund
      */
@@ -237,7 +243,7 @@ public class SessionManagementService {
 
             // Step 2: Batch refund participants (all or nothing)
             try {
-                batchRefundParticipantsForAdmin(sessionId, participantIds, session.getCreditsRequired());
+                creditService.batchRefundCredits(sessionId, participantIds, session.getCreditsRequired(),"SESSION_CANCELED_BY_ADMIN");
                 log.info("Successfully refunded {} participants for session {}", participantIds.size(), sessionId);
             } catch (FeignException e) {
                 log.error("Batch refund failed for session {}: {}", sessionId, e.getMessage());
@@ -252,13 +258,20 @@ public class SessionManagementService {
                 log.error("Session cancellation failed AFTER successful refunds for session {}. Rolling back refunds.", sessionId);
 
                 try {
-                    batchRollbackRefunds(sessionId, participantIds, session.getCreditsRequired());
+                    creditService.batchRollbackCredits(sessionId, participantIds, session.getCreditsRequired());
                     log.info("Successfully rolled back all refunds for session {}", sessionId);
                 } catch (FeignException rollbackException) {
                     log.error("CRITICAL: Failed to rollback refunds for session {}: {}", sessionId, rollbackException.getMessage());
                 }
 
                 throw new SessionCancellationException("Session cancellation failed, refunds rolled back");
+            }
+            // Step 4: Notify participants about cancellation
+            try{
+                notificationService.sendSessionCancelledNotifications(session);
+                log.info("Session cancellation notification sent to participants {} ", participantIds.size());
+            } catch (Exception notificationException) {
+                log.warn("Failed to send session cancellation notification for session {}: {}", sessionId, notificationException.getMessage());
             }
 
         } catch (SessionCancellationException e) {
@@ -290,7 +303,6 @@ public class SessionManagementService {
             return Collections.emptyList();
         }
     }
-
     public List<SessionNoParticipantsDTO> getUpcomingSessionsForClient() {
         try {
             Long currentUserId = sessionService.getCurrentUser().getId();
@@ -303,7 +315,6 @@ public class SessionManagementService {
             return Collections.emptyList();
         }
     }
-
     public List<SessionNoParticipantsDTO> getPastSessionsForClient() {
         try {
             Long currentUserId = sessionService.getCurrentUser().getId();
@@ -328,14 +339,14 @@ public class SessionManagementService {
         SessionWithParticipantsDTO session = getSessionDetails(sessionId);
 
         // Validations
-        validateUserHasSufficientCredits(user, session.getCreditsRequired());
-        validateSessionAvailability(session);
-        validateUserNotAlreadyRegistered(session, userId);
+        validationService.validateUserHasSufficientCredits(user, session.getCreditsRequired());
+        validationService.validateSessionAvailability(session);
+        validationService.validateUserNotAlreadyRegistered(session, userId);
 
         log.info("All validations passed for user {} and session {}", userId, sessionId);
 
         // Credit deduction
-        CreditOperationResponse creditResponse = deductUserCredits(userId, sessionId, session.getCreditsRequired());
+        CreditOperationResponse creditResponse = creditService.deductCredits(userId, sessionId, session.getCreditsRequired());
         log.info("Credits deducted successfully for user {}. Previous: {}, New: {}",
                 userId, creditResponse.previousCredits(), creditResponse.newCredits());
 
@@ -346,6 +357,15 @@ public class SessionManagementService {
                     userId, sessionId, participantResponse.currentParticipantCount(),
                     participantResponse.availableSpots());
 
+            // Send notification at successful registration
+            try {
+                notificationService.sendUserEnrolledNotifications(user.getId(), session);
+                log.debug("User enrollment notifications sent successfully");
+            } catch (Exception notificationException) {
+                log.warn("Failed to send enrollment notifications for user {} and session {}: {}",
+                        userId, sessionId, notificationException.getMessage());
+            }
+
             //Returns the new credits after successful registration
             return creditResponse.newCredits();
 
@@ -355,7 +375,7 @@ public class SessionManagementService {
                     userId, sessionId, participantException);
 
             try {
-                rollbackUserCredits(userId, sessionId, session.getCreditsRequired());
+                creditService.rollbackCredits(userId, sessionId, session.getCreditsRequired());
                 log.info("Credits successfully rolled back for user {} after unexpected failure", userId);
             } catch (Exception rollbackException) {
                 throw new CreditRollbackFailedException(userId, sessionId, session.getCreditsRequired(), rollbackException);
@@ -364,13 +384,10 @@ public class SessionManagementService {
             throw new SessionRegistrationException("Unexpected failure during registration", participantException);
         }
     }
-
-    /**
-     * 🎯 SESSION UNREGISTRATION
-     */
     @Transactional
     public int unregisterFromSession(Long sessionId) {
-        Long userId = sessionService.getCurrentUser().getId();
+        UserDTO user = sessionService.getCurrentUser();
+        Long userId = user.getId();
 
         log.info("Starting session unregistration for user {} from session {}", userId, sessionId);
 
@@ -383,14 +400,22 @@ public class SessionManagementService {
                 participantResponse.availableSpots());
 
         // refund credits
-        CreditOperationResponse creditResponse = refundUserCreditsForCancellation(userId, sessionId, session.getCreditsRequired());
+        CreditOperationResponse creditResponse = creditService.refundCredits(userId, sessionId, session.getCreditsRequired());
         log.info("Credits refunded successfully for user {} after cancellation from session {}",
                 userId, sessionId);
+
+        // Send notification at successful unregistration
+        try {
+            notificationService.sendUserCancelledNotifications(user.getId(), session);
+            log.debug("User cancellation notifications sent successfully");
+        } catch (Exception notificationException) {
+            log.warn("Failed to send cancellation notifications for user {} and session {}: {}",
+                    userId, sessionId, notificationException.getMessage());
+        }
 
         return creditResponse.newCredits();
 
     }
-
 
     /**
      *      PRIVATE HELPER METHODS
@@ -403,101 +428,14 @@ public class SessionManagementService {
         }
         return sessionResponse;
     }
-
-    private void validateSessionAvailability(SessionWithParticipantsDTO session) {
-        int currentParticipants = session.getParticipantIds() != null ? session.getParticipantIds().size() : 0;
-        int maxCapacity = session.getAvailableSpots();
-
-        if (currentParticipants >= maxCapacity) {
-            throw new SessionNotAvailableException(session.getId(), currentParticipants, maxCapacity);
-        }
-    }
-
-    private void validateUserHasSufficientCredits(UserDTO user, Integer creditsRequired) {
-        if (user.getCredits() < creditsRequired) {
-            log.warn("User {} has insufficient credits. Available: {}, Required: {}",
-                    user.getId(), user.getCredits(), creditsRequired);
-            throw new InsufficientCreditsException(user.getId(), user.getCredits(), creditsRequired);
-        }
-        log.debug("User {} has sufficient credits. Available: {}, Required: {}",
-                user.getId(), user.getCredits(), creditsRequired);
-    }
-
-    private void validateUserNotAlreadyRegistered(SessionWithParticipantsDTO session, Long userId) {
-        if (session.getParticipantIds() != null && session.getParticipantIds().contains(userId)) {
-            log.warn("User {} is already registered for session {}", userId, session.getId());
-            throw new UserAlreadyRegisteredException(userId, session.getId());
-        }
-        log.debug("User {} is not yet registered for session {}", userId, session.getId());
-    }
-
     private ParticipantOperationResponse addUserToSession(Long sessionId, Long userId) {
         AddParticipantRequest request = new AddParticipantRequest(userId);
         return courseFeignClient.addParticipantToSession(sessionId, request);
 
     }
-
     private ParticipantOperationResponse removeUserFromSession(Long sessionId, Long userId) {
         return courseFeignClient.removeParticipantFromSession(sessionId, userId);
     }
-
-    private CreditOperationResponse deductUserCredits(Long userId, Long sessionId, Integer creditsRequired) {
-        SessionRegistrationDeductRequest request = new SessionRegistrationDeductRequest(
-                userId, sessionId, creditsRequired, internalSecret);
-
-        return identityFeignClient.deductCreditsForSessionRegistration(request);
-    }
-
-    private void rollbackUserCredits(Long userId, Long sessionId, Integer creditsToRefund) {
-        SessionRollbackRefundRequest request = new SessionRollbackRefundRequest(
-                userId, sessionId, creditsToRefund, internalSecret);
-        log.info("Rolling back credits for user {} for session {} with {} credits",
-                userId, sessionId, creditsToRefund);
-        identityFeignClient.refundCreditsForSessionRollback(request);
-
-    }
-
-    private CreditOperationResponse refundUserCreditsForCancellation(Long userId, Long sessionId, Integer creditsToRefund) {
-        SessionRollbackRefundRequest request = new SessionRollbackRefundRequest(
-                userId, sessionId, creditsToRefund, internalSecret);
-
-        return identityFeignClient.refundCreditsForSessionRollback(request);
-
-    }
-
-    private void batchRefundParticipants(Long sessionId, List<Long> participantIds, Integer creditsToRefund) {
-        BatchCreditOperationRequest request = BatchCreditOperationRequest.builder()
-                .sessionId(sessionId)
-                .participantIds(participantIds)
-                .creditsPerParticipant(creditsToRefund)
-                .reason("SESSION_CANCELED_BY_TEACHER")
-                .internalSecret(internalSecret)
-                .build();
-        identityFeignClient.batchRefundCreditsForCancellation(request);
-    }
-
-    private void batchRefundParticipantsForAdmin(Long sessionId, List<Long> participantIds, Integer creditsToRefund) {
-        BatchCreditOperationRequest request = BatchCreditOperationRequest.builder()
-                .sessionId(sessionId)
-                .participantIds(participantIds)
-                .creditsPerParticipant(creditsToRefund)
-                .reason("SESSION_CANCELED_BY_ADMIN")
-                .internalSecret(internalSecret)
-                .build();
-        identityFeignClient.batchRefundCreditsForCancellation(request);
-    }
-
-    private void batchRollbackRefunds(Long sessionId, List<Long> participantIds, Integer creditsToRefund) {
-        BatchCreditOperationRequest request = BatchCreditOperationRequest.builder()
-                .sessionId(sessionId)
-                .participantIds(participantIds)
-                .creditsPerParticipant(creditsToRefund)
-                .reason("ROLLBACK_REFUND_AFTER_CANCELLATION_FAILURE")
-                .internalSecret(internalSecret)
-                .build();
-        identityFeignClient.batchDeductCreditsForRollback(request);
-    }
-
     private void cancelSessionByTeacher(Long sessionId, Long teacherId) {
         SessionCancelDTO request = SessionCancelDTO.builder()
                 .sessionId(sessionId)
@@ -506,7 +444,6 @@ public class SessionManagementService {
         courseFeignClient.cancelSessionByTeacher(request);
 
     }
-
     private void cancelSessionByAdminDirect(Long sessionId) {
         courseFeignClient.cancelSessionByAdmin(sessionId);
     }
