@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(collection = "notifications")
 @Data
@@ -76,5 +77,11 @@ public class Notification {
      * Email subject line that was sent
      */
     private String emailSubject;
+
+    /**
+     * Additional participants info for teacher notifications
+     * Contains student info when teacher is notified of enrollment/cancellation
+     */
+    private List<NotificationRecipient> additionalParticipants;
 
 }

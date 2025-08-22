@@ -136,7 +136,7 @@ function showUnregistrationModal(sessionId, subject, date, time, teacher) {
 }
 
 // ========================================
-// FILTER FUNCTIONS - KEEP AS IS
+// FILTER FUNCTIONS
 // ========================================
 
 function initializeFilters() {
@@ -151,6 +151,9 @@ function initializeFilters() {
     if (onlineFilter) onlineFilter.addEventListener('change', debouncedFilter);
     if (irlFilter) irlFilter.addEventListener('change', debouncedFilter);
     if (teacherSearch) teacherSearch.addEventListener('input', debouncedFilter);
+
+    updateSessionsVisibilityMessages();
+
 }
 
 function applyFilters() {
@@ -186,8 +189,54 @@ function applyFilters() {
             }, 200);
         }
     });
+
+    // Update messages after filtering
+    setTimeout(() => {
+        updateSessionsVisibilityMessages();
+    }, 250);
 }
 
+// Visibility messages logic for empty states while filtering
+function updateSessionsVisibilityMessages() {
+    // Update all three tabs
+    updateTabVisibility('available', 'noSessionsMessage', 'noFilteredSessionsMessage');
+    updateTabVisibility('upcoming', 'noSessionsUpcomingMessage', 'noFilteredUpcomingMessage');
+    updateTabVisibility('history', 'noSessionsHistoryMessage', 'noFilteredHistoryMessage');
+}
+
+function updateTabVisibility(tabId, noSessionsMessageId, noFilteredMessageId) {
+    const sessionCards = document.querySelectorAll(`#${tabId} [data-session-card]`);
+
+    let visibleCount = 0;
+    sessionCards.forEach(card => {
+        if (card.style.display !== 'none') {
+            visibleCount++;
+        }
+    });
+
+    const noSessionsMessage = document.getElementById(noSessionsMessageId);
+    const noFilteredMessage = document.getElementById(noFilteredMessageId);
+
+    console.log(`${tabId} tab: ${sessionCards.length} total, ${visibleCount} visible`);
+
+    // Sessions exist but all hidden by filters
+    if (sessionCards.length > 0 && visibleCount === 0) {
+        if (noSessionsMessage) noSessionsMessage.style.display = 'none';
+        if (noFilteredMessage) noFilteredMessage.style.display = 'block';
+    }
+    // Some sessions are visible
+    else if (visibleCount > 0) {
+        if (noSessionsMessage) noSessionsMessage.style.display = 'none';
+        if (noFilteredMessage) noFilteredMessage.style.display = 'none';
+    }
+    // Really no sessions (server-side empty)
+    else {
+        if (noSessionsMessage) noSessionsMessage.style.display = 'block';
+        if (noFilteredMessage) noFilteredMessage.style.display = 'none';
+    }
+}
+
+// Toggle teacher search input visibility
 function toggleTeacherSearch() {
     const container = document.getElementById('teacherSearchContainer');
     const button = document.getElementById('toggleTeacherBtn');

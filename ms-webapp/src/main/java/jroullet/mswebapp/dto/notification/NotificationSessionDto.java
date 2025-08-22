@@ -49,7 +49,9 @@ public record NotificationSessionDto(
         String zoomLink,
 
         // Additional info
-        Integer creditsRequired
+        Integer creditsRequired,
+
+        String modificationSummary
 ) {
 
     /**
@@ -58,4 +60,5 @@ public record NotificationSessionDto(
     public String getTeacherFullName() {
         return (teacherFirstName + " " + teacherLastName).trim();
     }
+
 }

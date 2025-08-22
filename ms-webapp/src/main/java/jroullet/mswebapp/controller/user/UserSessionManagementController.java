@@ -53,8 +53,7 @@ public class UserSessionManagementController {
             redirectAttributes.addFlashAttribute("newCredits", newCredits);
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Inscription impossible : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
         return new ModelAndView("redirect:/client?tab=upcoming");
@@ -75,8 +74,7 @@ public class UserSessionManagementController {
 
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "Annulation impossible : " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
         return new ModelAndView("redirect:/client?tab=upcoming");

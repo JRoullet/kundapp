@@ -9,6 +9,8 @@ import jroullet.mswebapp.exception.UserAlreadyRegisteredException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @Slf4j
 public class ValidationService {
@@ -40,10 +42,34 @@ public class ValidationService {
         }
     }
     public boolean hasSignificantChanges(SessionWithParticipantsDTO original, SessionWithParticipantsDTO updated) {
-        return !original.getStartDateTime().equals(updated.getStartDateTime()) ||
-                !original.getDescription().equals(updated.getDescription()) ||
-                !original.getIsOnline().equals(updated.getIsOnline()) ||
-                (original.getIsOnline() && !original.getZoomLink().equals(updated.getZoomLink())) ||
-                (!original.getIsOnline() && !original.getRoomName().equals(updated.getRoomName()));
+        if (!Objects.equals(original.getStartDateTime(), updated.getStartDateTime()) || !Objects.equals(original.getDescription(), updated.getDescription())) {
+            return true;
+        }
+
+        if (!Objects.equals(original.getIsOnline(), updated.getIsOnline())) {
+            return true;
+        }
+
+        if (!Objects.equals(original.getDurationMinutes(), updated.getDurationMinutes())) {
+            return true;
+        }
+
+        if (Boolean.TRUE.equals(updated.getIsOnline())) {
+            if (!Objects.equals(original.getZoomLink(), updated.getZoomLink())) {
+                return true;
+            }
+        }
+
+        if (Boolean.FALSE.equals(updated.getIsOnline())) {
+            if (!Objects.equals(original.getRoomName(), updated.getRoomName())) {
+                return true;
+            }
+            if (!Objects.equals(original.getGoogleMapsLink(), updated.getGoogleMapsLink())) {
+                return true;
+            }
+            return !Objects.equals(original.getBringYourMattress(), updated.getBringYourMattress());
+        }
+
+        return false;
     }
 }

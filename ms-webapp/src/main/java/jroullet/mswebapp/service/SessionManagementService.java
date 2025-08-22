@@ -38,7 +38,7 @@ public class SessionManagementService {
     private final NotificationService notificationService;
     private final ValidationService validationService;
     private final UserService userService;
-
+    private final ErrorMessageService errorMessageService;
 
     /**
      *     TEACHER METHODS
@@ -79,8 +79,10 @@ public class SessionManagementService {
 
             return response;
         } catch (FeignException e) {
-            log.error("Error creating session for teacher: {}", e.getMessage());
-            throw e; // Re-throw pour que le controller gère l'erreur spécifique
+            String errorMessage = errorMessageService.getSessionOperationErrorMessage(e.status(), "create");
+            log.error("Failed to create session : {} (HTTP {})",
+                     e.getMessage(), e.status());
+            throw new RuntimeException(errorMessage);
         }
     }
     public List<SessionWithParticipantsDTO> getUpcomingSessionsForCurrentTeacher(Long teacherId) {
@@ -107,24 +109,35 @@ public class SessionManagementService {
     public void updateSessionForCurrentTeacher(Long sessionId, SessionUpdateDTO sessionUpdateDTO) {
         Long currentTeacherId = sessionService.getCurrentUser().getId();
         log.info("Teacher ID {} is attempting to update session {}", currentTeacherId, sessionId);
+        try {
+            // Fetch session details
+            SessionWithParticipantsDTO originalSession = getSessionDetails(sessionId);
 
-        // Fetch session details
-        SessionWithParticipantsDTO originalSession = getSessionDetails(sessionId);
+            // Verify ownership
+            validationService.validateSessionOwnership(originalSession, currentTeacherId);
 
-        // Verify ownership
-        validationService.validateSessionOwnership(originalSession, currentTeacherId);
+            // Update session
+            SessionWithParticipantsDTO updatedSession = courseFeignClient.updateSessionByTeacher(sessionId, currentTeacherId, sessionUpdateDTO);
 
-        // Update session
-        SessionWithParticipantsDTO updatedSession = courseFeignClient.updateSessionByTeacher(sessionId, currentTeacherId, sessionUpdateDTO);
-
-        // Notify the notification service about the session update
-        if (validationService.hasSignificantChanges(originalSession, updatedSession)) {
-            try {
-                notificationService.sendSessionModifiedNotifications(updatedSession);
-                log.info("Session modification notification sent to participants");
-            } catch (Exception notificationException) {
-                log.warn("Failed to send session modification notification for session {}: {}", sessionId, notificationException.getMessage());
+            // Notify the notification service about the session update
+            if (validationService.hasSignificantChanges(originalSession, updatedSession)) {
+                try {
+                    String modificationSummary = notificationService.buildModificationSummary(originalSession, updatedSession);
+                    notificationService.sendSessionModifiedNotifications(updatedSession, modificationSummary);
+                    log.info("Session modification notification sent to participants with summary: {}", modificationSummary);
+                } catch (Exception notificationException) {
+                    log.warn("Failed to send session modification notification for session {}: {}", sessionId, notificationException.getMessage());
+                }
             }
+        } catch (FeignException e) {
+            String errorMessage = errorMessageService.getSessionOperationErrorMessage(e.status(), "modify");
+            log.error("Failed to update session {} for teacher {}: {} (HTTP {})",
+                    sessionId, currentTeacherId, e.getMessage(), e.status());
+            throw new RuntimeException(errorMessage);
+        } catch (Exception e) {
+            log.error("Unexpected error updating session {} for teacher {}: {}",
+                    sessionId, currentTeacherId, e.getMessage());
+            throw new RuntimeException("Erreur inattendue lors de la modification");
         }
     }
     public void cancelSessionForCurrentTeacher(Long sessionId) {
@@ -152,8 +165,9 @@ public class SessionManagementService {
             log.info("Successfully refunded {} participants for session {}", participantIds.size(), sessionId);
 
         } catch (FeignException e){
-            log.error("Batch refund failed for session {}: {}", sessionId, e.getMessage());
-            throw new SessionCancellationException("Failed to refund participants: " + e.getMessage());
+            String errorMessage = errorMessageService.getCreditOperationErrorMessage(e.status(), "refund");
+            log.error("Batch refund failed for session {}: {} (HTTP {})", sessionId, e.getMessage(), e.status());
+            throw new SessionCancellationException("Échec du remboursement : " + errorMessage);
         }
 
             // step 3: cancel the session
@@ -204,7 +218,6 @@ public class SessionManagementService {
         return userService.getParticipantsByIdsForTeacher(session.getParticipantIds());
     }
 
-
     /**
      *     ADMIN METHODS
      */
@@ -246,8 +259,9 @@ public class SessionManagementService {
                 creditService.batchRefundCredits(sessionId, participantIds, session.getCreditsRequired(),"SESSION_CANCELED_BY_ADMIN");
                 log.info("Successfully refunded {} participants for session {}", participantIds.size(), sessionId);
             } catch (FeignException e) {
-                log.error("Batch refund failed for session {}: {}", sessionId, e.getMessage());
-                throw new SessionCancellationException("Failed to refund participants: " + e.getMessage());
+                String errorMessage = errorMessageService.getCreditOperationErrorMessage(e.status(), "refund");
+                log.error("Admin batch refund failed for session {}: {} (HTTP {})", sessionId, e.getMessage(), e.status());
+                throw new SessionCancellationException("Échec du remboursement administrateur : " + errorMessage);
             }
 
             // Step 3: Cancel the session
@@ -281,7 +295,6 @@ public class SessionManagementService {
             throw new SessionCancellationException("Unexpected error during admin session cancellation");
         }
     }
-
 
     /**
      *      User Methods
@@ -335,54 +348,54 @@ public class SessionManagementService {
         Long userId = user.getId();
 
         log.info("Starting session registration for user {} to session {}", userId, sessionId);
-
-        SessionWithParticipantsDTO session = getSessionDetails(sessionId);
-
-        // Validations
-        validationService.validateUserHasSufficientCredits(user, session.getCreditsRequired());
-        validationService.validateSessionAvailability(session);
-        validationService.validateUserNotAlreadyRegistered(session, userId);
-
-        log.info("All validations passed for user {} and session {}", userId, sessionId);
-
-        // Credit deduction
-        CreditOperationResponse creditResponse = creditService.deductCredits(userId, sessionId, session.getCreditsRequired());
-        log.info("Credits deducted successfully for user {}. Previous: {}, New: {}",
-                userId, creditResponse.previousCredits(), creditResponse.newCredits());
-
         try {
-            // Participant registration
-            ParticipantOperationResponse participantResponse = addUserToSession(sessionId, userId);
-            log.info("User {} successfully registered to session {}. Participants: {}/{}",
-                    userId, sessionId, participantResponse.currentParticipantCount(),
-                    participantResponse.availableSpots());
 
-            // Send notification at successful registration
-            try {
-                notificationService.sendUserEnrolledNotifications(user.getId(), session);
-                log.debug("User enrollment notifications sent successfully");
-            } catch (Exception notificationException) {
-                log.warn("Failed to send enrollment notifications for user {} and session {}: {}",
-                        userId, sessionId, notificationException.getMessage());
+            SessionWithParticipantsDTO session = getSessionDetails(sessionId);
+
+            // Validations
+            validationService.validateUserHasSufficientCredits(user, session.getCreditsRequired());
+            validationService.validateSessionAvailability(session);
+            validationService.validateUserNotAlreadyRegistered(session, userId);
+
+            log.info("All validations passed for user {} and session {}", userId, sessionId);
+
+            // Credit deduction
+            CreditOperationResponse creditResponse = creditService.deductCredits(userId, sessionId, session.getCreditsRequired());
+            log.info("Credits deducted successfully for user {}. Previous: {}, New: {}",
+                    userId, creditResponse.previousCredits(), creditResponse.newCredits());
+                // Participant registration
+                ParticipantOperationResponse participantResponse = addUserToSession(sessionId, userId);
+                log.info("User {} successfully registered to session {}. Participants: {}/{}",
+                        userId, sessionId, participantResponse.currentParticipantCount(),
+                        participantResponse.availableSpots());
+
+                // Send notification at successful registration
+                try {
+                    notificationService.sendUserEnrolledNotifications(user.getId(), session);
+                    log.debug("User enrollment notifications sent successfully");
+                } catch (Exception notificationException) {
+                    log.warn("Failed to send enrollment notifications for user {} and session {}: {}",
+                            userId, sessionId, notificationException.getMessage());
+                }
+
+                //Returns the new credits after successful registration
+                return creditResponse.newCredits();
+            } catch (FeignException e){
+            String errorMessage = errorMessageService.getSessionOperationErrorMessage(e.status(),"enroll");
+            log.error("Failed to register user {} from session {}: {} (HTTP {})",
+                    userId, sessionId, errorMessage, e.status());
+
+            // Store error for display in controller
+            throw new RuntimeException(errorMessage);
+
+            } catch (Exception e) {
+                String errorMessage = "Erreur inattendue lors de l'inscription";
+                log.error("Unexpected error during registration for user {} from session {}: {}",
+                        userId, sessionId, e.getMessage(), e);
+
+                throw new RuntimeException(errorMessage);
             }
 
-            //Returns the new credits after successful registration
-            return creditResponse.newCredits();
-
-        } catch (Exception participantException) {
-            // Error handling
-            log.error("Unexpected failure adding participant despite validations. Rolling back credits for user {} and session {}",
-                    userId, sessionId, participantException);
-
-            try {
-                creditService.rollbackCredits(userId, sessionId, session.getCreditsRequired());
-                log.info("Credits successfully rolled back for user {} after unexpected failure", userId);
-            } catch (Exception rollbackException) {
-                throw new CreditRollbackFailedException(userId, sessionId, session.getCreditsRequired(), rollbackException);
-            }
-
-            throw new SessionRegistrationException("Unexpected failure during registration", participantException);
-        }
     }
     @Transactional
     public int unregisterFromSession(Long sessionId) {
@@ -390,37 +403,49 @@ public class SessionManagementService {
         Long userId = user.getId();
 
         log.info("Starting session unregistration for user {} from session {}", userId, sessionId);
-
-        SessionWithParticipantsDTO session = getSessionDetails(sessionId);
-
-        // remove participant from session
-        ParticipantOperationResponse participantResponse = removeUserFromSession(sessionId, userId);
-        log.info("User {} successfully removed from session {}. Participants: {}/{}",
-                userId, sessionId, participantResponse.currentParticipantCount(),
-                participantResponse.availableSpots());
-
-        // refund credits
-        CreditOperationResponse creditResponse = creditService.refundCredits(userId, sessionId, session.getCreditsRequired());
-        log.info("Credits refunded successfully for user {} after cancellation from session {}",
-                userId, sessionId);
-
-        // Send notification at successful unregistration
         try {
-            notificationService.sendUserCancelledNotifications(user.getId(), session);
-            log.debug("User cancellation notifications sent successfully");
-        } catch (Exception notificationException) {
-            log.warn("Failed to send cancellation notifications for user {} and session {}: {}",
-                    userId, sessionId, notificationException.getMessage());
+            SessionWithParticipantsDTO session = getSessionDetails(sessionId);
+
+            // remove participant from session
+            ParticipantOperationResponse participantResponse = removeUserFromSession(sessionId, userId);
+            log.info("User {} successfully removed from session {}. Participants: {}/{}",
+                    userId, sessionId, participantResponse.currentParticipantCount(),
+                    participantResponse.availableSpots());
+
+            // refund credits
+            CreditOperationResponse creditResponse = creditService.refundCredits(userId, sessionId, session.getCreditsRequired());
+            log.info("Credits refunded successfully for user {} after cancellation from session {}",
+                    userId, sessionId);
+
+            // Send notification at successful unregistration
+            try {
+                notificationService.sendUserCancelledNotifications(user.getId(), session);
+                log.debug("User cancellation notifications sent successfully");
+            } catch (Exception notificationException) {
+                log.warn("Failed to send cancellation notifications for user {} and session {}: {}",
+                        userId, sessionId, notificationException.getMessage());
+            }
+
+            return creditResponse.newCredits();
+        } catch (FeignException e){
+            String errorMessage = errorMessageService.getSessionOperationErrorMessage(e.status(),"cancel");
+            log.error("Failed to unregister user {} from session {}: {} (HTTP {})",
+                    userId, sessionId, errorMessage, e.status());
+
+            throw new RuntimeException(errorMessage);
+
+        } catch (Exception e) {
+            String errorMessage = "Erreur inattendue lors de l'annulation";
+            log.error("Unexpected error during unregistration for user {} from session {}: {}",
+                    userId, sessionId, e.getMessage(), e);
+
+            throw new RuntimeException(errorMessage);
         }
-
-        return creditResponse.newCredits();
-
     }
 
     /**
      *      PRIVATE HELPER METHODS
      */
-
     private SessionWithParticipantsDTO getSessionDetails(Long sessionId) {
         SessionWithParticipantsDTO sessionResponse = courseFeignClient.getSessionById(sessionId);
         if (sessionResponse == null) {

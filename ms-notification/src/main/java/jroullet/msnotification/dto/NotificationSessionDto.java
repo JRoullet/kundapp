@@ -49,7 +49,10 @@ public record NotificationSessionDto(
         String zoomLink,
 
         // Additional info
-        Integer creditsRequired
+        Integer creditsRequired,
+
+        String modificationSummary
+
 ) {
     /**
      * Helper method - Get teacher full name

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Session modifiée</title>
+  <link rel="stylesheet" href="/email-styles.css">
+</head>
+<body class="notification-modified">
+<h2 class="icon-warning">Session modifiée</h2>
+
+<p>Bonjour <span th:text="${firstName}">Étudiant</span>,</p>
+
+<div class="status-box status-warning">
+  <p><span th:text="${teacherName}">Professeur</span> a modifié la session à laquelle vous êtes inscrit(e).</p>
+  <p th:if="${modificationSummary}">
+    <strong>Éléments modifiés :</strong> <span th:text="${modificationSummary}" class="modification-summary">Liste des modifications</span>
+  </p>
+</div>
+
+<div class="session-details">
+  <h3>Nouveaux détails de la session :</h3>
+
+  <p><span class="label">Sujet :</span> <span class="value" th:text="${sessionSubject}">Sujet</span></p>
+  <p><span class="label">Description :</span> <span class="value" th:text="${sessionDescription}">Description</span></p>
+  <p><span class="label">Professeur :</span> <span class="value" th:text="${teacherName}">Professeur</span></p>
+  <p><span class="label">Date et heure :</span> <span class="value" th:text="${sessionDateTime}">Date et heure</span></p>
+  <p><span class="label">Durée :</span> <span class="value" th:text="${duration}">Durée</span></p>
+
+  <div th:if="${isOnline}">
+    <p><span class="label">Mode :</span> <span class="session-online icon-online value">Session en ligne</span></p>
+    <p><span class="label">Lien Zoom :</span> <span class="value" th:text="${zoomLink}">Lien Zoom</span></p>
+  </div>
+
+  <div th:unless="${isOnline}">
+    <p><span class="label">Mode :</span> <span class="session-offline icon-offline value">Session en présentiel</span></p>
+    <p><span class="label">Salle :</span> <span class="value" th:text="${roomName}">Nom de la salle</span></p>
+    <p th:if="${googleMapsLink}"><span class="label">Localisation :</span> <a th:href="${googleMapsLink}" class="value">Voir sur Google Maps</a></p>
+    <p th:if="${bringYourMattress}"><span class="label">Matériel :</span> <span class="icon-material value">N'oubliez pas votre tapis !</span></p>
+  </div>
+</div>
+
+<div class="action-box">
+  <h3>Important :</h3>
+  <p>• Vérifiez attentivement tous les détails ci-dessus</p>
+  <p>• Mettez à jour votre agenda avec les nouvelles informations</p>
+  <p>• Si la date/heure ou le lieu ont changé, organisez-vous en conséquence</p>
+  <p>• Si vous ne pouvez plus participer, vous pouvez vous désinscrire</p>
+</div>
+
+<p>
+  Cordialement,<br>
+  L'équipe <span th:text="${companyName}">KundApp</span>
+</p>
+
+<div class="email-footer">
+  <p>
+    Email envoyé le <span th:text="${notificationDate}">date</span> |
+    Support : <span th:text="${supportEmail}">support@kundapp.com</span>
+  </p>
+</div>
+</body>
+</html>

@@ -42,6 +42,7 @@ public interface NotificationMapper {
     @Mapping(target = "eventType", source = "eventType")
     @Mapping(target = "recipient", source = "user")
     @Mapping(target = "session", source = "session")
+    @Mapping(target = "additionalParticipants", source = "additionalParticipants")
     Notification toEntity(NotificationEventRequest eventRequest);
 
     /**
@@ -151,13 +152,16 @@ public interface NotificationMapper {
     @Named("mapEventTypeToTemplate")
     default String mapEventTypeToTemplate(NotificationEventType eventType) {
         return switch (eventType) {
-            case USER_ENROLLED -> "enrollment";
-            case USER_CANCELLED -> "cancellation";
-            case SESSION_CANCELLED -> "session-cancelled";
-            case SESSION_MODIFIED -> "session-modified";
-            case SESSION_COMPLETED -> "session-completed";
-            case SESSION_CREATED -> "session-created";
-
+            case USER_ENROLLED_TO_USER_NOTIFICATION -> "student/session-enrolled-student";
+            case USER_CANCELLED_TO_USER_NOTIFICATION -> "student/session-unenrolled-student";
+            case USER_ENROLLED_TO_TEACHER_NOTIFICATION -> "teacher/session-enrolled-teacher";
+            case USER_CANCELED_TO_TEACHER_NOTIFICATION -> "teacher/session-unenrolled-teacher";
+            case SESSION_CANCELLED_TO_USER_NOTIFICATION -> "student/session-cancelled-student";
+            case SESSION_CANCELLED_TO_TEACHER_NOTIFICATION -> "teacher/session-cancelled-teacher";
+            case SESSION_MODIFIED_TO_USER_NOTIFICATION -> "student/session-modified-student";
+            case SESSION_MODIFIED_TO_TEACHER_NOTIFICATION -> "teacher/session-modified-teacher";
+            case SESSION_COMPLETED_TO_USER_NOTIFICATION -> "student/session-completed-student";
+            case SESSION_CREATED_TO_TEACHER_NOTIFICATION -> "teacher/session-created-teacher";
         };
     }
 
@@ -167,12 +171,16 @@ public interface NotificationMapper {
     @Named("mapEventTypeToSubject")
     default String mapEventTypeToSubject(NotificationEventType eventType) {
         return switch (eventType) {
-            case USER_ENROLLED -> "Inscription confirmée";
-            case USER_CANCELLED -> "Désinscription confirmée";
-            case SESSION_CANCELLED -> "Session annulée";
-            case SESSION_MODIFIED -> "Session modifiée";
-            case SESSION_COMPLETED -> "Sessions terminées";
-            case SESSION_CREATED -> "Nouvelle session créée";
+            case USER_ENROLLED_TO_USER_NOTIFICATION -> "Inscription confirmée";
+            case USER_CANCELLED_TO_USER_NOTIFICATION -> "Désinscription confirmée";
+            case USER_ENROLLED_TO_TEACHER_NOTIFICATION -> "Nouvelle inscription";
+            case USER_CANCELED_TO_TEACHER_NOTIFICATION -> "Désinscription d'un étudiant";
+            case SESSION_CANCELLED_TO_USER_NOTIFICATION -> "Session annulée";
+            case SESSION_CANCELLED_TO_TEACHER_NOTIFICATION -> "Annulation confirmée";
+            case SESSION_MODIFIED_TO_USER_NOTIFICATION -> "Session modifiée";
+            case SESSION_MODIFIED_TO_TEACHER_NOTIFICATION -> "Modification confirmée";
+            case SESSION_COMPLETED_TO_USER_NOTIFICATION -> "Merci pour votre participation";
+            case SESSION_CREATED_TO_TEACHER_NOTIFICATION -> "Session créée avec succès";
         };
     }
 

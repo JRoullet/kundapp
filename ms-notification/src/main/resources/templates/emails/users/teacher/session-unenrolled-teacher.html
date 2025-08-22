@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Désinscription - Session</title>
+  <link rel="stylesheet" href="/email-styles.css">
+</head>
+<body class="notification-unenrolled">
+<h2 class="icon-warning">Désinscription</h2>
+
+<p>Bonjour <span th:text="${teacherName}">Professeur</span>,</p>
+
+<div class="status-box status-warning">
+  <p><span th:text="${studentFirstName}">Prénom</span> <span th:text="${studentLastName}">Nom</span> s'est désinscrit(e) du cours :</p>
+  <p>
+    <strong th:text="${sessionDateTime}">Date et heure</strong> -
+    <span th:text="${sessionSubject}">Type de cours</span> -
+    <span th:if="${isOnline}" th:text="'En ligne'">En ligne</span>
+    <span th:unless="${isOnline}" th:text="${roomName}">Lieu</span>
+  </p>
+</div>
+
+<p>
+  Cordialement,<br>
+  L'équipe <span th:text="${companyName}">KundApp</span>
+</p>
+
+<div class="email-footer">
+  <p>
+    Email envoyé le <span th:text="${notificationDate}">date</span> |
+    Support : <span th:text="${supportEmail}">support@kundapp.com</span>
+  </p>
+</div>
+</body>
+</html>

@@ -158,7 +158,6 @@
                                 <div class="session-time-line">
                                     <small>
                                         <span th:text="${#temporals.format(sessionItem.startDateTime, 'HH:mm')}">01:00</span>
-                                        -
                                         <span th:text="${#temporals.format(sessionItem.startDateTime.plusMinutes(sessionItem.durationMinutes), 'HH:mm')}">04:00</span>
                                     </small>
                                 </div>
@@ -224,6 +223,20 @@
                     </div>
                 </div>
             </div>
+            <!-- Message si vraiment aucune session disponible -->
+            <div class="text-center py-5" th:if="${#lists.isEmpty(sessions)}" id="noSessionsMessage">
+                <div class="text-muted">
+                    <h5>Aucune session disponible</h5>
+                    <p>Il n'y a pas de sessions ouvertes aux inscriptions actuellement.</p>
+                </div>
+            </div>
+            <!-- Message si sessions cachées par filtres -->
+            <div class="text-center py-5" id="noFilteredSessionsMessage" style="display: none;">
+                <div class="text-muted">
+                    <h5>Aucune session ne correspond à vos critères de recherche</h5>
+                    <p>Essayez de modifier vos filtres pour voir plus de sessions.</p>
+                </div>
+            </div>
         </div>
 
         <!-- MES PROCHAINES SÉANCES -->
@@ -234,7 +247,8 @@
                      data-session-card
                      th:data-subject="${upcomingSession.subject}"
                      th:data-online="${upcomingSession.isOnline}"
-                     th:data-teacher="${upcomingSession.teacherFirstName + ' ' + upcomingSession.teacherLastName}">                    <div class="session-card-content">
+                     th:data-teacher="${upcomingSession.teacherFirstName + ' ' + upcomingSession.teacherLastName}">
+                    <div class="session-card-content">
                         <!-- Badge Inscrit en overlay -->
                         <span class="badge bg-success badge-status-right">
                             Inscrit ✓
@@ -309,10 +323,17 @@
                 </div>
             </div>
             <!-- Message si aucune session -->
-            <div class="text-center py-5" th:if="${#lists.isEmpty(upcomingSessions)}">
+            <div class="text-center py-5" th:if="${#lists.isEmpty(upcomingSessions)}" id="noSessionsUpcomingMessage">
                 <div class="text-muted">
                     <h5>Aucune séance à venir</h5>
                     <p>Vous n'avez pas encore de réservations.</p>
+                </div>
+            </div>
+            <!-- Message si sessions cachées par filtres -->
+            <div class="text-center py-5" id="noFilteredUpcomingMessage" style="display: none;">
+                <div class="text-muted">
+                    <h5>Aucune session à venir selon vos critères</h5>
+                    <p>Essayez de modifier vos filtres pour voir vos réservations.</p>
                 </div>
             </div>
         </div>
@@ -330,7 +351,7 @@
                     <div class="session-card-content">
                         <!-- Badge Status en overlay (comme "upcoming") -->
                         <span class="badge badge-status-right"
-                              th:classappend="${historySession.status?.name() == 'CANCELLED'} ? 'bg-warning' : 'bg-secondary'">
+                              th:classappend="${historySession.status?.name() == 'CANCELLED'} ? 'bg-secondary' : 'bg-success'">
                     <span th:text="${historySession.status?.name() == 'CANCELLED'} ? 'Annulée' : 'Terminée'">Terminée</span>
                 </span>
 
@@ -396,10 +417,17 @@
                 </div>
             </div>
             <!-- Message si aucune session -->
-            <div class="text-center py-5" th:if="${#lists.isEmpty(historySessions)}">
+            <div class="text-center py-5" th:if="${#lists.isEmpty(historySessions)}" id="noSessionsHistoryMessage">
                 <div class="text-muted">
                     <h5>Aucun historique</h5>
                     <p>Vous n'avez pas encore participé à des sessions.</p>
+                </div>
+            </div>
+            <!-- Message si sessions cachées par filtres -->
+            <div class="text-center py-5" id="noFilteredHistoryMessage" style="display: none;">
+                <div class="text-muted">
+                    <h5>Aucune session de l'historique ne correspond à vos critères</h5>
+                    <p>Essayez de modifier vos filtres pour voir votre historique.</p>
                 </div>
             </div>
         </div>

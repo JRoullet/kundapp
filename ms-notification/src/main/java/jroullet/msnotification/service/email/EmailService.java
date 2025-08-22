@@ -2,7 +2,9 @@ package jroullet.msnotification.service.email;
 
 import jroullet.msnotification.document.Notification;
 import jroullet.msnotification.document.notificationSubObjects.NotificationRecipient;
+
 import jroullet.msnotification.document.notificationSubObjects.NotificationSession;
+import jroullet.msnotification.enums.NotificationEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,7 +85,7 @@ public class EmailService {
         NotificationRecipient recipient = notification.getRecipient();
         NotificationSession session = notification.getSession();
 
-        log.info("📧 MOCK EMAIL SENT:");
+        log.info("   MOCK EMAIL SENT:");
         log.info("   From: {}", fromEmail);
         log.info("   To: {} ({})", recipient.getEmail(), getFullName(recipient));
         log.info("   Subject: {}", notification.getEmailSubject());
@@ -128,7 +130,7 @@ public class EmailService {
         Context context = new Context();
         context.setVariables(variables);
 
-        String templatePath = "emails/" + templateName;
+        String templatePath = "emails/users/" + templateName;
         return templateEngine.process(templatePath, context);
     }
 
@@ -174,7 +176,24 @@ public class EmailService {
         variables.put("eventType", notification.getEventType().toString());
         variables.put("notificationDate", formatDateTime(notification.getCreatedAt()));
 
-        // Company variables
+        // Session gets modified
+        if ((notification.getEventType() == NotificationEventType.SESSION_MODIFIED_TO_USER_NOTIFICATION
+                || notification.getEventType() == NotificationEventType.SESSION_MODIFIED_TO_TEACHER_NOTIFICATION)
+                && session.getModificationSummary() != null) {
+            variables.put("modificationSummary", session.getModificationSummary());
+        }
+
+        // students values for teacher notifications when enrolled/unenrolled
+        if (notification.getEventType() == NotificationEventType.USER_ENROLLED_TO_TEACHER_NOTIFICATION ||
+                notification.getEventType() == NotificationEventType.USER_CANCELED_TO_TEACHER_NOTIFICATION) {
+
+            if (notification.getAdditionalParticipants() != null && !notification.getAdditionalParticipants().isEmpty()) {
+                NotificationRecipient student = notification.getAdditionalParticipants().get(0);
+                variables.put("studentFirstName", student.getFirstName());
+                variables.put("studentLastName", student.getLastName());
+            }
+        }
+
         variables.put("companyName", "KundApp");
         variables.put("supportEmail", "support@kundapp.com");
 
@@ -187,17 +206,14 @@ public class EmailService {
     private String getFullName(NotificationRecipient recipient) {
         return (recipient.getFirstName() + " " + recipient.getLastName()).trim();
     }
-
     private String formatDateTime(java.time.LocalDateTime dateTime) {
         if (dateTime == null) return "";
         return dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm"));
     }
-
     private String formatDate(java.time.LocalDateTime dateTime) {
         if (dateTime == null) return "";
         return dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
-
     private String formatTime(java.time.LocalDateTime dateTime) {
         if (dateTime == null) return "";
         return dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -208,7 +224,7 @@ public class EmailService {
      */
     public boolean testEmailConfiguration() {
         try {
-            log.info("🔧 Testing email configuration...");
+            log.info("   Testing email configuration...");
             log.info("   Email enabled: {}", emailEnabled);
             log.info("   Mock mode: {}", mockMode);
             log.info("   From email: {}", fromEmail);

@@ -134,6 +134,4 @@ public class AdminTeacherController {
         return new ModelAndView("redirect:/admin");
     }
 
-
-
 }

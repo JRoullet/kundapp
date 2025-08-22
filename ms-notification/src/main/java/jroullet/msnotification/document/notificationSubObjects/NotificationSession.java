@@ -36,4 +36,10 @@ public class NotificationSession {
 
     // Online session fields (when isOnline = true)
     private String zoomLink;
+
+    /**
+     * Summary of modifications made to the session in case of updates
+     */
+    private String modificationSummary;
+
 }

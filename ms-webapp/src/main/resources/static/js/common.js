@@ -579,10 +579,6 @@ function validateSessionTypeFields(formData) {
 // SESSION CREDITS CONSTRAINT MANAGEMENT
 // ========================================
 
-// ========================================
-// SESSION CREDITS CONSTRAINT MANAGEMENT
-// ========================================
-
 /**
  * Apply credits field constraint based on participants count
  * @param {number} participantsCount - Number of registered participants

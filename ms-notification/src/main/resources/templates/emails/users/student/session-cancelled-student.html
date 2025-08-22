@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Session annulée</title>
+  <link rel="stylesheet" href="/email-styles.css">
+</head>
+<body class="notification-cancelled">
+<h2 class="icon-error">Session annulée</h2>
+
+<p>Bonjour <span th:text="${firstName}">Étudiant</span>,</p>
+
+<div class="status-box status-error">
+  <p>Nous sommes désolés de vous informer que la session avec <span th:text="${teacherName}">Professeur</span> a été annulée :</p>
+  <p>
+    <strong th:text="${sessionDateTime}">Date et heure</strong> -
+    <span th:text="${sessionSubject}">Type de cours</span> -
+    <span th:if="${isOnline}" th:text="'En ligne'">En ligne</span>
+    <span th:unless="${isOnline}" th:text="${roomName}">Lieu</span>
+  </p>
+</div>
+
+<div class="action-box">
+  <p><strong>Que faire maintenant ?</strong></p>
+  <p>• Vous avez été automatiquement désinscrit(e) de cette session</p>
+  <p>• Aucun frais ne vous sera facturé</p>
+  <p>• Vous pouvez consulter les autres sessions disponibles</p>
+  <p>• N'hésitez pas à vous inscrire à une nouvelle session</p>
+</div>
+
+<p>Nous nous excusons pour la gêne occasionnée et espérons vous retrouver bientôt !</p>
+
+<p>
+  Cordialement,<br>
+  L'équipe <span th:text="${companyName}">KundApp</span>
+</p>
+
+<div class="email-footer">
+  <p>
+    Email envoyé le <span th:text="${notificationDate}">date</span> |
+    Support : <span th:text="${supportEmail}">support@kundapp.com</span>
+  </p>
+</div>
+</body>
+</html>

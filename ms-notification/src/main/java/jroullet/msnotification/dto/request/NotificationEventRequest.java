@@ -3,6 +3,7 @@ package jroullet.msnotification.dto.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jroullet.msnotification.document.notificationSubObjects.NotificationRecipient;
 import jroullet.msnotification.dto.NotificationSessionDto;
 import jroullet.msnotification.dto.NotificationUserDto;
 import jroullet.msnotification.enums.NotificationEventType;
@@ -27,5 +28,8 @@ public record NotificationEventRequest (
      NotificationSessionDto session,
 
     @NotNull(message = "Internal secret is required")
-    String internalSecret
+    String internalSecret,
+
+    List<NotificationRecipient> additionalParticipants
+
 ){}

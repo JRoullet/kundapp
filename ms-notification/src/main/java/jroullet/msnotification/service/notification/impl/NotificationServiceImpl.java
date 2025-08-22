@@ -77,7 +77,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public BulkNotificationEventResponse processBulkNotificationEvent(BulkNotificationEventRequest bulkRequest) {
-        log.info("📬 Processing bulk notification event - Type: {}, recipients(): {}, Session: {}",
+        log.info(" Processing bulk notification event - Type: {}, recipients(): {}, Session: {}",
                 bulkRequest.eventType(),
                 bulkRequest.recipients().size(),
                 bulkRequest.session().id()
@@ -125,7 +125,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
     }
-
 
     @Override
     public List<NotificationEventResponse> getNotificationHistory (Long sessionId){
@@ -208,7 +207,7 @@ public class NotificationServiceImpl implements NotificationService {
             // Building bulk response with retry results to return
             BulkNotificationEventResponse bulkResponse = new BulkNotificationEventResponse(
                     null,
-                    NotificationEventType.SESSION_CANCELLED,
+                    NotificationEventType.SESSION_CANCELLED_TO_USER_NOTIFICATION,
                     responses.size(),
                     (int) successfulRetries,
                     (int) failedRetries,
@@ -227,7 +226,7 @@ public class NotificationServiceImpl implements NotificationService {
         log.debug("Getting enrollment notifications for session: {}", sessionId);
 
         List<Notification> notifications = notificationRepository.findBySessionIdAndEventType(
-                sessionId, NotificationEventType.USER_ENROLLED);
+                sessionId, NotificationEventType.USER_ENROLLED_TO_USER_NOTIFICATION);
         return notificationMapper.toResponseDtos(notifications);
     }
 

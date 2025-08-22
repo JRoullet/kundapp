@@ -126,6 +126,12 @@ p {
     color: #2e7d32;
 }
 
+/* Notification professeur - nouvel inscrit */
+.notification-student-enrolled h2 {
+    color: #1976d2;
+}
+
+
 /* Désinscription */
 .notification-unenrolled h2 {
     color: #fb7f7f;
@@ -138,7 +144,33 @@ p {
 
 /* Modification */
 .notification-modified h2 {
-    color: #fb7314;
+    color: #7299ff;
+}
+
+/* Session terminée */
+.notification-completed h2 {
+    color: #2e7d32;
+}
+
+/* ===== CHAMPS MODIFIÉS ===== */
+.field-modified {
+    color: #1976d2 !important;
+    font-weight: bold;
+}
+
+.field-modified .label {
+    color: #1976d2 !important;
+}
+
+.field-modified .value {
+    color: #1976d2 !important;
+    font-weight: bold;
+}
+
+/* Résumé des modifications */
+.modification-summary {
+    color: #1976d2;
+    font-weight: bold;
 }
 
 /* ===== RESPONSIVE ===== */

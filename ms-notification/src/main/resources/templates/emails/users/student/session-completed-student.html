@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Merci pour votre participation</title>
+  <link rel="stylesheet" href="/email-styles.css">
+</head>
+<body class="notification-completed">
+<h2 class="icon-success">Session terminée</h2>
+
+<p>Bonjour <span th:text="${firstName}">Étudiant</span>,</p>
+
+<div class="status-box status-success">
+  <p>Merci d'avoir participé à la session avec <span th:text="${teacherName}">Professeur</span> !</p>
+</div>
+
+<div class="session-details">
+  <h3>Récapitulatif de la session :</h3>
+
+  <p><span class="label">Sujet :</span> <span class="value" th:text="${sessionSubject}">Sujet</span></p>
+  <p><span class="label">Date :</span> <span class="value" th:text="${sessionDate}">Date</span></p>
+  <p><span class="label">Durée :</span> <span class="value" th:text="${duration}">Durée</span></p>
+
+  <div th:if="${isOnline}">
+    <p><span class="label">Mode :</span> <span class="session-online icon-online">Session en ligne</span></p>
+  </div>
+
+  <div th:unless="${isOnline}">
+    <p><span class="label">Mode :</span> <span class="session-offline icon-offline">Session en présentiel</span></p>
+    <p><span class="label">Lieu :</span> <span class="value" th:text="${roomName}">Lieu</span></p>
+  </div>
+</div>
+
+<div class="action-box">
+  <h3>Continuez votre progression :</h3>
+  <p>• Consultez les nouvelles sessions disponibles</p>
+  <p>• Réservez votre prochaine session avec <span th:text="${teacherName}">Professeur</span></p>
+  <p>• Explorez d'autres types de cours</p>
+  <p>• Partagez votre expérience avec vos proches</p>
+</div>
+
+<p>Nous espérons vous revoir très bientôt pour de nouvelles sessions !</p>
+
+<p>
+  Cordialement,<br>
+  L'équipe <span th:text="${companyName}">KundApp</span>
+</p>
+
+<div class="email-footer">
+  <p>
+    Email envoyé le <span th:text="${notificationDate}">date</span> |
+    Support : <span th:text="${supportEmail}">support@kundapp.com</span>
+  </p>
+</div>
+</body>
+</html>

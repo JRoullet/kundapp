@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnauthorizedSessionAccessException(UnauthorizedSessionAccessException e) {
         log.error("Unauthorized session access: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "Unauthorized access to session",
                 "UNAUTHORIZED_ACCESS",
                 HttpStatus.FORBIDDEN
         );
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidSessionStateException(InvalidSessionStateException e) {
         log.error("Invalid session state: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "Invalid session state",
                 "INVALID_SESSION_STATE",
                 HttpStatus.CONFLICT
         );
@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidSessionUpdateException(InvalidSessionUpdateException e) {
         log.error("Invalid session update: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "Invalid session update request",
                 "INVALID_SESSION_UPDATE",
                 HttpStatus.CONFLICT
         );
@@ -73,7 +73,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSessionAlreadyReservedSpotsException(InsufficientSpotsException e) {
         log.error("Session spots conflict: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "Insufficient spots available for session",
                 "INSUFFICIENT_SPOTS",
                 HttpStatus.CONFLICT
         );
@@ -85,7 +85,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSessionNotFoundException(SessionNotFoundException e) {
         log.error("Session not found: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "Session not found",
                 "SESSION_NOT_FOUND",
                 HttpStatus.NOT_FOUND
         );
@@ -97,7 +97,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSessionOverlappingTimeException(SessionOverlappingTimeException e) {
         log.error("Session time conflict: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "Session time conflict",
                 "SESSION_TIME_CONFLICT",
                 HttpStatus.CONFLICT
         );
@@ -109,7 +109,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSessionStartingTimeException(SessionStartingTimeException e) {
         log.error("Invalid session start time: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "Invalid session start time",
                 "INVALID_START_TIME",
                 HttpStatus.BAD_REQUEST
         );
@@ -126,7 +126,7 @@ public class GlobalExceptionHandler {
          details.put("maxCapacity", e.getMaxCapacity());
 
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "Session capacity exceeded",
                 "SESSION_FULL",
                 HttpStatus.CONFLICT,
                 details
@@ -139,35 +139,35 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserAlreadyRegisteredException(UserAlreadyRegisteredException e) {
         log.error("User already registered: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "User already enrolled",
                 "USER_ALREADY_REGISTERED",
                 HttpStatus.CONFLICT
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-    // 400 BAD REQUEST
+    // 422 UNPROCESSABLE_ENTITY
     @ExceptionHandler(CancellationDeadlinePassedException.class)
     public ResponseEntity<ErrorResponse> handleCancellationDeadlinePassedException(CancellationDeadlinePassedException e) {
         log.error("Cancellation deadline passed: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "Cancellation deadline exceeded",
                 "CANCELLATION_DEADLINE_PASSED",
-                HttpStatus.BAD_REQUEST
+                HttpStatus.UNPROCESSABLE_ENTITY
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(422).body(error);
     }
 
-    // 400 BAD REQUEST
+    // 409 CONFLICT
     @ExceptionHandler(UserNotRegisteredException.class)
     public ResponseEntity<ErrorResponse> handleUserNotRegisteredException(UserNotRegisteredException e) {
         log.error("User not registered: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                e.getMessage(),
+                "User not enrolled in session",
                 "USER_NOT_REGISTERED",
-                HttpStatus.BAD_REQUEST
+                HttpStatus.CONFLICT
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     // 400 BAD REQUEST
