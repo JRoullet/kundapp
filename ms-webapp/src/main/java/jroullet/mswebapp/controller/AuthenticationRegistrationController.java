@@ -17,7 +17,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
 
-//Sign In & Sign Up
+/**
+ * Controller for handling user authentication and registration.
+ */
 @RestController
 public class AuthenticationRegistrationController {
 

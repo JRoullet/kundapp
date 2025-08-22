@@ -62,21 +62,18 @@ public class HomeDisplayingController {
     @GetMapping("/teacher")
     public ModelAndView showTeacherHome(Model model) {
         logger.info("Fetching teacher home");
+        UserDTO userDTO = sessionService.getCurrentUser();
+        // Loading upcoming sessions
+        List<SessionWithParticipantsDTO> upcomingSessions = sessionManagementService
+                .getUpcomingSessionsForCurrentTeacher(userDTO.getId());
+        List<SessionWithParticipantsDTO> pastSessions = sessionManagementService
+                .getPastSessionsForCurrentTeacher(userDTO.getId());
 
-        try {
-            UserDTO userDTO = sessionService.getCurrentUser();
-            model.addAttribute("user", userDTO);
+        model.addAttribute("user", userDTO);
+        model.addAttribute("sessions", upcomingSessions);
+        model.addAttribute("historySessions", pastSessions);
 
-            // Loading upcoming sessions
-            List<SessionWithParticipantsDTO> upcomingSessions = sessionManagementService
-                    .getUpcomingSessionsForCurrentTeacher(userDTO.getId());
-            model.addAttribute("sessions", upcomingSessions);
 
-        } catch (Exception e) {
-            logger.error("Error loading teacher home: {}", e.getMessage());
-            model.addAttribute("error", "Erreur lors du chargement des sessions");
-            model.addAttribute("sessions", Collections.emptyList());
-        }
 
         return new ModelAndView("home-teacher");
     }

@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: "ms-webapp-test"
+
+  # Base H2 for tests only
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: sa
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect

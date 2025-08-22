@@ -55,69 +55,224 @@
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col">
-            <div class="card">
-                <div class="card-body p-0">
-                    <h5 class="card-title p-3 mb-0 border-bottom">Mes prochaines séances</h5>
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4" id="teacherSessionTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="upcoming-sessions-tab" data-mdb-toggle="tab" data-mdb-target="#upcoming-sessions" type="button" role="tab">
+                Mes prochaines séances
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="history-sessions-tab" data-mdb-toggle="tab" data-mdb-target="#history-sessions" type="button" role="tab">
+                Historique
+            </button>
+        </li>
+    </ul>
 
-                    <div class="table-responsive table-container">
-                        <table class="table table-hover table-row mb-0">
-                            <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Heure</th>
-                                <th>Type de cours</th>
-                                <th>Lieu</th>
-                                <th>Participants inscrits</th>
-                                <th>Places disponibles</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <!-- Itération sur la liste des sessions triées par date croissante -->
-                            <tr th:each="sessionItem : ${sessions}" th:if="${sessions != null}" class="table-row">
-                                <td th:text="${#temporals.format(sessionItem.startDateTime, 'dd/MM/yyyy')}">01/01/2025</td>
-                                <td th:text="${#temporals.format(sessionItem.startDateTime, 'HH:mm')}">14:00</td>
-                                <td th:text="${sessionItem.subject}">YOGA</td>
-                                <td>
-                                    <div th:if="${sessionItem.isOnline}" class="session-online-indicator">
-                                        💻 En ligne
+    <!-- Tab Content -->
+    <div class="tab-content" id="teacherSessionTabsContent">
+        <!-- Upcoming Sessions Tab -->
+        <div class="tab-pane fade show active" id="upcoming-sessions" role="tabpanel">
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body p-0">
+                            <h5 class="card-title p-3 mb-0 border-bottom">Mes prochaines séances</h5>
+                            <!-- Sessions Cards Container -->
+                            <div class="p-3">
+                                <div class="row">
+                                    <!-- Session Card -->
+                                    <div th:each="sessionItem : ${sessions}"
+                                         class="col-12 mb-3"
+                                         data-session-card
+                                         th:data-subject="${sessionItem.subject}"
+                                         th:data-online="${sessionItem.isOnline}">
+                                        <div class="session-card-content">
+                                            <div class="row g-0 align-items-center">
+                                                <!-- Colonne 1 - Gauche : Date/Heure/Sujet -->
+                                                <div class="col-4 session-col-left">
+                                                    <div class="session-title-line">
+                                                        <h5 class="session-title mb-0 fw-bold" th:text="${sessionItem.subject}">YOGA</h5>
+                                                    </div>
+                                                    <div class="session-date-line">
+                                                        <small th:text="${#temporals.format(sessionItem.startDateTime, 'EEEE d MMMM yyyy')}">lundi 15 janvier 2025</small>
+                                                    </div>
+                                                    <div class="session-time-line">
+                                                        <small>
+                                                            <span th:text="${#temporals.format(sessionItem.startDateTime, 'HH:mm')}">14:00</span>
+                                                            -
+                                                            <span th:text="${#temporals.format(sessionItem.startDateTime.plusMinutes(sessionItem.durationMinutes), 'HH:mm')}">15:00</span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Colonne 2 - Milieu : Lieu et Participants -->
+                                                <div class="col-4 session-col-center">
+                                                    <div class="session-teacher-line">
+                                                        <!-- Ligne vide pour garder l'alignement -->
+                                                        <span>&nbsp;</span>
+                                                    </div>
+                                                    <div class="session-room-line">
+                                                        <small>
+                                                            <th:block th:if="${sessionItem.isOnline}">
+                                                                <span class="session-online-badge">💻 En ligne</span>
+                                                            </th:block>
+                                                            <th:block th:unless="${sessionItem.isOnline}">
+                                                                <span th:text="${sessionItem.roomName ?: 'Lieu non défini'}">Studio Yoga</span>
+                                                            </th:block>
+                                                        </small>
+                                                    </div>
+                                                    <div class="session-participants-line">
+                                                        <small>
+                                                            <button th:if="${(sessionItem.registeredParticipants ?: 0) > 0}"
+                                                                    class="btn btn-link btn-sm p-0 text-decoration-none"
+                                                                    th:onclick="|showParticipants(${sessionItem.id})|"
+                                                                    style="font-size: inherit; color: inherit;">
+                                                                <span th:text="${sessionItem.registeredParticipants ?: 0}">5</span> participants
+                                                                (<span th:text="${sessionItem.availableSpots - (sessionItem.registeredParticipants ?: 0)}">3</span> places)
+                                                            </button>
+                                                            <span th:if="${(sessionItem.registeredParticipants ?: 0) == 0}">
+                                                                0 participants
+                                                                (<span th:text="${sessionItem.availableSpots}">8</span> places)
+                                                            </span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Colonne 3 - Droite : Actions -->
+                                                <div class="col-4 session-col-right">
+                                                    <div class="session-register-line">
+                                                        <!-- Bouton Modifier -->
+                                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                                th:onclick="|openEditSessionModal(${sessionItem.id})|"
+                                                                style="min-width: 120px;">
+                                                            Modifier
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <span th:unless="${sessionItem.isOnline}" th:text="${sessionItem.roomName}">Studio Yoga</span>
-                                </td>
-                                <td>
-                                    <span th:text="${sessionItem.registeredParticipants ?: 0}">5</span> participants
-                                    <button th:if="${(sessionItem.registeredParticipants ?: 0) > 0}"
-                                            class="btn btn-sm btn-outline-info ms-2"
-                                            th:onclick="|showParticipants(${sessionItem.id})|"
-                                            title="Voir les participants">
-                                        👥
-                                    </button>
-                                </td>
-                                <td th:text="${sessionItem.availableSpots - (sessionItem.registeredParticipants != null ? sessionItem.registeredParticipants : 0)}">10</td>
-                                <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <button type="button" class="btn btn-secondary btn-admin-edit btn-outline-primary"
-                                                th:onclick="|openEditSessionModal(${sessionItem.id})|" title="Modifier la séance">
-                                            Modifier
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Message si pas de séance -->
-                            <tr th:if="${sessions == null || sessions.isEmpty()}">
-                                <td colspan="7" class="text-center py-4">
+                                </div>
+
+                                <!-- Message si aucune session -->
+                                <div class="text-center py-5" th:if="${sessions == null || sessions.isEmpty()}">
                                     <div class="text-muted">
-                                        <p class="mb-3">Aucune séance programmée</p>
+                                        <h5>Aucune séance programmée</h5>
+                                        <p class="mb-3">Vous n'avez pas encore créé de séances.</p>
                                         <button class="btn btn-primary" onclick="openCreateSessionModal()">
-                                            Programmez une séance
+                                            Créer une séance
                                         </button>
                                     </div>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Sessions Tab -->
+        <div class="tab-pane fade" id="history-sessions" role="tabpanel">
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body p-0">
+                            <h5 class="card-title p-3 mb-0 border-bottom">Historique de mes séances</h5>
+                            <!-- History Sessions Cards Container -->
+                            <div class="p-3">
+                                <div class="row">
+                                    <!-- History Session Card -->
+                                    <div th:each="historySession : ${historySessions}"
+                                         class="col-12 mb-3"
+                                         data-session-card
+                                         th:data-subject="${historySession.subject}"
+                                         th:data-online="${historySession.isOnline}"
+                                         th:data-status="${historySession.status}">
+                                        <div class="session-card-content">
+                                            <!-- Badge Status -->
+                                            <span class="badge badge-status-right"
+                                                  th:classappend="${historySession.status?.name() == 'CANCELLED'} ? 'bg-warning' : 'bg-success'">
+                                                <span th:text="${historySession.status?.name() == 'CANCELLED'} ? 'Annulée' : 'Terminée'">Terminée</span>
+                                            </span>
+
+                                            <div class="row g-0 align-items-center">
+                                                <!-- Colonne 1 - Gauche : Date/Heure/Sujet -->
+                                                <div class="col-4 session-col-left">
+                                                    <div class="session-title-line">
+                                                        <h5 class="session-title mb-0 fw-bold" th:text="${historySession.subject}">YOGA</h5>
+                                                    </div>
+                                                    <div class="session-date-line">
+                                                        <small th:text="${#temporals.format(historySession.startDateTime, 'EEEE d MMMM yyyy')}">lundi 15 janvier 2025</small>
+                                                    </div>
+                                                    <div class="session-time-line">
+                                                        <small>
+                                                            <span th:text="${#temporals.format(historySession.startDateTime, 'HH:mm')}">14:00</span>
+                                                            -
+                                                            <span th:text="${#temporals.format(historySession.startDateTime.plusMinutes(historySession.durationMinutes), 'HH:mm')}">15:00</span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Colonne 2 - Milieu : Lieu et Participants -->
+                                                <div class="col-4 session-col-center">
+                                                    <div class="session-teacher-line">
+                                                        <!-- Ligne vide pour garder l'alignement -->
+                                                        <span>&nbsp;</span>
+                                                    </div>
+                                                    <div class="session-room-line">
+                                                        <small>
+                                                            <th:block th:if="${historySession.isOnline}">
+                                                                <span class="session-online-badge">💻 En ligne</span>
+                                                            </th:block>
+                                                            <th:block th:unless="${historySession.isOnline}">
+                                                                <span th:text="${historySession.roomName ?: 'Lieu non défini'}">Studio Yoga</span>
+                                                            </th:block>
+                                                        </small>
+                                                    </div>
+                                                    <div class="session-participants-line">
+                                                        <small>
+                                                            <th:block th:if="${historySession.status?.name() == 'COMPLETED'}">
+                                                                <button th:if="${(historySession.registeredParticipants ?: 0) > 0}"
+                                                                        class="btn btn-link btn-sm p-0 text-decoration-none"
+                                                                        th:onclick="|showParticipants(${historySession.id})|"
+                                                                        style="font-size: inherit; color: inherit;">
+                                                                    <span th:text="${historySession.registeredParticipants ?: 0}">5</span> participants
+                                                                </button>
+                                                                <span th:if="${(historySession.registeredParticipants ?: 0) == 0}">
+                                                                    Aucun participant
+                                                                </span>
+                                                            </th:block>
+                                                            <th:block th:if="${historySession.status?.name() == 'CANCELLED'}">
+                                                                Session annulée
+                                                            </th:block>
+                                                        </small>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Colonne 3 - Droite : Actions -->
+                                                <div class="col-4 session-col-right">
+                                                    <div class="session-register-line">
+                                                        <!-- Pas d'actions pour l'historique -->
+                                                        <span class="text-muted small">
+                                                            Session <span th:text="${historySession.status?.name() == 'CANCELLED'} ? 'annulée' : 'terminée'">terminée</span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Message si aucune session d'historique -->
+                                <div class="text-center py-5" th:if="${historySessions == null || historySessions.isEmpty()}">
+                                    <div class="text-muted">
+                                        <h5>Aucun historique</h5>
+                                        <p class="mb-3">Vous n'avez pas encore d'historique de séances terminées ou annulées.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

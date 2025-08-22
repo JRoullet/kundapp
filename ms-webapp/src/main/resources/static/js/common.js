@@ -12,7 +12,7 @@ class ToastSystem {
         this.maxToasts = 5;
     }
 
-    show(type, title, message, duration = 3000) {
+    show(type, title, message, duration = 4000) {
         if (this.toasts.length >= this.maxToasts) {
             this.hide(this.toasts[0]);
         }

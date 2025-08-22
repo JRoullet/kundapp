@@ -28,12 +28,6 @@ public class CreditService {
         return identityFeignClient.deductCreditsForSessionRegistration(request);
     }
 
-    public void rollbackCredits(Long userId, Long sessionId, Integer credits) {
-        SessionRollbackRefundRequest request = new SessionRollbackRefundRequest(
-                userId, sessionId, credits, internalSecret);
-        identityFeignClient.refundCreditsForSessionRollback(request);
-    }
-
     public CreditOperationResponse refundCredits(Long userId, Long sessionId, Integer credits) {
         SessionRollbackRefundRequest request = new SessionRollbackRefundRequest(
                 userId, sessionId, credits, internalSecret);

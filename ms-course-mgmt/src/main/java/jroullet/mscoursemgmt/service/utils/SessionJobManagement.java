@@ -9,15 +9,18 @@ import jroullet.mscoursemgmt.model.session.Session;
 import jroullet.mscoursemgmt.model.session.SessionStatus;
 import jroullet.mscoursemgmt.repository.SessionRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class SessionJobManagement {
 
     private final SessionRepository sessionRepository;
@@ -28,11 +31,13 @@ public class SessionJobManagement {
      * This method should is called periodically (e.g., via a scheduled job).
      */
     public void updateCompletedSessions() {
-        LocalDateTime now = LocalDateTime.now();
+        log.info("=== UPDATE COMPLETED SESSIONS CALLED ===");
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         List<Session> sessionsToComplete = sessionRepository.findAll().stream()
                 .filter(s -> s.getStatus() == SessionStatus.SCHEDULED)
                 .filter(s -> s.getStartDateTime().plusMinutes(s.getDurationMinutes()).isBefore(now))
                 .collect(toList());
+        log.info("SCHEDULED sessions: {}", sessionsToComplete.size());
 
         sessionsToComplete.forEach(s -> s.setStatus(SessionStatus.COMPLETED));
         if (!sessionsToComplete.isEmpty()) {

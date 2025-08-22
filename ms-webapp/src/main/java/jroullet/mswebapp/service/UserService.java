@@ -41,6 +41,7 @@ public class UserService {
     public UserDTO getUserById(Long userId) {
         return identityFeignClient.getUserById(userId);
     }
+
     /**
      * Get multiple users by IDs (ADMIN)
      */

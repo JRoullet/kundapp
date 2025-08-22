@@ -6,6 +6,7 @@ import jroullet.mswebapp.dto.user.UserCreationDTO;
 import jroullet.mswebapp.dto.user.UserDTO;
 import jroullet.mswebapp.dto.user.UserStatusResponseDTO;
 import jroullet.mswebapp.dto.user.UserUpdateDTO;
+import jroullet.mswebapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminUserController {
 
     private final IdentityFeignClient identityFeignClient;
+    private final UserService userService;
     private final Logger logger = LoggerFactory.getLogger(AdminUserController.class);
 
     // User Section
@@ -29,7 +31,7 @@ public class AdminUserController {
     @ResponseBody
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         try {
-            UserDTO user = identityFeignClient.getUserById(id);
+            UserDTO user = userService.getUserById(id);
             return ResponseEntity.ok(user);
         } catch (FeignException.NotFound e) {
             return ResponseEntity.notFound().build();
