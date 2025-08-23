@@ -969,6 +969,37 @@ body.signin-form {
     position: relative;
 }
 
+/* Session cancelled */
+.session-card-content.session-cancelled {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    opacity: 0.7;
+    color: #6c757d !important;
+}
+
+.session-card-content.session-cancelled:hover {
+    background-color: #e9ecef !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.session-card-content.session-cancelled .session-title {
+    color: #6c757d !important;
+}
+
+.session-card-content.session-cancelled .teacher-name {
+    color: #6c757d !important;
+}
+
+.session-card-content.session-cancelled .session-online-badge {
+    background-color: #f1f3f4 !important;
+    color: #6c757d !important;
+    border-color: #dee2e6 !important;
+}
+
+.session-card-content.session-cancelled small {
+    color: #6c757d !important;
+}
+
 /* ========================================
    RESPONSIVE
    ======================================== */

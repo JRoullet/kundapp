@@ -1,0 +1,206 @@
+package jroullet.mswebapp.UnitTest;
+
+import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
+import jroullet.mswebapp.dto.user.UserDTO;
+import jroullet.mswebapp.exception.InsufficientCreditsException;
+import jroullet.mswebapp.exception.SessionNotAvailableException;
+import jroullet.mswebapp.exception.UnauthorizedSessionAccessException;
+import jroullet.mswebapp.exception.UserAlreadyRegisteredException;
+import jroullet.mswebapp.service.ValidationService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static jroullet.mswebapp.UnitTest.TestDataBuilders.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+@ExtendWith(MockitoExtension.class)
+public class ValidationServiceTest {
+
+    @InjectMocks
+    private ValidationService validationService;
+
+    // Test data
+    private static final Long USER_ID = 1L;
+    private static final Long SESSION_ID = 2L;
+    private static final Long TEACHER_ID = 3L;
+    private static final Integer SUFFICIENT_CREDITS = 5;
+    private static final Integer INSUFFICIENT_CREDITS = 1;
+    private static final Integer CREDITS_REQUIRED = 3;
+
+
+    @Test
+    void validateUserHasSufficientCreditsTest_shouldPassWhenUserHasEnoughCredits() {
+        // Given
+        UserDTO user = createUser(USER_ID, SUFFICIENT_CREDITS);
+
+        // When/Then - No exception should be thrown
+        assertDoesNotThrow(() ->
+                validationService.validateUserHasSufficientCredits(user, CREDITS_REQUIRED)
+        );
+    }
+
+    @Test
+    void validateUserHasSufficientCreditsTest_shouldThrowExceptionWhenInsufficientCredits() {
+        // Given
+        UserDTO user = createUser(USER_ID, INSUFFICIENT_CREDITS);
+
+        // When/Then
+        InsufficientCreditsException exception = assertThrows(
+                InsufficientCreditsException.class,
+                () -> validationService.validateUserHasSufficientCredits(user, CREDITS_REQUIRED)
+        );
+
+        assertEquals(USER_ID, exception.getUserId());
+        assertEquals(INSUFFICIENT_CREDITS, exception.getAvailableCredits());
+        assertEquals(CREDITS_REQUIRED, exception.getRequiredCredits());
+    }
+
+    @Test
+    void validateSessionAvailabilityTest_shouldPassWhenSessionHasSpots() {
+        // Given
+        SessionWithParticipantsDTO session = createSessionWithParticipants(2, 5);
+
+        // When/Then
+        assertDoesNotThrow(() ->
+                validationService.validateSessionAvailability(session)
+        );
+    }
+
+    @Test
+    void validateSessionAvailabilityTest_shouldThrowExceptionWhenSessionIsFull() {
+        // Given
+        SessionWithParticipantsDTO session = createSessionWithParticipants(5, 5); // 5 participants, 5 spots
+
+        // When/Then
+        SessionNotAvailableException exception = assertThrows(
+                SessionNotAvailableException.class,
+                () -> validationService.validateSessionAvailability(session)
+        );
+
+        assertEquals(SESSION_ID, exception.getSessionId());
+        assertEquals(5, exception.getCurrentParticipants());
+        assertEquals(5, exception.getMaxCapacity());
+    }
+
+    @Test
+    void validateUserNotAlreadyRegisteredTest_shouldPassWhenUserNotRegistered() {
+        // Given
+        SessionWithParticipantsDTO session = createSessionWithSpecificParticipants(List.of(2L, 3L));
+
+        // When/Then
+        assertDoesNotThrow(() ->
+                validationService.validateUserNotAlreadyRegistered(session, USER_ID)
+        );
+    }
+
+    @Test
+    void validateUserNotAlreadyRegisteredTest_shouldThrowExceptionWhenUserAlreadyRegistered() {
+        // Given
+        SessionWithParticipantsDTO session = createSessionWithSpecificParticipants(List.of(USER_ID, 2L, 3L));
+
+        // When/Then
+        UserAlreadyRegisteredException exception = assertThrows(
+                UserAlreadyRegisteredException.class,
+                () -> validationService.validateUserNotAlreadyRegistered(session, USER_ID)
+        );
+
+        assertEquals(USER_ID, exception.getUserId());
+        assertEquals(SESSION_ID, exception.getSessionId());
+    }
+
+    @Test
+    void validateSessionOwnershipTest_shouldPassWhenTeacherOwnsSession() {
+        // Given
+        SessionWithParticipantsDTO session = createSessionWithTeacher(TEACHER_ID);
+
+        // When/Then
+        assertDoesNotThrow(() ->
+                validationService.validateSessionOwnership(session, TEACHER_ID)
+        );
+    }
+
+    @Test
+    void validateSessionOwnershipTest_shouldThrowExceptionWhenTeacherDoesNotOwnSession() {
+        // Given
+        Long otherTeacherId = 111L;
+        SessionWithParticipantsDTO session = createSessionWithTeacher(TEACHER_ID);
+
+        // When/Then
+        UnauthorizedSessionAccessException exception = assertThrows(
+                UnauthorizedSessionAccessException.class,
+                () -> validationService.validateSessionOwnership(session, otherTeacherId)
+        );
+
+        assertEquals("You can only access your own sessions", exception.getMessage());
+    }
+
+    @Test
+    void hasSignificantChangesTest_shouldReturnFalseWhenNoChanges() {
+        // Given
+        SessionWithParticipantsDTO original = createBaseSession();
+        SessionWithParticipantsDTO updated = createBaseSession();
+
+        // When/Then
+        assertFalse(validationService.hasSignificantChanges(original, updated));
+    }
+
+    @Test
+    void hasSignificantChangesTest_shouldReturnTrueWhenStartDateTimeChanged() {
+        // Given
+        SessionWithParticipantsDTO original = createBaseSession();
+        SessionWithParticipantsDTO updated = createBaseSession();
+        updated.setStartDateTime(LocalDateTime.now().plusHours(1));
+
+        // When/Then
+        assertTrue(validationService.hasSignificantChanges(original, updated));
+    }
+
+    @Test
+    void hasSignificantChangesTest_shouldReturnTrueWhenDescriptionChanged() {
+        // Given
+        SessionWithParticipantsDTO original = createBaseSession();
+        SessionWithParticipantsDTO updated = createBaseSession();
+        updated.setDescription("New description");
+
+        // When/Then
+        assertTrue(validationService.hasSignificantChanges(original, updated));
+    }
+
+    @Test
+    void hasSignificantChangesTest_shouldReturnTrueWhenOnlineModeChanged() {
+        // Given
+        SessionWithParticipantsDTO original = createBaseSession();
+        original.setIsOnline(true);
+        SessionWithParticipantsDTO updated = createBaseSession();
+        updated.setIsOnline(false);
+
+        // When/Then
+        assertTrue(validationService.hasSignificantChanges(original, updated));
+    }
+
+    @Test
+    void hasSignificantChangesTest_shouldReturnTrueWhenZoomLinkChangedForOnlineSession() {
+        // Given
+        SessionWithParticipantsDTO original = createOnlineSession("https://zoom.us/old");
+        SessionWithParticipantsDTO updated = createOnlineSession("https://zoom.us/new");
+
+        // When/Then
+        assertTrue(validationService.hasSignificantChanges(original, updated));
+    }
+
+    @Test
+    void hasSignificantChangesTest_shouldReturnTrueWhenRoomNameChangedForOfflineSession() {
+        // Given
+        SessionWithParticipantsDTO original = createOfflineSession("Old Room");
+        SessionWithParticipantsDTO updated = createOfflineSession("New Room");
+
+        // When/Then
+        assertTrue(validationService.hasSignificantChanges(original, updated));
+    }
+
+}

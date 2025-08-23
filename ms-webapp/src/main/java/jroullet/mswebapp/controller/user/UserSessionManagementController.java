@@ -1,5 +1,6 @@
 package jroullet.mswebapp.controller.user;
 
+import feign.FeignException;
 import jroullet.mswebapp.dto.session.SessionNoParticipantsDTO;
 import jroullet.mswebapp.service.SessionManagementService;
 import lombok.RequiredArgsConstructor;
@@ -52,8 +53,18 @@ public class UserSessionManagementController {
             redirectAttributes.addFlashAttribute("creditsOperation", "registration");
             redirectAttributes.addFlashAttribute("newCredits", newCredits);
 
+        } catch (FeignException e) {
+            String errorMessage = switch (e.status()) {
+                case 409 -> "Inscription impossible : vous êtes déjà inscrit ou la session est complète";
+                case 404 -> "Session introuvable";
+                case 403 -> "Vous n'avez pas l'autorisation d'accéder à cette session";
+                case 400 -> "Données d'inscription invalides";
+                default -> "Erreur lors de l'inscription";
+            };
+            redirectAttributes.addFlashAttribute("error", errorMessage);
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur technique lors de l'inscription");
         }
 
         return new ModelAndView("redirect:/client?tab=upcoming");
@@ -72,11 +83,18 @@ public class UserSessionManagementController {
             redirectAttributes.addFlashAttribute("creditsOperation", "unregistration");
             redirectAttributes.addFlashAttribute("newCredits", newCredits);
 
+        } catch (FeignException e) {
+            String errorMessage = switch (e.status()) {
+                case 422 -> "Annulation impossible : délai de 48h dépassé";
+                case 409 -> "Vous n'êtes pas inscrit à cette session";
+                case 404 -> "Session introuvable";
+                default -> "Erreur lors de l'annulation";
+            };
+            redirectAttributes.addFlashAttribute("error", errorMessage);
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur technique lors de l'annulation");
         }
-
         return new ModelAndView("redirect:/client?tab=upcoming");
     }
 

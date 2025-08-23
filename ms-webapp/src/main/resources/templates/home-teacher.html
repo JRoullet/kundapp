@@ -189,7 +189,8 @@
                                          th:data-subject="${historySession.subject}"
                                          th:data-online="${historySession.isOnline}"
                                          th:data-status="${historySession.status}">
-                                        <div class="session-card-content">
+                                        <div class="session-card-content"
+                                             th:classappend="${historySession.status?.name() == 'CANCELLED'} ? 'session-cancelled' : ''">
                                             <!-- Badge Status -->
                                             <span class="badge badge-status-right"
                                                   th:classappend="${historySession.status?.name() == 'CANCELLED'} ? 'bg-warning' : 'bg-success'">

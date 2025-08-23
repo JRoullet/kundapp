@@ -348,9 +348,10 @@
                      th:data-subject="${historySession.subject}"
                      th:data-online="${historySession.isOnline}"
                      th:data-teacher="${historySession.teacherFirstName + ' ' + historySession.teacherLastName}">
-                    <div class="session-card-content">
+                    <div class="session-card-content"
+                         th:classappend="${historySession.status?.name() == 'CANCELLED'} ? 'session-cancelled' : ''">
                         <!-- Badge Status en overlay (comme "upcoming") -->
-                        <span class="badge badge-status-right"
+                        <span class="badge badge-status-right "
                               th:classappend="${historySession.status?.name() == 'CANCELLED'} ? 'bg-secondary' : 'bg-success'">
                     <span th:text="${historySession.status?.name() == 'CANCELLED'} ? 'Annulée' : 'Terminée'">Terminée</span>
                 </span>
