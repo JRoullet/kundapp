@@ -10,7 +10,8 @@ services:
       resources:
         limits:
           memory: 700m
-
+    environment:
+      TZ: Europe/Paris
   microservice-configserver-config:
     extends:
       service: microservice-base-config

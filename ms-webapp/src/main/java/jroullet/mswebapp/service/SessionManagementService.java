@@ -385,6 +385,7 @@ public class SessionManagementService {
             throw new SessionRegistrationException("Unexpected failure during registration", participantException);
         }
     }
+
     @Transactional
     public int unregisterFromSession(Long sessionId) {
         UserDTO user = sessionService.getCurrentUser();
@@ -421,7 +422,6 @@ public class SessionManagementService {
     /**
      *      PRIVATE HELPER METHODS
      */
-
     private SessionWithParticipantsDTO getSessionDetails(Long sessionId) {
         SessionWithParticipantsDTO sessionResponse = courseFeignClient.getSessionById(sessionId);
         if (sessionResponse == null) {

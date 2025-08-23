@@ -9,19 +9,15 @@ import jroullet.mscoursemgmt.model.session.Session;
 import jroullet.mscoursemgmt.model.session.SessionStatus;
 import jroullet.mscoursemgmt.repository.SessionRepository;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
 @Component
 @AllArgsConstructor
-@Slf4j
 public class SessionJobManagement {
 
     private final SessionRepository sessionRepository;
@@ -31,48 +27,16 @@ public class SessionJobManagement {
      * Updates the status of sessions that have ended to 'COMPLETED'.
      * This method should is called periodically (e.g., via a scheduled job).
      */
-    @Transactional
     public void updateCompletedSessions() {
-        log.info("====== UPDATE COMPLETED SESSIONS METHOD CALLED ======");
-
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        log.info("Java UTC now: {}", now);
-
-        List<Session> allSessions = sessionRepository.findAll();
-        log.info("Total sessions found: {}", allSessions.size());
-
-        // Log de chaque session
-        allSessions.forEach(s ->
-                log.info("Session {}: status={}, start={}, duration={}",
-                        s.getId(), s.getStatus(), s.getStartDateTime(), s.getDurationMinutes())
-        );
-
-        List<Session> scheduledSessions = allSessions.stream()
+        LocalDateTime now = LocalDateTime.now();
+        List<Session> sessionsToComplete = sessionRepository.findAll().stream()
                 .filter(s -> s.getStatus() == SessionStatus.SCHEDULED)
-                .collect(toList());
-        log.info("SCHEDULED sessions count: {}", scheduledSessions.size());
-
-        List<Session> sessionsToComplete = scheduledSessions.stream()
-                .filter(s -> {
-                    LocalDateTime endTime = s.getStartDateTime().plusMinutes(s.getDurationMinutes());
-                    boolean should = endTime.isBefore(now);
-                    log.info("Session {}: end={}, should complete={}", s.getId(), endTime, should);
-                    return should;
-                })
+                .filter(s -> s.getStartDateTime().plusMinutes(s.getDurationMinutes()).isBefore(now))
                 .collect(toList());
 
-        log.info("Sessions to complete: {}", sessionsToComplete.size());
-
+        sessionsToComplete.forEach(s -> s.setStatus(SessionStatus.COMPLETED));
         if (!sessionsToComplete.isEmpty()) {
-            log.info("BEFORE save - Sessions to update: {}",
-                    sessionsToComplete.stream().map(Session::getId).collect(toList()));
-
-            sessionsToComplete.forEach(s -> s.setStatus(SessionStatus.COMPLETED));
             sessionRepository.saveAll(sessionsToComplete);
-
-            log.info("AFTER save - completed");
-        } else {
-            log.info("NO sessions to mark as completed");
         }
     }
 

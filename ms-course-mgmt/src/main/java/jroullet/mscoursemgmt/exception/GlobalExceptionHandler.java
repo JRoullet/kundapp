@@ -1,6 +1,7 @@
 package jroullet.mscoursemgmt.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.protocol.HTTP;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -68,16 +69,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-    // 409 CONFLICT
+    // 423 LOCKED
     @ExceptionHandler(InsufficientSpotsException.class)
     public ResponseEntity<ErrorResponse> handleSessionAlreadyReservedSpotsException(InsufficientSpotsException e) {
         log.error("Session spots conflict: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(
                 "Insufficient spots available for session",
                 "INSUFFICIENT_SPOTS",
-                HttpStatus.CONFLICT
+                HttpStatus.LOCKED
         );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        return ResponseEntity.status(HttpStatus.LOCKED).body(error);
     }
 
     // 404 NOT FOUND

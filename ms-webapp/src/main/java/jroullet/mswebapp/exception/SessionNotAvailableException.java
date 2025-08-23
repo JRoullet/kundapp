@@ -3,7 +3,7 @@ package jroullet.mswebapp.exception;
 import lombok.Getter;
 
 @Getter
-public class SessionNotAvailableException extends RuntimeException {
+public class SessionNotAvailableException extends SessionValidationException {
     private final Long sessionId;
     private final Integer currentParticipants;
     private final Integer maxCapacity;
@@ -14,5 +14,10 @@ public class SessionNotAvailableException extends RuntimeException {
         this.sessionId = sessionId;
         this.currentParticipants = currentParticipants;
         this.maxCapacity = maxCapacity;
+    }
+
+    @Override
+    public String getUserMessage() {
+        return "Session complète ou indisponible";
     }
 }

@@ -1,6 +1,6 @@
 package jroullet.mswebapp.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
+import feign.FeignException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jroullet.mswebapp.auth.AuthRequestDTO;
@@ -8,14 +8,10 @@ import jroullet.mswebapp.auth.RegisterRequestDTO;
 import jroullet.mswebapp.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.Map;
 
 /**
  * Controller for handling user authentication and registration.
@@ -62,18 +58,31 @@ public class AuthenticationRegistrationController {
         logger.info("processSignUp() called");
 
         if (result.hasErrors()) {
+            logger.warn("Validation errors in signup form: {}", result.getAllErrors());
             return new ModelAndView("signup", "signupform", form);
         }
 
         try {
             userService.registration(form);
-            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please sign in.");
+            redirectAttributes.addFlashAttribute("successMessage", "Enregistrement réussi!");
             return new ModelAndView("redirect:/signin");
+        } catch (FeignException e) {
+            logger.error("FeignException during signup: HTTP {}, Message: {}", e.status(), e.getMessage());
+
+            String errorMessage = switch (e.status()) {
+                case 409 -> "Impossible d'enregistrer : email déjà utilisé";
+                case 403 -> "Rôle non autorisé pour l'inscription";
+                case 404 -> "Service d'inscription indisponible";
+                case 400 -> "Données d'inscription invalides";
+                default -> "Erreur lors de l'inscription";
+            };
+            redirectAttributes.addFlashAttribute("authError", errorMessage);
+
         } catch (RuntimeException e) {
-            logger.error("Registration failed: ", e);
+            logger.error("Unexpected error during signup: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("authError", e.getMessage());
-            return new ModelAndView("redirect:/signin");
         }
+        return new ModelAndView("redirect:/signin");
     }
 
 }

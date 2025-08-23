@@ -7,7 +7,6 @@
   <link th:href="@{/css/index.css}" rel="stylesheet"/>
 </head>
 <body class="signin-form">
-
 <section class="vh-100 d-flex align-items-center">
   <div class="container">
     <div class="row justify-content-center">
@@ -21,9 +20,12 @@
 
             <h1 class="text-center h3 mb-4 fw-bold">Connexion</h1>
 
-            <!-- Messages d'erreur d'authentification -->
+            <!-- Messages d'erreur et de succès -->
             <div th:if="${authError}" class="alert alert-danger alert-dismissible fade show" role="alert">
               <span th:text="${authError}"></span>
+            </div>
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+              <span th:text="${successMessage}"></span>
             </div>
             <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
               <span>Vous avez été déconnecté avec succès</span>
@@ -44,9 +46,6 @@
                        required
                        autofocus>
                 <label for="email">Email</label>
-                <div class="invalid-feedback">
-                  Veuillez saisir votre email
-                </div>
               </div>
 
               <div class="form-floating mb-4">
@@ -57,9 +56,6 @@
                        placeholder="Mot de passe"
                        required>
                 <label for="password">Mot de passe</label>
-                <div class="invalid-feedback">
-                  Veuillez saisir votre mot de passe
-                </div>
               </div>
 
               <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
@@ -79,74 +75,6 @@
   </div>
 </section>
 
-<script>
-  (() => {
-    'use strict';
-
-    // Retrieving saved email (for tests)
-    const emailInput = document.getElementById('email');
-    const savedEmail = localStorage.getItem('lastEmail');
-
-    if (savedEmail) {
-      emailInput.value = savedEmail;
-    }
-
-    const form = document.querySelector('.needs-validation');
-    let formSubmitted = false;
-
-    // Validation at submit
-    form.addEventListener('submit', event => {
-      // Save email
-      localStorage.setItem('lastEmail', emailInput.value);
-
-      // Validation only at submit
-      if (!form.checkValidity()) {
-        event.preventDefault();
-        event.stopPropagation();
-        form.classList.add('was-validated');
-      }
-
-      formSubmitted = true;
-    });
-
-    // Visual validation (green/red)
-    const inputs = form.querySelectorAll('.form-control');
-    inputs.forEach(input => {
-      input.addEventListener('blur', function() {
-        if (formSubmitted || this.value) {
-          if (this.checkValidity()) {
-            this.classList.add('is-valid');
-            this.classList.remove('is-invalid');
-          } else {
-            this.classList.add('is-invalid');
-            this.classList.remove('is-valid');
-          }
-        }
-      });
-
-      input.addEventListener('input', function() {
-        if (formSubmitted || this.classList.contains('is-valid') || this.classList.contains('is-invalid')) {
-          if (this.checkValidity()) {
-            this.classList.add('is-valid');
-            this.classList.remove('is-invalid');
-          } else {
-            this.classList.add('is-invalid');
-            this.classList.remove('is-valid');
-          }
-        }
-      });
-    });
-
-    // Mask alerts after 3 seconds
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-      setTimeout(() => {
-        // alert.classList.remove('show');
-        setTimeout(() => alert.remove(), 500);
-      }, 3000);
-    });
-  })();
-</script>
-
+<script th:src="@{/js/signin_signup.js}"></script>
 </body>
 </html>

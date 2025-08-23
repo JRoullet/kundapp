@@ -108,10 +108,6 @@ public class SessionImplService implements SessionService {
 
     @Override
     public List<SessionWithParticipantsDTO> getHistorySessionsByTeacher(Long teacherId) {
-
-        // Update completed sessions before fetching all sessions
-        sessionJobManagement.updateCompletedSessions();
-
         return sessionRepository.findByTeacherIdOrderByStartDateTimeDesc(teacherId)
                 .stream()
                 .filter(session -> session.getStatus() != SessionStatus.SCHEDULED)
@@ -180,6 +176,8 @@ public class SessionImplService implements SessionService {
     @Override
     public List<SessionNoParticipantsDTO> getAvailableSessionsForClient() {
         LocalDateTime now = LocalDateTime.now();
+
+        sessionJobManagement.updateCompletedSessions();
 
         List<Session> sessions = sessionRepository
                 .findByStatusOrderByStartDateTimeAsc(SessionStatus.SCHEDULED)

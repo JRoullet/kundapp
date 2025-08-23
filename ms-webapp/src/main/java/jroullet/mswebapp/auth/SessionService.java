@@ -57,13 +57,4 @@ public class SessionService {
         }
 
     }
-
-    public void clearCurrentUser() {
-        request.getSession().removeAttribute("currentUserDTO");
-    }
-
-    public UserDTO refreshCurrentUser() {
-        clearCurrentUser();
-        return getCurrentUser();
-    }
 }

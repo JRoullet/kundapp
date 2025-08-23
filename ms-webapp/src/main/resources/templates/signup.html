@@ -5,18 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Sign up for Kundapp - Your Digital Wellness Solution">
     <title>S'inscrire | Kundapp</title>
-
-    <!-- CSS Dependencies -->
     <link th:href="@{/css/mdb.min.css?v=1}" rel="stylesheet">
     <link th:href="@{/css/index.css?v=1}" rel="stylesheet">
 </head>
-
 <body class="signup-form">
-<!-- Éléments d'énergie flottants -->
-<div class="floating-energy energy-1"></div>
-<div class="floating-energy energy-2"></div>
-<div class="floating-energy energy-3"></div>
-
 <section class="vh-100 d-flex align-items-center">
     <div class="container">
         <div class="row justify-content-center">
@@ -31,17 +23,17 @@
                         <h1 class="text-center h3 mb-4 fw-bold">Créer votre compte</h1>
                         <p class="text-center text-muted mb-4">Rejoignez notre communauté d'énergie positive</p>
 
+                        <!-- Messages d'erreur -->
+                        <div th:if="${authError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${authError}"></span>
+                        </div>
+
                         <!-- Sign-up Form -->
                         <form th:action="@{/signup}"
                               th:object="${signupform}"
                               method="POST"
                               class="needs-validation"
                               novalidate>
-
-                            <!-- Messages d'erreur globaux -->
-                            <div th:if="${authError}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <span th:text="${authError}"></span>
-                            </div>
 
                             <!-- First Name and Last Name in one row -->
                             <div class="row mb-3">
@@ -84,9 +76,6 @@
                                        placeholder="Email"
                                        required>
                                 <label for="email">Email</label>
-                                <div class="invalid-feedback">
-                                    Veuillez saisir une adresse email valide
-                                </div>
                             </div>
 
                             <!-- Password -->
@@ -100,9 +89,6 @@
                                        pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
                                        title="Le mot de passe doit contenir au moins 8 caractères, dont une majuscule, un chiffre et un symbole (@$!%*?&)">
                                 <label for="password">Mot de passe</label>
-                                <div class="invalid-feedback">
-                                    Le mot de passe doit contenir au moins 8 caractères, dont une majuscule, un chiffre et un symbole (@$!%*?&)
-                                </div>
                             </div>
 
                             <!-- Confirm Password -->
@@ -113,9 +99,6 @@
                                        placeholder="Confirmer le mot de passe"
                                        required>
                                 <label for="confirmPassword">Confirmer le mot de passe</label>
-                                <div class="invalid-feedback">
-                                    Les mots de passe ne correspondent pas
-                                </div>
                             </div>
 
                             <!-- Submit Button -->
@@ -140,116 +123,6 @@
     </div>
 </section>
 
-<!-- Scripts -->
-<script>
-    // Form validation
-    (() => {
-        'use strict';
-
-        const form = document.querySelector('.needs-validation');
-        let formSubmitted = false;
-
-        // Validation lors de la soumission
-        form.addEventListener('submit', event => {
-            // Check password confirmation
-            const password = document.getElementById('password');
-            const confirmPassword = document.getElementById('confirmPassword');
-
-            if (password.value !== confirmPassword.value) {
-                confirmPassword.setCustomValidity('Les mots de passe ne correspondent pas');
-            } else {
-                confirmPassword.setCustomValidity('');
-            }
-
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-                form.classList.add('was-validated');
-            }
-
-            formSubmitted = true;
-        });
-
-        // Real-time password validation
-        const password = document.getElementById('password');
-        const confirmPassword = document.getElementById('confirmPassword');
-
-        function validatePassword() {
-            const passwordValue = password.value;
-            const pattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-            if (!pattern.test(passwordValue)) {
-                password.setCustomValidity('Le mot de passe doit contenir au moins 8 caractères, dont une majuscule, un chiffre et un symbole (@$!%*?&)');
-            } else {
-                password.setCustomValidity('');
-            }
-
-            // Si on a déjà essayé de soumettre ou si le champ a une valeur
-            if (formSubmitted || password.value) {
-                if (password.checkValidity()) {
-                    password.classList.add('is-valid');
-                    password.classList.remove('is-invalid');
-                } else {
-                    password.classList.add('is-invalid');
-                    password.classList.remove('is-valid');
-                }
-            }
-        }
-
-        function checkPasswordMatch() {
-            if (confirmPassword.value && password.value !== confirmPassword.value) {
-                confirmPassword.setCustomValidity('Les mots de passe ne correspondent pas');
-            } else {
-                confirmPassword.setCustomValidity('');
-            }
-
-            // Si on a déjà essayé de soumettre ou si le champ a une valeur
-            if (formSubmitted || confirmPassword.value) {
-                if (confirmPassword.checkValidity()) {
-                    confirmPassword.classList.add('is-valid');
-                    confirmPassword.classList.remove('is-invalid');
-                } else {
-                    confirmPassword.classList.add('is-invalid');
-                    confirmPassword.classList.remove('is-valid');
-                }
-            }
-        }
-
-        // Add real-time validation
-        password.addEventListener('input', validatePassword);
-        confirmPassword.addEventListener('input', checkPasswordMatch);
-
-        // Validation individuelle des champs
-        const inputs = form.querySelectorAll('.form-control');
-        inputs.forEach(input => {
-            // Skip password fields as they have their own handlers
-            if (input.id === 'password' || input.id === 'confirmPassword') return;
-
-            input.addEventListener('blur', function() {
-                if (formSubmitted || this.value) {
-                    if (this.checkValidity()) {
-                        this.classList.add('is-valid');
-                        this.classList.remove('is-invalid');
-                    } else {
-                        this.classList.add('is-invalid');
-                        this.classList.remove('is-valid');
-                    }
-                }
-            });
-
-            input.addEventListener('input', function() {
-                if (formSubmitted || this.classList.contains('is-valid') || this.classList.contains('is-invalid')) {
-                    if (this.checkValidity()) {
-                        this.classList.add('is-valid');
-                        this.classList.remove('is-invalid');
-                    } else {
-                        this.classList.add('is-invalid');
-                        this.classList.remove('is-valid');
-                    }
-                }
-            });
-        });
-    })();
-</script>
+<script th:src="@{/js/signin_signup.js}"></script>
 </body>
 </html>

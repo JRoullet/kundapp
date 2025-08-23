@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RegisterResponseDTO {
     private Long id;
+    private String firstName;
+    private String lastName;
     private String email;
     private String role;
 }

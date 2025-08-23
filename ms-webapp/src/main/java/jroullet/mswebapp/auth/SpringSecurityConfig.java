@@ -48,7 +48,7 @@ public class SpringSecurityConfig {
                         .ignoringRequestMatchers("/signup", "/signin") // Désactive CSRF pour ces endpoints
                 )
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/signin", "/signup", "/static/**", "/error", "/css/**", "/images/**")
+                        .requestMatchers("/signin", "/signup", "/static/**", "/error", "/css/**", "/images/**", "/js/signin_signup.js") // public routes
                         .permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/client/**").hasAnyRole("CLIENT")

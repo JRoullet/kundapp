@@ -1,5 +1,6 @@
 package jroullet.mswebapp.service;
 
+import feign.FeignException;
 import jroullet.mswebapp.auth.RegisterRequestDTO;
 import jroullet.mswebapp.auth.RegisterResponseDTO;
 import jroullet.mswebapp.clients.IdentityFeignClient;
@@ -28,10 +29,18 @@ public class UserService {
             // ms-identity management
             RegisterResponseDTO savedUser = identityFeignClient.registerUser(form).getBody();
             assert savedUser != null;
-            logger.info("User successfully registered: {}", savedUser.getEmail());
+            logger.info("User successfully registered: " +
+                    "firstName: {}," +
+                    "lastName: {}," +
+                    "role : {}," +
+                    "email : {}", savedUser.getFirstName(), savedUser.getLastName(),savedUser.getRole(), savedUser.getEmail());
+        } catch (FeignException e) {
+            logger.error("FeignException during registration for email: {}, HTTP: {}, Message: {}",
+                    form.getEmail(), e.status(), e.getMessage());
+            throw e; // transfers feign exception as it is, to controller
         } catch (Exception e) {
-            logger.error("Error during registration: {}", form.getEmail(), e);
-            throw new RuntimeException("Registration failed: " + e.getMessage());
+            logger.error("Unexpected error during registration for email: {}", form.getEmail(), e);
+            throw new RuntimeException("Erreur technique lors de l'inscription", e);
         }
     }
 

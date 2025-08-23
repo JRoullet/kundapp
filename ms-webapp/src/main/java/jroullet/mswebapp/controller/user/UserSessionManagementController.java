@@ -2,8 +2,11 @@ package jroullet.mswebapp.controller.user;
 
 import feign.FeignException;
 import jroullet.mswebapp.dto.session.SessionNoParticipantsDTO;
+import jroullet.mswebapp.exception.InsufficientCreditsException;
+import jroullet.mswebapp.exception.SessionValidationException;
 import jroullet.mswebapp.service.SessionManagementService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +18,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/client/sessions")
 @RequiredArgsConstructor
-
+@Slf4j
 public class UserSessionManagementController {
 
     private final SessionManagementService sessionManagementService;
@@ -53,11 +56,18 @@ public class UserSessionManagementController {
             redirectAttributes.addFlashAttribute("creditsOperation", "registration");
             redirectAttributes.addFlashAttribute("newCredits", newCredits);
 
+            //Catch local exceptions for user feedback
+        } catch (SessionValidationException e) {
+            log.error("Session validation error: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", e.getUserMessage());
+            // Catch Feign Exceptions
         } catch (FeignException e) {
             String errorMessage = switch (e.status()) {
-                case 409 -> "Inscription impossible : vous êtes déjà inscrit ou la session est complète";
+                case 409 -> "Inscription impossible : vous êtes déjà inscrit";
+                case 422 -> "Crédits insuffisants pour vous inscrire, paiement requis";
+                case 423 -> "Session complète : plus de places disponibles";
                 case 404 -> "Session introuvable";
-                case 403 -> "Vous n'avez pas l'autorisation d'accéder à cette session";
+                case 403 -> "Accès non autorisé à cette session";
                 case 400 -> "Données d'inscription invalides";
                 default -> "Erreur lors de l'inscription";
             };
@@ -71,7 +81,7 @@ public class UserSessionManagementController {
     }
 
     /**
-     * Unregister current user from a session - Thymeleaf form POST
+     * Unregister current user from a session
      */
     @PostMapping("/{sessionId}/unregister")
     public ModelAndView unregisterFromSession(@PathVariable Long sessionId,

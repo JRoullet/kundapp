@@ -105,8 +105,6 @@ services:
     environment:
       SPRING_DATASOURCE_URL: ${DATABASE_URL}
       APP_INTERNAL_SECRET: ${INTERNAL_SECRET}
-      TZ: UTC
-      JAVA_OPTS: -Duser.timezone=UTC
     extends:
       file: common-config.yml
       service: microservice-discovery-config
@@ -137,8 +135,6 @@ services:
     environment:
       SPRING_DATASOURCE_URL: ${DATABASE_COURSE_URL}
       APP_INTERNAL_SECRET: ${INTERNAL_SECRET} # Not used yet
-      TZ: UTC
-      JAVA_OPTS: -Duser.timezone=UTC
     extends:
       file: common-config.yml
       service: microservice-discovery-config

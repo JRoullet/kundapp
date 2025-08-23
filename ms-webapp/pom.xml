@@ -162,17 +162,9 @@
                     </to>
                     <container>
                         <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
-                        <ports>
-                            <port>8443</port>  <!-- HTTPS -->
-                        </ports>
                         <environment>
-                            <TZ>UTC</TZ>
                             <SPRING_PROFILES_ACTIVE>docker</SPRING_PROFILES_ACTIVE>
                         </environment>
-                        <jvmFlags>
-                            <jvmFlag>-Duser.timezone=UTC</jvmFlag>
-                            <jvmFlag>-Dfile.encoding=UTF-8</jvmFlag>
-                        </jvmFlags>
                     </container>
                 </configuration>
             </plugin>

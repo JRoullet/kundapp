@@ -1,5 +1,6 @@
 package jroullet.msidentity.auth;
 
+import jroullet.msidentity.exception.EmailAlreadyExistsException;
 import jroullet.msidentity.exception.UserAlreadyExistsException;
 import jroullet.msidentity.model.Role;
 import jroullet.msidentity.model.User;
@@ -48,18 +49,18 @@ public class AuthService {
     public User registerUser(RegisterRequestDTO registerRequestDTO) {
         // check email existence
         if (userRepository.findByEmail(registerRequestDTO.getEmail()).isPresent()) {
-            throw new UserAlreadyExistsException("User already exists");
+            throw new EmailAlreadyExistsException("User's email already exists");
         }
 
         // create new user
         User newUser = new User();
+
         newUser.setEmail(registerRequestDTO.getEmail());
-
-        // encode password
-        newUser.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword()));
-
-        // define default role
+        newUser.setPassword(passwordEncoder.encode(registerRequestDTO.getPassword())); // encode password
+        newUser.setFirstName(registerRequestDTO.getFirstName());
+        newUser.setLastName(registerRequestDTO.getLastName());
         newUser.setRole(Role.CLIENT);
+        newUser.setCredits(0); // default credits
 
         // save
         return userRepository.save(newUser);

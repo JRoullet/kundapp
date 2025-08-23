@@ -41,28 +41,20 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> registerUser(@RequestBody RegisterRequestDTO request) {
-        try {
             // AuthService manages logic
             User savedUser = authService.registerUser(request);
 
             RegisterResponseDTO registerResponseDTO = RegisterResponseDTO
                     .builder()
                     .id(savedUser.getId())
+                    .firstName(savedUser.getFirstName())
+                    .lastName(savedUser.getLastName())
                     .email(savedUser.getEmail())
                     .role(savedUser.getRole().toString())
                     .build();
 
             return ResponseEntity.ok(registerResponseDTO);
-
-        } catch (UserAlreadyExistsException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(null);
-
-        } catch (Exception e) {
-            logger.error("Error during registration", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
-        }
+            //MODIFS
     }
 
 }

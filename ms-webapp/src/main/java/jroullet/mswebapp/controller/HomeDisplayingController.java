@@ -1,5 +1,6 @@
 package jroullet.mswebapp.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jroullet.mswebapp.auth.SessionService;
 import jroullet.mswebapp.clients.IdentityFeignClient;
 import jroullet.mswebapp.dto.session.SessionNoParticipantsDTO;
@@ -9,6 +10,7 @@ import jroullet.mswebapp.service.SessionManagementService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,6 +78,11 @@ public class HomeDisplayingController {
 
 
         return new ModelAndView("home-teacher");
+    }
+
+    @GetMapping("/favicon.ico")
+    public void favicon(HttpServletResponse response) {
+        response.setStatus(HttpStatus.NO_CONTENT.value());
     }
 
 }

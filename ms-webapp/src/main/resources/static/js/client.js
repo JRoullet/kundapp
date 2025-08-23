@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleCreditsAnimation() {
     const creditsOperationMeta = document.querySelector('meta[name="credits-operation"]');
     const newCreditsMeta = document.querySelector('meta[name="new-credits"]');
+    const successMeta = document.querySelector('meta[name="app-success"]');
+    const errorMeta = document.querySelector('meta[name="app-error"]');
+
+    const creditsCountElement = document.getElementById('creditsCount');
+    if (!creditsCountElement) return;
 
     if (creditsOperationMeta && creditsOperationMeta.content) {
         const operation = creditsOperationMeta.content;
@@ -24,13 +29,12 @@ function handleCreditsAnimation() {
 
         console.log(`Credits operation detected: ${operation}, newCredits: ${newCredits}`);
 
-        //Value
-        if (newCredits !== null) {
-            const creditsCountElement = document.getElementById('creditsCount');
-            if (creditsCountElement) {
-                creditsCountElement.textContent = newCredits;
-                console.log(`Credits value updated to: ${newCredits}`);
-            }
+        //Verify newCredits is a valid number before proceeding
+        if(errorMeta){
+            console.log("Detected error -> rollback to :", stable);
+        } else if (successMeta && Number.isFinite(newCredits)) {
+            creditsCountElement.textContent = newCredits;
+            console.log(`Credits value updated to: ${newCredits}`);
         }
     }
 }
