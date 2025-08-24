@@ -29,7 +29,10 @@ public class CreditServiceTest {
     private static final Long SESSION_ID = 2L;
     private static final Integer CREDITS = 1;
 
-    // Only testing that the service calls the feign client and returns its response, request is
+    /** Test the deductCredits method of CreditService
+     * It should call the Feign client and return the response
+     *
+     */
     @Test
     void deductCreditsTest_shouldReturnFeignClientResponse() {
         // Given
