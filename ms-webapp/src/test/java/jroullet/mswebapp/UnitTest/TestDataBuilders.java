@@ -1,5 +1,7 @@
 package jroullet.mswebapp.UnitTest;
 
+import jroullet.mswebapp.auth.RegisterRequestDTO;
+import jroullet.mswebapp.auth.RegisterResponseDTO;
 import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
 import jroullet.mswebapp.dto.user.UserDTO;
 import jroullet.mswebapp.dto.user.UserParticipantDTO;
@@ -160,6 +162,25 @@ public class TestDataBuilders {
         return session;
     }
 
+
+    public static RegisterRequestDTO createRegisterRequest() {
+        RegisterRequestDTO request = new RegisterRequestDTO();
+        request.setEmail("some email");
+        request.setFirstName("some firstname");
+        request.setLastName("some lastname");
+        request.setPassword("some password");
+        return request;
+    }
+
+    public static RegisterResponseDTO createRegisterResponse() {
+        RegisterResponseDTO response = new RegisterResponseDTO();
+        response.setId(DEFAULT_USER_ID);
+        response.setEmail("some email");
+        response.setFirstName("some firstname");
+        response.setLastName("some lastname");
+        response.setRole("CLIENT");
+        return response;
+    }
     /**
      * Setup NotificationService with internal secret for testing
      */

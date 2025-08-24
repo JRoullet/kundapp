@@ -34,7 +34,7 @@ public class CreditServiceTest {
      *
      */
     @Test
-    void deductCreditsTest_shouldReturnFeignClientResponse() {
+    void deductCreditsSuccess_shouldReturnFeignClientResponseTest() {
         // Given
         CreditOperationResponse mockResponse = new CreditOperationResponse(
                 USER_ID, 5, 4, "DEDUCT", SESSION_ID
@@ -51,7 +51,7 @@ public class CreditServiceTest {
     }
 
     @Test
-    void refundCreditsTest_shouldCallFeignClient() {
+    void refundCreditsSuccess_shouldCallFeignClientTest() {
         // Given
         CreditOperationResponse mockResponse = new CreditOperationResponse(
                 USER_ID, 4, 5, "REFUND", SESSION_ID
@@ -68,7 +68,7 @@ public class CreditServiceTest {
     }
 
     @Test
-    void batchRefundCreditsTest_shouldCallFeignClient() {
+    void batchRefundCreditsSuccess_shouldCallFeignClientTest() {
         // Given
         List<Long> participantIds = List.of(1L, 2L);
 
@@ -80,7 +80,7 @@ public class CreditServiceTest {
     }
 
     @Test
-    void batchRollbackCreditsTest_shouldCallFeignClient() {
+    void batchRollbackCreditsSuccess_shouldCallFeignClientTest() {
         // Given
         List<Long> participantIds = List.of(1L, 2L);
 

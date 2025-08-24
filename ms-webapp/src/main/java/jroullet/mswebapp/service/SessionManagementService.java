@@ -3,6 +3,7 @@ package jroullet.mswebapp.service;
 import feign.FeignException;
 import jroullet.mswebapp.auth.SessionService;
 import jroullet.mswebapp.clients.CourseManagementFeignClient;
+import jroullet.mswebapp.clients.IdentityFeignClient;
 import jroullet.mswebapp.dto.session.SessionCancelDTO;
 import jroullet.mswebapp.dto.session.SessionNoParticipantsDTO;
 import jroullet.mswebapp.dto.session.SessionUpdateDTO;
@@ -33,11 +34,11 @@ import java.util.stream.Collectors;
 public class SessionManagementService {
 
     private final CourseManagementFeignClient courseFeignClient;
+    private final IdentityFeignClient identityFeignClient;
     private final SessionService sessionService;
     private final CreditService creditService;
     private final NotificationService notificationService;
     private final ValidationService validationService;
-    private final UserService userService;
 
 
     /**
@@ -202,7 +203,7 @@ public class SessionManagementService {
             return Collections.emptyList();
         }
 
-        return userService.getParticipantsByIdsForTeacher(session.getParticipantIds());
+        return identityFeignClient.getParticipantsByIdsForTeacher(session.getParticipantIds());
     }
 
 
@@ -219,7 +220,7 @@ public class SessionManagementService {
         if (session.getParticipantIds().isEmpty()) {
             return Collections.emptyList();
         }
-        return userService.getUsersByIds(session.getParticipantIds());
+        return identityFeignClient.getUsersByIds(session.getParticipantIds());
     }
     /**
      * Cancel session by admin with automatic participant refund

@@ -38,7 +38,7 @@ public class ValidationServiceTest {
      * - should throw InsufficientCreditsException when not enough credits
      */
     @Test
-    void validateUserHasSufficientCreditsTest_shouldPassWhenUserHasEnoughCredits() {
+    void validateUserHasSufficientCreditsSuccess_shouldPassWhenUserHasEnoughCreditsTest() {
         // Given
         UserDTO user = createUserDTOTestUser(USER_ID, SUFFICIENT_CREDITS);
 
@@ -49,7 +49,7 @@ public class ValidationServiceTest {
     }
 
     @Test
-    void validateUserHasSufficientCreditsTest_shouldThrowExceptionWhenInsufficientCredits() {
+    void validateUserHasSufficientCredits_shouldThrowExceptionWhenInsufficientCreditsTest() {
         // Given
         UserDTO user = createUserDTOTestUser(USER_ID, INSUFFICIENT_CREDITS);
 
@@ -69,7 +69,7 @@ public class ValidationServiceTest {
      * - should throw SessionNotAvailableException when session is full
      */
     @Test
-    void validateSessionAvailabilityTest_shouldPassWhenSessionHasSpots() {
+    void validateSessionAvailabilitySuccess_shouldPassWhenSessionHasSpotsTest() {
         // Given
         SessionWithParticipantsDTO session = createSessionWithParticipantsDTOWithANumberOfParticipants(2, 5);
 
@@ -80,7 +80,7 @@ public class ValidationServiceTest {
     }
 
     @Test
-    void validateSessionAvailabilityTest_shouldThrowExceptionWhenSessionIsFull() {
+    void validateSessionAvailability_shouldThrowExceptionWhenSessionIsFullTest() {
         // Given
         SessionWithParticipantsDTO session = createSessionWithParticipantsDTOWithANumberOfParticipants(5, 5); // 5 participants, 5 spots
 
@@ -100,7 +100,7 @@ public class ValidationServiceTest {
      * - should throw UserAlreadyRegisteredException when user is already registered
      */
     @Test
-    void validateUserNotAlreadyRegisteredTest_shouldPassWhenUserNotRegistered() {
+    void validateUserNotAlreadyRegisteredSuccess_shouldPassWhenUserNotRegisteredTest() {
         // Given
         SessionWithParticipantsDTO session = createSessionWithParticipantsDTOWithSpecificParticipantsNoArguments();
 
@@ -111,7 +111,7 @@ public class ValidationServiceTest {
     }
 
     @Test
-    void validateUserNotAlreadyRegisteredTest_shouldThrowExceptionWhenUserAlreadyRegistered() {
+    void validateUserNotAlreadyRegistered_shouldThrowExceptionWhenUserAlreadyRegisteredTest() {
         // Given
         SessionWithParticipantsDTO session = createSessionWithParticipantsDTOWithSpecificParticipants(List.of(USER_ID, 2L, 3L));
 
@@ -130,7 +130,7 @@ public class ValidationServiceTest {
      * - should throw UnauthorizedSessionAccessException when teacher does not own the session
      */
     @Test
-    void validateSessionOwnershipTest_shouldPassWhenTeacherOwnsSession() {
+    void validateSessionOwnershipSuccess_shouldPassWhenTeacherOwnsSessionTest() {
         // Given
         SessionWithParticipantsDTO session = createSessionWithParticipantsDTOWithTeacher(TEACHER_ID);
 
@@ -141,7 +141,7 @@ public class ValidationServiceTest {
     }
 
     @Test
-    void validateSessionOwnershipTest_shouldThrowExceptionWhenTeacherDoesNotOwnSession() {
+    void validateSessionOwnership_shouldThrowExceptionWhenTeacherDoesNotOwnSessionTest() {
         // Given
         Long otherTeacherId = 111L;
         SessionWithParticipantsDTO session = createSessionWithParticipantsDTOWithTeacher(TEACHER_ID);
@@ -163,7 +163,7 @@ public class ValidationServiceTest {
      * - roomName (if not isOnline)
      */
     @Test
-    void hasSignificantChangesTest_shouldReturnFalseWhenNoChanges() {
+    void hasSignificantChanges_shouldReturnFalseWhenNoChangesTest() {
         // Given
         SessionWithParticipantsDTO original = createSessionWithNoParticipantsDTOBaseSession();
         SessionWithParticipantsDTO updated = createSessionWithNoParticipantsDTOBaseSession();
@@ -173,7 +173,7 @@ public class ValidationServiceTest {
     }
 
     @Test
-    void hasSignificantChangesTest_shouldReturnTrueWhenStartDateTimeChanged() {
+    void hasSignificantChanges_shouldReturnTrueWhenStartDateTimeChangedTest() {
         // Given
         SessionWithParticipantsDTO original = createSessionWithNoParticipantsDTOBaseSession();
         SessionWithParticipantsDTO updated = createSessionWithNoParticipantsDTOBaseSession();
@@ -184,7 +184,7 @@ public class ValidationServiceTest {
     }
 
     @Test
-    void hasSignificantChangesTest_shouldReturnTrueWhenDescriptionChanged() {
+    void hasSignificantChanges_shouldReturnTrueWhenDescriptionChangedTest() {
         // Given
         SessionWithParticipantsDTO original = createSessionWithNoParticipantsDTOBaseSession();
         SessionWithParticipantsDTO updated = createSessionWithNoParticipantsDTOBaseSession();
@@ -195,7 +195,7 @@ public class ValidationServiceTest {
     }
 
     @Test
-    void hasSignificantChangesTest_shouldReturnTrueWhenOnlineModeChanged() {
+    void hasSignificantChanges_shouldReturnTrueWhenOnlineModeChangedTest() {
         // Given
         SessionWithParticipantsDTO original = createSessionWithNoParticipantsDTOBaseSession();
         original.setIsOnline(true);
@@ -207,7 +207,7 @@ public class ValidationServiceTest {
     }
 
     @Test
-    void hasSignificantChangesTest_shouldReturnTrueWhenZoomLinkChangedForOnlineSession() {
+    void hasSignificantChanges_shouldReturnTrueWhenZoomLinkChangedForOnlineSessionTest() {
         // Given
         SessionWithParticipantsDTO original = createSessionWithParticipantsDTOOnlineSession("https://zoom.us/old");
         SessionWithParticipantsDTO updated = createSessionWithParticipantsDTOOnlineSession("https://zoom.us/new");
@@ -217,7 +217,7 @@ public class ValidationServiceTest {
     }
 
     @Test
-    void hasSignificantChangesTest_shouldReturnTrueWhenRoomNameChangedForOfflineSession() {
+    void hasSignificantChanges_shouldReturnTrueWhenRoomNameChangedForOfflineSessionTest() {
         // Given
         SessionWithParticipantsDTO original = createSessionWithParticipantsDTOOfflineSession("Old Room");
         SessionWithParticipantsDTO updated = createSessionWithParticipantsDTOOfflineSession("New Room");
