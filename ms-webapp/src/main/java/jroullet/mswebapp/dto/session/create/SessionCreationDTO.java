@@ -2,6 +2,7 @@ package jroullet.mswebapp.dto.session.create;
 
 import jakarta.validation.constraints.*;
 import jroullet.mswebapp.enums.Subject;
+import jroullet.mswebapp.validator.ValidSessionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ValidSessionType
 public class SessionCreationDTO {
 
     @NotNull(message = "Le sujet est obligatoire")
@@ -28,13 +30,9 @@ public class SessionCreationDTO {
     // IRL session fields
     private String roomName;
     private String postalCode;
-    @Pattern(regexp = "^https://(maps\\.google\\.(com|fr)|maps\\.app\\.goo\\.gl)/.*",
-            message = "Le lien doit être un lien Google Maps valide")
     private String googleMapsLink;
 
     // Online session fields
-    @Pattern(regexp = "^https://(.*\\.)?zoom\\.(us|com)/j/\\d+.*$",
-            message = "Le lien doit être un lien Zoom valide")
     private String zoomLink;
 
     // Session details

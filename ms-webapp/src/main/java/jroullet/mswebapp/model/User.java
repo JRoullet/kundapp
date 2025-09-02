@@ -52,23 +52,20 @@ public class User {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-//    @Column(name = "profile_picture")
-//    private String profilePicture; // URL or path to image
-
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    // Billing address - Relation OneToOne
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "address_id")
     private Address address;
 
-    @Column(name = "biography", length = 1000)
+    @Column(name = "biography")
     private String biography;
 
     @Column(name = "subscription_status")
     @Enumerated(EnumType.STRING)
     private SubscriptionStatus subscriptionStatus = SubscriptionStatus.NONE;
 
+    @Column(name = "credits")
     Integer credits;
 }

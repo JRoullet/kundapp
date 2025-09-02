@@ -25,7 +25,7 @@ public class SessionJobManagement {
 
     /**
      * Updates the status of sessions that have ended to 'COMPLETED'.
-     * This method should is called periodically (e.g., via a scheduled job).
+     * This method could be called periodically (e.g., via a scheduled cron job for improvement).
      */
     public void updateCompletedSessions() {
         LocalDateTime now = LocalDateTime.now();

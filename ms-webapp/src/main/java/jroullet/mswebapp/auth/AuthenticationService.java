@@ -25,7 +25,6 @@ public class AuthenticationService implements AuthenticationProvider {
 
     private final static Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
     private final IdentityFeignClient identityFeignClient;
-    private final HttpServletRequest request;
 
     //Consider it as a Post login form method
     @Override

@@ -25,7 +25,6 @@ public class SessionTeacherController {
     public ResponseEntity<SessionCreationResponseDTO> createSession(@Valid @RequestBody SessionCreationWithTeacherDTO dto) {
         log.info("Creating session for teacher: {} with subject: {}", dto.getTeacherId(), dto.getSubject());
 
-        // Plus besoin de try/catch - le GlobalExceptionHandler s'en charge
         SessionCreationResponseDTO createdSession = sessionService.createSession(dto);
         log.info("Session created successfully with ID: {}", createdSession.getSessionId());
 

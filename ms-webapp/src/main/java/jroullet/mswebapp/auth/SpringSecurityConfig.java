@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -45,11 +46,23 @@ public class SpringSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/signup", "/signin") // Désactive CSRF pour ces endpoints
+                        .ignoringRequestMatchers("/signup", "/signin")
                 )
+                // public routes
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/signin", "/signup", "/static/**", "/error", "/css/**", "/images/**", "/js/signin_signup.js") // public routes
+                        .requestMatchers("/signin",
+                                "/signup",
+                                "/static/**",
+                                "/error",
+                                "/css/**",
+                                "/images/**",
+                                "/js/signin_signup.js",
+                                "/v3/api-docs/**", //SWAGGER
+                                "/swagger-ui.html",
+                                "/swagger-ui/**"
+                                )
                         .permitAll()
+
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/client/**").hasAnyRole("CLIENT")
                         .requestMatchers("/teacher/**").hasAnyRole("TEACHER")

@@ -13,7 +13,6 @@ public class GlobalExceptionHandler {
     // code 409
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<String> handleEmailAlreadyExistsException(EmailAlreadyExistsException e) {
-        log.error("=== EMAIL ALREADY EXISTS HANDLER CALLED ===");
         log.error("Email already exists: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
@@ -28,7 +27,6 @@ public class GlobalExceptionHandler {
     // code 409
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<String> handleUserAlreadyExistsException(UserAlreadyExistsException e) {
-        log.error("=== USER ALREADY EXISTS HANDLER CALLED ===");
         log.error("User already exists : {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }

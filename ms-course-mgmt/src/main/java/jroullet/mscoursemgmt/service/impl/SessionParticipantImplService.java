@@ -34,7 +34,7 @@ public class SessionParticipantImplService implements SessionParticipantService 
         validateSessionNotFull(session);
         validateUserNotAlreadyRegistered(session, userId);
 
-        // Initialize participantIds if null (for existing sessions)
+        // Initialize participant list if null
         if (session.getParticipantIds() == null) {
             session.setParticipantIds(new ArrayList<>());
         }

@@ -53,17 +53,17 @@ public class User {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    // Billing address - Relation OneToOne
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "address_id")
     private Address address;
 
-    @Column(name = "biography", length = 1000)
+    @Column(name = "biography")
     private String biography;
 
     @Column(name = "subscription_status")
     @Enumerated(EnumType.STRING)
     private SubscriptionStatus subscriptionStatus = SubscriptionStatus.NONE;
 
+    @Column(name = "credits")
     Integer credits;
 }

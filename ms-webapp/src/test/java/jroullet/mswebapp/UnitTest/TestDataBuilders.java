@@ -2,7 +2,10 @@ package jroullet.mswebapp.UnitTest;
 
 import jroullet.mswebapp.auth.RegisterRequestDTO;
 import jroullet.mswebapp.auth.RegisterResponseDTO;
+import jroullet.mswebapp.dto.session.SessionUpdateDTO;
 import jroullet.mswebapp.dto.session.SessionWithParticipantsDTO;
+import jroullet.mswebapp.dto.session.create.SessionCreationDTO;
+import jroullet.mswebapp.dto.session.create.SessionCreationResponseDTO;
 import jroullet.mswebapp.dto.user.UserDTO;
 import jroullet.mswebapp.dto.user.UserParticipantDTO;
 import jroullet.mswebapp.enums.Role;
@@ -32,7 +35,7 @@ public class TestDataBuilders {
 
     public static UserDTO createUserDTOTestUser(Long id, Integer credits) {
         UserDTO user = new UserDTO();
-        user.setId(DEFAULT_USER_ID);
+        user.setId(id);
         user.setEmail("some email");
         user.setFirstName("some firstname");
         user.setLastName("some lastname");
@@ -162,6 +165,31 @@ public class TestDataBuilders {
         return session;
     }
 
+    public static SessionCreationDTO createSessionCreationDTO() {
+        SessionCreationDTO dto = new SessionCreationDTO();
+        SessionWithParticipantsDTO baseSession = createSessionWithNoParticipantsDTOBaseSession();
+        dto.setSubject(baseSession.getSubject());
+        dto.setDescription(baseSession.getDescription());
+        dto.setIsOnline(baseSession.getIsOnline());
+        dto.setStartDateTime(baseSession.getStartDateTime());
+        dto.setDurationMinutes(baseSession.getDurationMinutes());
+        dto.setCreditsRequired(baseSession.getCreditsRequired());
+        dto.setAvailableSpots(baseSession.getAvailableSpots());
+        return dto;
+    }
+
+    public static SessionUpdateDTO createSessionUpdateDTO() {
+        SessionUpdateDTO dto = new SessionUpdateDTO();
+        dto.setDescription("Updated description");
+        dto.setDurationMinutes(90);
+        return dto;
+    }
+
+    public static SessionCreationResponseDTO createSessionCreationResponseDTO() {
+        SessionCreationResponseDTO dto = new SessionCreationResponseDTO();
+        dto.setSessionId(DEFAULT_SESSION_ID);
+        return dto;
+    }
 
     public static RegisterRequestDTO createRegisterRequest() {
         RegisterRequestDTO request = new RegisterRequestDTO();
@@ -181,6 +209,12 @@ public class TestDataBuilders {
         response.setRole("CLIENT");
         return response;
     }
+
+
+
+
+
+
     /**
      * Setup NotificationService with internal secret for testing
      */

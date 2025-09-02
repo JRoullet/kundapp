@@ -54,7 +54,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void sendUserEnrolledNotificationsTest_shouldCallBothUserAndTeacherNotifications() {
+    void sendUserEnrolledNotifications_shouldCallBothUserAndTeacherNotificationsTest() {
         // Given
 
         when(identityFeignClient.getUserBasicInfo(USER_ID)).thenReturn(testUser);
@@ -70,7 +70,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void sendUserCancelledNotificationsTest_shouldCallBothUserAndTeacherNotifications() {
+    void sendUserCancelledNotifications_shouldCallBothUserAndTeacherNotificationsTest() {
         // Given
 
         when(identityFeignClient.getUserBasicInfo(USER_ID)).thenReturn(testUser);
@@ -86,7 +86,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void sendSessionCancelledNotificationsTest_shouldCallBulkAndTeacherNotifications() {
+    void sendSessionCancelledNotifications_shouldCallBulkAndTeacherNotificationsTest() {
         // Given
 
         List<UserParticipantDTO> participants = createUserParticipantDTOListTestUsers();
@@ -105,7 +105,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void sendSessionCancelledNotificationsTest_withNoParticipants_shouldOnlyNotifyTeacher() {
+    void sendSessionCancelledNotifications_withNoParticipants_shouldOnlyNotifyTeacherTest() {
         // Given
 
         when(identityFeignClient.getUserBasicInfo(TEACHER_ID)).thenReturn(testTeacher);
@@ -120,7 +120,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void sendSessionModifiedNotificationsTest_shouldCallBulkAndTeacherNotifications() {
+    void sendSessionModifiedNotifications_shouldCallBulkAndTeacherNotificationsTest() {
         // Given
 
         String modificationSummary = "Date et heure, Description";
@@ -140,7 +140,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void sendSessionCreatedNotificationTest_shouldCallTeacherNotification() {
+    void sendSessionCreatedNotification_shouldCallTeacherNotificationTest() {
         // Given
 
         when(identityFeignClient.getUserBasicInfo(TEACHER_ID)).thenReturn(testTeacher);
@@ -154,7 +154,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void sendSessionCompletedNotificationsTest_shouldCallBulkNotification() {
+    void sendSessionCompletedNotifications_shouldCallBulkNotificationTest() {
         // Given
 
         List<UserParticipantDTO> participants = createUserParticipantDTOListTestUsers();
@@ -171,7 +171,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void sendSessionCompletedNotificationsTest_withNoParticipants_shouldNotCallAnyNotification() {
+    void sendSessionCompletedNotifications_withNoParticipants_shouldNotCallAnyNotificationTest() {
         // Given
 
         // When
@@ -183,7 +183,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void buildModificationSummaryTest_withNoChanges_shouldReturnNull() {
+    void buildModificationSummary_withNoChanges_shouldReturnNullTest() {
         // Given
         SessionWithParticipantsDTO original = testSession;
         SessionWithParticipantsDTO updated = testSession;
@@ -196,7 +196,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void buildModificationSummaryTest_withChanges_shouldReturnCommaSeparatedString() {
+    void buildModificationSummary_withChanges_shouldReturnCommaSeparatedStringTest() {
         // Given
         SessionWithParticipantsDTO original = testSession;
         SessionWithParticipantsDTO updated = testSessionWithParticipants;
@@ -209,8 +209,5 @@ public class NotificationServiceTest {
         // Then
         assertEquals("Description, Durée", result);
     }
-
-
-
 
 }

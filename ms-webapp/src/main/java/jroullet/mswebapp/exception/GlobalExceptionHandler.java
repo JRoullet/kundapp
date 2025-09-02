@@ -1,6 +1,5 @@
 package jroullet.mswebapp.exception;
 
-import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +12,7 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
 
     public record ErrorResponse(String message, String errorCode, LocalDateTime timestamp, int status) {
         public ErrorResponse(String message, String errorCode, HttpStatus status) {
@@ -55,6 +55,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse("Critical system error", "ROLLBACK_FAILED", HttpStatus.INTERNAL_SERVER_ERROR);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+
     //code 404 for not found
     @ExceptionHandler(SessionNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleSessionNotFound(SessionNotFoundException ex) {
