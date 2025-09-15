@@ -24,16 +24,10 @@ public class SessionUpdateDTO {
     @NotNull(message = "Le type de session est obligatoire")
     private Boolean isOnline;
 
+    // Valid session type will ensure that the right fields are filled based on "isOnline" value
     private String roomName;
-
-    @Pattern(regexp = "^(0[1-9]|[1-8][0-9]|9[0-8])\\d{3}$",
-            message = "Le code postal doit contenir 5 chiffres")
     private String postalCode;
-
-    @Pattern(regexp = "^https://(maps\\.google\\.(com|fr)|maps\\.app\\.goo\\.gl)/.*",
-            message = "Le lien doit être un lien Google Maps valide")
     private String googleMapsLink;
-
     private String zoomLink;
 
     @NotNull(message = "Le nombre de places est obligatoire")

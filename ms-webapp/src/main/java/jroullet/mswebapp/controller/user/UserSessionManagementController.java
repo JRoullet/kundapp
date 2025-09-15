@@ -2,7 +2,6 @@ package jroullet.mswebapp.controller.user;
 
 import feign.FeignException;
 import jroullet.mswebapp.dto.session.SessionNoParticipantsDTO;
-import jroullet.mswebapp.exception.InsufficientCreditsException;
 import jroullet.mswebapp.exception.SessionValidationException;
 import jroullet.mswebapp.service.SessionManagementService;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +55,7 @@ public class UserSessionManagementController {
             redirectAttributes.addFlashAttribute("creditsOperation", "registration");
             redirectAttributes.addFlashAttribute("newCredits", newCredits);
 
+            return new ModelAndView("redirect:/client?tab=upcoming");
             //Catch local exceptions for user feedback
         } catch (SessionValidationException e) {
             log.error("Session validation error: {}", e.getMessage());
@@ -77,7 +77,7 @@ public class UserSessionManagementController {
             redirectAttributes.addFlashAttribute("error", "Erreur technique lors de l'inscription");
         }
 
-        return new ModelAndView("redirect:/client?tab=upcoming");
+        return new ModelAndView("redirect:/client?tab=available");
     }
 
     /**
