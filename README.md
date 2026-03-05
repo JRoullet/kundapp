@@ -1,3 +1,9 @@
+[![forthebadge](https://forthebadge.com/images/badges/made-with-java.svg)](https://forthebadge.com)
+![Spring](https://img.shields.io/badge/Spring-Framework-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-Build-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+
 # KundApp : Plateforme de Réservation de Sessions de bien-être
 
 KundApp est une application complète de gestion et de réservation de sessions de yoga, kundalini, pilates, méditation et soins énergétiques. Développée en architecture microservices, elle permet aux clients de s'inscrire à des sessions, aux teachers de créer et gérer leurs cours, et aux administrateurs de superviser l'ensemble de la plateforme.
